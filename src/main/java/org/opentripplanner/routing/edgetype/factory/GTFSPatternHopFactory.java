@@ -294,13 +294,13 @@ public class GTFSPatternHopFactory {
     private GtfsDao _dao;
 
     private CalendarService _calendarService;
-    
+
     private Map<ShapeSegmentKey, LineString> _geometriesByShapeSegmentKey = new HashMap<ShapeSegmentKey, LineString>();
 
     private Map<AgencyAndId, LineString> _geometriesByShapeId = new HashMap<AgencyAndId, LineString>();
 
     private Map<AgencyAndId, double[]> _distancesByShapeId = new HashMap<AgencyAndId, double[]>();
-    
+
     private FareServiceFactory fareServiceFactory;
 
     private Multimap<StopPattern, TripPattern> tripPatterns = HashMultimap.create();
@@ -619,10 +619,10 @@ public class GTFSPatternHopFactory {
      */
     private LineString[] createGeometry(Graph graph, Trip trip, List<StopTime> stopTimes) {
         AgencyAndId shapeId = trip.getShapeId();
-        
+
         // One less geometry than stoptime as array indexes represetn hops not stops (fencepost problem).
         LineString[] geoms = new LineString[stopTimes.size() - 1];
-        
+
         // Detect presence or absence of shape_dist_traveled on a per-trip basis
         StopTime st0 = stopTimes.get(0);
         boolean hasShapeDist = st0.isShapeDistTraveledSet();
@@ -768,7 +768,7 @@ public class GTFSPatternHopFactory {
             }
             geoms[i] = geometry;
         }
-        
+
         return geoms;
     }
 
@@ -810,12 +810,12 @@ public class GTFSPatternHopFactory {
      * Unsetting the arrival/departure time of clearly incorrect stoptimes will cause them to be
      * interpolated in the next step. Annotations are also added to the graph to reveal the problems
      * to the user.
-     * 
+     *
      * @param stopTimes the stoptimes to be filtered (from a single trip)
      * @param graph the graph where annotations will be registered
      */
     private void filterStopTimes(List<StopTime> stopTimes, Graph graph) {
-        
+
         if (stopTimes.size() < 2) return;
         StopTime st0 = stopTimes.get(0);
 
@@ -837,7 +837,7 @@ public class GTFSPatternHopFactory {
 
         /* Indicates that stop times in this trip are being shifted forward one day. */
         boolean midnightCrossed = false;
-        
+
         for (int i = 1; i < stopTimes.size(); i++) {
             boolean st1bogus = false;
             StopTime st1 = stopTimes.get(i);
@@ -858,12 +858,12 @@ public class GTFSPatternHopFactory {
             if (!st1.isDepartureTimeSet() && st1.isArrivalTimeSet()) {
                 st1.setDepartureTime(st1.getArrivalTime());
             }
-            /* Do not process (skip over) non-timepoint stoptimes, leaving them in place for interpolation. */ 
+            /* Do not process (skip over) non-timepoint stoptimes, leaving them in place for interpolation. */
             // All non-timepoint stoptimes in a series will have identical arrival and departure values of MISSING_VALUE.
             if ( ! (st1.isArrivalTimeSet() && st1.isDepartureTimeSet())) {
                 continue;
             }
-            int dwellTime = st0.getDepartureTime() - st0.getArrivalTime(); 
+            int dwellTime = st0.getDepartureTime() - st0.getArrivalTime();
             if (dwellTime < 0) {
                 LOG.warn(graph.addBuilderAnnotation(new NegativeDwellTime(st0)));
                 if (st0.getArrivalTime() > 23 * SECONDS_IN_HOUR && st0.getDepartureTime() < 1 * SECONDS_IN_HOUR) {
@@ -889,21 +889,21 @@ public class GTFSPatternHopFactory {
                    st0.getStop().getLat(), st0.getStop().getLon(),
                    st1.getStop().getLat(), st1.getStop().getLon());
             double hopSpeed = hopDistance/runningTime;
-            /* zero-distance hops are probably not harmful, though they could be better 
+            /* zero-distance hops are probably not harmful, though they could be better
              * represented as dwell times
             if (hopDistance == 0) {
-                LOG.warn(GraphBuilderAnnotation.register(graph, 
-                        Variety.HOP_ZERO_DISTANCE, runningTime, 
-                        st1.getTrip().getId(), 
+                LOG.warn(GraphBuilderAnnotation.register(graph,
+                        Variety.HOP_ZERO_DISTANCE, runningTime,
+                        st1.getTrip().getId(),
                         st1.getStopSequence()));
-            } 
+            }
             */
             // sanity-check the hop
             if (st0.getArrivalTime() == st1.getArrivalTime() ||
                 st0.getDepartureTime() == st1.getDepartureTime()) {
                 LOG.trace("{} {}", st0, st1);
                 // series of identical stop times at different stops
-                LOG.trace(graph.addBuilderAnnotation(new HopZeroTime((float) hopDistance, 
+                LOG.trace(graph.addBuilderAnnotation(new HopZeroTime((float) hopDistance,
                           st1.getTrip(), st1.getStopSequence())));
                 // clear stoptimes that are obviously wrong, causing them to later be interpolated
 /* FIXME (lines commented out because they break routability in multi-feed NYC for some reason -AMB) */
@@ -913,19 +913,19 @@ public class GTFSPatternHopFactory {
             } else if (hopSpeed > 45) {
                 // 45 m/sec ~= 100 miles/hr
                 // elapsed time of 0 will give speed of +inf
-                LOG.trace(graph.addBuilderAnnotation(new HopSpeedFast((float) hopSpeed, 
+                LOG.trace(graph.addBuilderAnnotation(new HopSpeedFast((float) hopSpeed,
                         (float) hopDistance, st0.getTrip(), st0.getStopSequence())));
             } else if (hopSpeed < 0.1) {
                 // 0.1 m/sec ~= 0.2 miles/hr
-                LOG.trace(graph.addBuilderAnnotation(new HopSpeedSlow((float) hopSpeed, 
+                LOG.trace(graph.addBuilderAnnotation(new HopSpeedSlow((float) hopSpeed,
                         (float) hopDistance, st0.getTrip(), st0.getStopSequence())));
             }
             // st0 should reflect the last stoptime that was not clearly incorrect
-            if ( ! st1bogus)  
+            if ( ! st1bogus)
                 st0 = st1;
         } // END for loop over stop times
     }
-    
+
     private void loadAgencies(Graph graph) {
         for (Agency agency : _dao.getAllAgencies()) {
             graph.addAgency(_feedId.getId(), agency);
@@ -992,8 +992,8 @@ public class GTFSPatternHopFactory {
      * This is currently done by assuming equidistant stops and constant speed.
      * While we may not be able to improve the constant speed assumption, we can
      * TODO: use route matching (or shape distance etc.) to improve inter-stop distances
-     *  
-     * @param stopTimes the stoptimes (from a single trip) to be interpolated 
+     *
+     * @param stopTimes the stoptimes (from a single trip) to be interpolated
      */
     private void interpolateStopTimes(List<StopTime> stopTimes) {
         int lastStop = stopTimes.size() - 1;
@@ -1121,7 +1121,7 @@ public class GTFSPatternHopFactory {
         }
     }
 
-    
+
     private LineString getHopGeometryViaShapeDistTraveled(Graph graph, AgencyAndId shapeId, StopTime st0, StopTime st1) {
 
         double startDistance = st0.getShapeDistTraveled();
@@ -1142,7 +1142,7 @@ public class GTFSPatternHopFactory {
             LinearLocation endIndex = getSegmentFraction(distances, endDistance);
 
             if (equals(startIndex, endIndex)) {
-                //bogus shape_dist_traveled 
+                //bogus shape_dist_traveled
                 graph.addBuilderAnnotation(new BogusShapeDistanceTraveled(st1));
                 return createSimpleGeometry(st0.getStop(), st1.getStop());
             }
@@ -1164,14 +1164,14 @@ public class GTFSPatternHopFactory {
 
     /** create a 2-point linestring (a straight line segment) between the two stops */
     private LineString createSimpleGeometry(Stop s0, Stop s1) {
-        
+
         Coordinate[] coordinates = new Coordinate[] {
                 new Coordinate(s0.getLon(), s0.getLat()),
                 new Coordinate(s1.getLon(), s1.getLat())
         };
         CoordinateSequence sequence = new PackedCoordinateSequence.Double(coordinates, 2);
-        
-        return _geometryFactory.createLineString(sequence);        
+
+        return _geometryFactory.createLineString(sequence);
     }
 
     private boolean isValid(Geometry geometry, Stop s0, Stop s1) {
@@ -1189,7 +1189,7 @@ public class GTFSPatternHopFactory {
         }
         Coordinate geometryStartCoord = coordinates[0];
         Coordinate geometryEndCoord = coordinates[coordinates.length - 1];
-        
+
         Coordinate startCoord = new Coordinate(s0.getLon(), s0.getLat());
         Coordinate endCoord = new Coordinate(s1.getLon(), s1.getLat());
         if (SphericalDistanceLibrary.fastDistance(startCoord, geometryStartCoord) > maxStopToShapeSnapDistance) {
@@ -1202,7 +1202,7 @@ public class GTFSPatternHopFactory {
 
     private LineString getSegmentGeometry(Graph graph, AgencyAndId shapeId,
             LocationIndexedLine locationIndexedLine, LinearLocation startIndex,
-            LinearLocation endIndex, double startDistance, double endDistance, 
+            LinearLocation endIndex, double startDistance, double endDistance,
             StopTime st0, StopTime st1) {
 
         ShapeSegmentKey key = new ShapeSegmentKey(shapeId, startDistance, endDistance);
@@ -1216,7 +1216,7 @@ public class GTFSPatternHopFactory {
             CoordinateSequence sequence = new PackedCoordinateSequence.Double(geometry
                     .getCoordinates(), 2);
             geometry = _geometryFactory.createLineString(sequence);
-            
+
             if (!isValid(geometry, st0.getStop(), st1.getStop())) {
                 LOG.warn(graph.addBuilderAnnotation(new BogusShapeGeometryCaught(shapeId, st0, st1)));
                 //fall back to trivial geometry
@@ -1227,12 +1227,12 @@ public class GTFSPatternHopFactory {
 
         return geometry;
     }
-    
-    /* 
+
+    /*
      * If a shape appears in more than one feed, the shape points will be loaded several
      * times, and there will be duplicates in the DAO. Filter out duplicates and repeated
      * coordinates because 1) they are unnecessary, and 2) they define 0-length line segments
-     * which cause JTS location indexed line to return a segment location of NaN, 
+     * which cause JTS location indexed line to return a segment location of NaN,
      * which we do not want.
      */
     private List<ShapePoint> getUniqueShapePointsForShapeId(AgencyAndId shapeId) {
@@ -1241,8 +1241,8 @@ public class GTFSPatternHopFactory {
         ShapePoint last = null;
         for (ShapePoint sp : points) {
             if (last == null || last.getSequence() != sp.getSequence()) {
-                if (last != null && 
-                    last.getLat() == sp.getLat() && 
+                if (last != null &&
+                    last.getLat() == sp.getLat() &&
                     last.getLon() == sp.getLon()) {
                     LOG.trace("pair of identical shape points (skipping): {} {}", last, sp);
                 } else {
@@ -1263,7 +1263,7 @@ public class GTFSPatternHopFactory {
 
         LineString geometry = _geometriesByShapeId.get(shapeId);
 
-        if (geometry != null) 
+        if (geometry != null)
             return geometry;
 
         List<ShapePoint> points = getUniqueShapePointsForShapeId(shapeId);
@@ -1328,10 +1328,10 @@ public class GTFSPatternHopFactory {
      * Filter out any series of stop times that refer to the same stop. This is very inefficient in
      * an array-backed list, but we are assuming that this is a rare occurrence. The alternative is
      * to copy every list of stop times during filtering.
-     * 
+     *
      * TODO: OBA GFTS makes the stoptime lists unmodifiable, so this will not work.
-     * We need to copy any modified list. 
-     * 
+     * We need to copy any modified list.
+     *
      * @return whether any repeated stops were filtered out.
      */
     private TIntList removeRepeatedStops (List<StopTime> stopTimes) {

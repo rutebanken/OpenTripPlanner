@@ -122,6 +122,22 @@ public final class ServiceCalendar extends IdentityBean<Integer> {
         this.sunday = sunday;
     }
 
+    public void setWeekdays(int value) {
+        setMonday(value);
+        setTuesday(value);
+        setWednesday(value);
+        setThursday(value);
+        setFriday(value);
+    }
+    public void setWeekend(int value) {
+        setSaturday(value);
+        setSunday(value);
+    }
+    public void setAllDays(int value) {
+        setWeekdays(value);
+        setWeekend(value);
+    }
+
     public ServiceDate getStartDate() {
         return startDate;
     }

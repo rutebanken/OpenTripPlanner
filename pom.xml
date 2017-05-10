@@ -791,6 +791,12 @@
             <version>0.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.rutebanken</groupId>
+            <artifactId>netex-java-model</artifactId>
+            <version>0.0.9-SNAPSHOT</version>
+        </dependency>
+
         <!-- r5 is needed only so that we can delegate Analyst work to it -->
         <dependency>
             <groupId>com.conveyal</groupId>

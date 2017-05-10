@@ -16,12 +16,8 @@ package org.opentripplanner.graph_builder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
-import org.opentripplanner.graph_builder.module.DirectTransferGenerator;
-import org.opentripplanner.graph_builder.module.EmbedConfig;
-import org.opentripplanner.graph_builder.module.GtfsModule;
-import org.opentripplanner.graph_builder.module.PruneFloatingIslands;
-import org.opentripplanner.graph_builder.module.StreetLinkerModule;
-import org.opentripplanner.graph_builder.module.TransitToTaggedStopsModule;
+import org.opentripplanner.graph_builder.model.NetexBundle;
+import org.opentripplanner.graph_builder.module.*;
 import org.opentripplanner.graph_builder.module.map.BusRouteStreetMatcher;
 import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
 import org.opentripplanner.graph_builder.module.ned.ElevationModule;
@@ -183,6 +179,7 @@ public class GraphBuilder implements Runnable {
         LOG.info("Wiring up and configuring graph builder task.");
         GraphBuilder graphBuilder = new GraphBuilder();
         List<File> gtfsFiles = Lists.newArrayList();
+        List<File> netexFiles = Lists.newArrayList();
         List<File> osmFiles =  Lists.newArrayList();
         JsonNode builderConfig = null;
         JsonNode routerConfig = null;
@@ -217,13 +214,18 @@ public class GraphBuilder implements Runnable {
                         LOG.info("Skipping DEM file {}", file);
                     }
                     break;
+                case NETEX:
+                    LOG.info("Found NETEX file {}", file);
+                    netexFiles.add(file);
+                    break;
                 case OTHER:
                     LOG.warn("Skipping unrecognized file '{}'", file);
             }
         }
         boolean hasOSM  = builderParams.streets && !osmFiles.isEmpty();
         boolean hasGTFS = builderParams.transit && !gtfsFiles.isEmpty();
-        if ( ! ( hasOSM || hasGTFS )) {
+        boolean hasNETEX = builderParams.transit && !netexFiles.isEmpty();
+        if ( ! ( hasOSM || hasGTFS || hasNETEX)) {
             LOG.error("Found no input files from which to build a graph in {}", dir);
             return null;
         }
@@ -274,7 +276,22 @@ public class GraphBuilder implements Runnable {
                 }
                 graphBuilder.addModule(new TransitToTaggedStopsModule());
             }
+        }else if(hasNETEX){
+            List<NetexBundle> netexBundles = Lists.newArrayList();
+            for(File netexFile : netexFiles){
+                NetexBundle netexBundle = new NetexBundle(netexFile);
+                netexBundles.add(netexBundle);
+            }
+            NetexModule netexModule = new NetexModule(netexBundles);
+            graphBuilder.addModule(netexModule);
+            if ( hasOSM ) {
+                if (builderParams.matchBusRoutesToStreets) {
+                    graphBuilder.addModule(new BusRouteStreetMatcher());
+                }
+                graphBuilder.addModule(new TransitToTaggedStopsModule());
+            }
         }
+
         // This module is outside the hasGTFS conditional block because it also links things like bike rental
         // which need to be handled even when there's no transit.
         graphBuilder.addModule(new StreetLinkerModule());
@@ -326,7 +343,7 @@ public class GraphBuilder implements Runnable {
      * types are present. This helps point out when config files have been misnamed (builder-config vs. build-config).
      */
     private static enum InputFileType {
-        GTFS, OSM, DEM, CONFIG, GRAPH, OTHER;
+        GTFS, OSM, DEM, CONFIG, GRAPH, NETEX, OTHER;
         public static InputFileType forFile(File file) {
             String name = file.getName();
             if (name.endsWith(".zip")) {
@@ -335,6 +352,14 @@ public class GraphBuilder implements Runnable {
                     ZipEntry stopTimesEntry = zip.getEntry("stop_times.txt");
                     zip.close();
                     if (stopTimesEntry != null) return GTFS;
+                } catch (Exception e) { /* fall through */ }
+            }
+            if (name.endsWith(".zip")) {
+                try {
+                    ZipFile zip = new ZipFile(file);
+                    ZipEntry stopTimesEntry = zip.getEntry(NetexBundle.NETEX_COMMON_FILE_NAME);
+                    zip.close();
+                    if (stopTimesEntry != null) return NETEX;
                 } catch (Exception e) { /* fall through */ }
             }
             if (name.endsWith(".pbf")) return OSM;
