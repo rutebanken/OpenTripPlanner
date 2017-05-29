@@ -85,7 +85,7 @@ public class NetexModule implements GraphBuilderModule {
         netexBundles.forEach(NetexBundle::checkInputs);
     }
 
-    void loadBundle(NetexBundle netexBundle) throws Exception {
+    private void loadBundle(NetexBundle netexBundle) throws Exception {
         loadFile(netexBundle.getCommonFile());
         List<ZipEntry> entries = netexBundle.getFileEntries();
         for(ZipEntry entry : entries){
@@ -493,8 +493,22 @@ public class NetexModule implements GraphBuilderModule {
     private int mapTransportType(String type){
         if("bus".equals(type)){
             return 3;
+        }else if("tram".equals(type)){
+            return 0;
+        }else if("rail".equals(type)){
+            return 2;
+        }else if("metro".equals(type)){
+            return 1;
+        }else if("water".equals(type)){
+            return 4;
+        }else if("cabelway".equals(type)){
+            return 5;
+        }else if("funicular".equals(type)){
+            return 7;
+        }else if("air".equals(type)){
+            return 1100; //extended GTFS traverse mode
         }
-        return 0;
+        throw new IllegalArgumentException("Unknown route type " + type);
     }
 
     private Agency mapAgency(Authority authority){
