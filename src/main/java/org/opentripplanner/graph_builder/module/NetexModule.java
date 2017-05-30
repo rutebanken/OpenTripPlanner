@@ -148,6 +148,7 @@ public class NetexModule implements GraphBuilderModule {
                     if(assignment.getValue() instanceof PassengerStopAssignment) {
                         PassengerStopAssignment passengerStopAssignment = (PassengerStopAssignment) assignment.getValue();
                         dao.getStopPointStopPlaceMap().put(passengerStopAssignment.getScheduledStopPointRef().getRef(), passengerStopAssignment.getStopPlaceRef().getRef());
+                        dao.getStopPointQuayMap().put(passengerStopAssignment.getScheduledStopPointRef().getRef(), passengerStopAssignment.getQuayRef().getRef());
                     }
                 }
             }
@@ -265,10 +266,7 @@ public class NetexModule implements GraphBuilderModule {
             StopPlacesInFrame_RelStructure stopPlaces = sf.getStopPlaces();
             List<StopPlace> stopPlaceList = stopPlaces.getStopPlace();
             for (StopPlace stopPlace : stopPlaceList) {
-                List<Stop> stops = mapStopPlace(stopPlace);
-                for(Stop stop : stops){
-                    dao.getStopsById().put(stopPlace.getId(), stop);
-                }
+                mapAndStoreStopPlace(stopPlace);
             }
         }
     }
@@ -310,10 +308,25 @@ public class NetexModule implements GraphBuilderModule {
             for(TimetabledPassingTime passingTime : timetabledPassingTime){
                 JAXBElement<? extends PointInJourneyPatternRefStructure> pointInJourneyPatternRef = passingTime.getPointInJourneyPatternRef();
                 String ref = pointInJourneyPatternRef.getValue().getRef();
+
+                Stop quay = findQuay(ref, journeyPattern);
                 Stop stop = findStopPlace(ref, journeyPattern);
+
                 if(stop != null){
                     stop.getId().setAgencyId(getAgencyIdForLine(lineRef));
                 }
+
+                if(quay == null){
+                    if(stop != null && stop.getLat() != 0 && stop.getLon() != 0){
+                        quay = stop;
+                    }else{
+                        break;
+                    }
+
+                }else{
+                    quay.getId().setAgencyId(getAgencyIdForLine(lineRef));
+                }
+
                 StopTime stopTime = new StopTime();
                 stopTime.setTrip(trip);
 
@@ -344,7 +357,7 @@ public class NetexModule implements GraphBuilderModule {
                     stopTime.setPickupType(stopPoint.isForBoarding() != null && !stopPoint.isForBoarding() ? 1 : 0);
                 }
 
-                stopTime.setStop(stop);
+                stopTime.setStop(quay);
                 stopTimes.add(stopTime);
             }
 
@@ -378,8 +391,29 @@ public class NetexModule implements GraphBuilderModule {
                 StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
                 if(stop.getId().equals(pointInJourneyPatterRef)){
                     JAXBElement<? extends ScheduledStopPointRefStructure> scheduledStopPointRef = ((StopPointInJourneyPattern) point).getScheduledStopPointRef();
+
                     String stopId = dao.getStopPointStopPlaceMap().get(scheduledStopPointRef.getValue().getRef());
                     return dao.getStopsById().get(stopId);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Stop findQuay(String pointInJourneyPatterRef, JourneyPattern journeyPattern){
+        List<PointInLinkSequence_VersionedChildStructure> points =
+                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
+        for(PointInLinkSequence_VersionedChildStructure point : points){
+            if(point instanceof StopPointInJourneyPattern){
+                StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
+                if(stop.getId().equals(pointInJourneyPatterRef)){
+                    JAXBElement<? extends ScheduledStopPointRefStructure> scheduledStopPointRef = ((StopPointInJourneyPattern) point).getScheduledStopPointRef();
+                    String stopId = dao.getStopPointQuayMap().get(scheduledStopPointRef.getValue().getRef());
+                    Stop quay = dao.getStopsById().get(stopId);
+                    if(quay == null){
+                        LOG.error("Quay not found for reference: " + stopId);
+                    }
+                    return quay;
                 }
             }
         }
@@ -403,8 +437,7 @@ public class NetexModule implements GraphBuilderModule {
     /**
      * Agency id must be added when the stop is related to a line
      */
-    private List<Stop> mapStopPlace(StopPlace stopPlace){
-        List<Stop> stops = new ArrayList<>();
+    private void mapAndStoreStopPlace(StopPlace stopPlace){
         Stop stop = new Stop();
         stop.setName(stopPlace.getName().getValue());
         if(stopPlace.getCentroid() != null){
@@ -414,8 +447,8 @@ public class NetexModule implements GraphBuilderModule {
             LOG.error("Stop place without coordinates");
         }
 
-        stop.setId(new AgencyAndId("", stopPlace.getId()));
-        stops.add(stop);
+        stop.setId(new AgencyAndId("", replaceTokensAndRemovePrefix(stopPlace.getId())));
+        dao.getStopsById().put(stopPlace.getId(), stop);
         List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
         for(Object quayObject : quayRefOrQuay){
             if(quayObject instanceof Quay){
@@ -424,12 +457,11 @@ public class NetexModule implements GraphBuilderModule {
                 stopQuay.setName(stop.getName());
                 stopQuay.setLat(quay.getCentroid().getLocation().getLatitude().doubleValue());
                 stopQuay.setLon(quay.getCentroid().getLocation().getLongitude().doubleValue());
-                stopQuay.setId(new AgencyAndId("", quay.getId()));
+                stopQuay.setId(new AgencyAndId("", replaceTokensAndRemovePrefix(quay.getId())));
                 stopQuay.setParentStation(stop.getId().getId());
-                stops.add(stopQuay);
+                dao.getStopsById().put(quay.getId(), stopQuay);
             }
         }
-        return stops;
     }
 
     private Trip mapServiceJourney(ServiceJourney serviceJourney){
@@ -447,7 +479,7 @@ public class NetexModule implements GraphBuilderModule {
 
         Trip trip = new Trip();
         String agencyIdForLine = getAgencyIdForLine(lineRef);
-        trip.setId(new AgencyAndId(agencyIdForLine, serviceJourney.getId()));
+        trip.setId(new AgencyAndId(agencyIdForLine, replaceTokensAndRemovePrefix(serviceJourney.getId())));
 
         trip.setRoute(dao.getOtpRouteById().get(lineRef));
         DayTypeRefs_RelStructure dayTypes = serviceJourney.getDayTypes();
@@ -482,9 +514,9 @@ public class NetexModule implements GraphBuilderModule {
         }
         Authority authority = dao.getAuthorities().get(authorityRef);
         Agency agency = mapAgency(authority);
-        mapped.setId(new AgencyAndId(agency.getName(), line.getId()));
+        mapped.setId(new AgencyAndId(agency.getName(), replaceTokensAndRemovePrefix(line.getId())));
         mapped.setAgency(agency);
-        mapped.setLongName(line.getName().toString());
+        mapped.setLongName(line.getName().getValue());
         mapped.setShortName(line.getPublicCode());
         mapped.setType(mapTransportType(line.getTransportMode().value()));
         return mapped;
@@ -513,7 +545,7 @@ public class NetexModule implements GraphBuilderModule {
 
     private Agency mapAgency(Authority authority){
         Agency agency = new Agency();
-        agency.setId(authority.getId());
+        agency.setId(authority.getName().getValue());
         agency.setName(authority.getName().getValue());
         agency.setTimezone(dao.getTimeZone());
         return agency;
@@ -521,6 +553,13 @@ public class NetexModule implements GraphBuilderModule {
 
     private String getAgencyIdForLine(String lineRef){
         Line line = dao.getLineById().get(lineRef);
-        return dao.getAuthoritiesByGroupOfLinesId().get(line.getRepresentedByGroupRef().getRef());
+        String authRef = dao.getAuthoritiesByGroupOfLinesId().get(line.getRepresentedByGroupRef().getRef());
+        Authority authority = dao.getAuthorities().get(authRef);
+        return authority.getName().getValue();
+    }
+
+    private String replaceTokensAndRemovePrefix(String string){
+        String sub = string.substring(string.indexOf(":") + 1);
+        return sub.replace(":", "_");
     }
 }

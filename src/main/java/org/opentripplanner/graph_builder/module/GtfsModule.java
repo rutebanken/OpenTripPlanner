@@ -123,7 +123,10 @@ public class GtfsModule implements GraphBuilderModule {
                 hf.setFareServiceFactory(_fareServiceFactory);
                 hf.setMaxStopToShapeSnapDistance(gtfsBundle.getMaxStopToShapeSnapDistance());
 
-                service.addData(createCalendarSrvDataWithoutDatesForLocalizedSrvId(dao), dao);
+                service.addData(
+                        createCalendarSrvDataWithoutDatesForLocalizedSrvId(dao),
+                        dao
+                );
 
                 hf.subwayAccessTime = gtfsBundle.subwayAccessTime;
                 hf.maxInterlineDistance = gtfsBundle.maxInterlineDistance;

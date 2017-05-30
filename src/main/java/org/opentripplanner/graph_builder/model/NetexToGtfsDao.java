@@ -83,10 +83,8 @@ public class NetexToGtfsDao implements GtfsDao {
         String[] dayTypeIds = serviceId.getId().split("\\+");
         for (String dayTypeId : dayTypeIds) {
             DayType dayType = netexDao.getDayTypeById().get(dayTypeId);
-            ServiceCalendar serviceCalendar = new ServiceCalendar();
-            serviceCalendar.setServiceId(serviceId);
-
             Object o = netexDao.getDayTypeAssignment().get(dayTypeId);
+
             if (o instanceof OperatingPeriod) {
                 return mapToServiceCalendar(dayType, (OperatingPeriod) o, serviceId);
             }

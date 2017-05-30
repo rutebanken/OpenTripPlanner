@@ -22,6 +22,7 @@ public class NetexDao {
 
     private Map<String, Stop> stopsById = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
+    private Map<String, String> stopPointQuayMap = new HashMap<>();
     private Map<String, JourneyPattern> journeyPatternsById = new HashMap<>();
     private Map<String, Route> routeById = new HashMap<>();
     private Map<String, Line> lineById = new HashMap<>();
@@ -130,5 +131,13 @@ public class NetexDao {
 
     public void clearJourneyPatterns(){
         journeyPatternsById = new HashMap<>();
+    }
+
+    public Map<String, String> getStopPointQuayMap() {
+        return stopPointQuayMap;
+    }
+
+    public void setStopPointQuayMap(Map<String, String> stopPointQuayMap) {
+        this.stopPointQuayMap = stopPointQuayMap;
     }
 }

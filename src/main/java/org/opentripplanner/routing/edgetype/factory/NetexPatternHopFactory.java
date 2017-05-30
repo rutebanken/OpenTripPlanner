@@ -59,6 +59,12 @@ public class NetexPatternHopFactory extends PatternHopFactory{
             graph.serviceCodes.put(serviceId, graph.serviceCodes.size());
         }
 
+        /* Generate unique human-readable names for all the TableTripPatterns. */
+        TripPattern.generateUniqueNames(netexDao.getTripPatterns());
+
+        /* Generate unique short IDs for all the TableTripPatterns. */
+        TripPattern.generateUniqueIds(netexDao.getTripPatterns());
+
         /* Loop over all new TripPatterns, creating edges, setting the service codes and geometries, etc. */
 
         for (TripPattern tripPattern : netexDao.getTripPatterns()) {
