@@ -170,6 +170,10 @@ public abstract class SphericalDistanceLibrary {
     public static double metersToDegrees(double distanceMeters) {
         return 360 * distanceMeters / (2 * Math.PI * RADIUS_OF_EARTH_IN_M);
     }
+    
+    public static double degreesToMeters(double distanceDegrees) {
+        return (2 * Math.PI * RADIUS_OF_EARTH_IN_M) * distanceDegrees / 360;
+    }
 
     /**
      * @param distanceMeters Distance in meters.

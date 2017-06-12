@@ -71,6 +71,8 @@ public class SimpleStreetSplitter {
 
     public static final int MAX_SEARCH_RADIUS_METERS = 1000;
 
+	public static final int MIN_SNAP_DISTANCE_WARNING = 10;
+
     /** if there are two ways and the distances to them differ by less than this value, we link to both of them */
     public static final double DUPLICATE_WAY_EPSILON_METERS = 0.001;
 
@@ -202,6 +204,14 @@ public class SimpleStreetSplitter {
                 return 1;
             return 0;
         });
+
+		if (!candidateEdges.isEmpty() && vertex instanceof TransitStop) {
+			int distance = (int) SphericalDistanceLibrary.degreesToMeters(distances.get(candidateEdges.get(0).getId()));
+			if (distance > MIN_SNAP_DISTANCE_WARNING) {
+				LOG.info(String.format("Stop far from edge (%s - %d meters - %f - %f)", vertex.getName(), distance,
+						vertex.getLat(), vertex.getLon()));
+			}
+		}
 
         // find the closest candidate edges
         if (candidateEdges.isEmpty() || distances.get(candidateEdges.get(0).getId()) > radiusDeg) {
