@@ -71,6 +71,11 @@ otp.config = {
 
     baseLayers: [
         {
+            name: 'Kartverket',
+            tileUrl: 'http://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo2&zoom={z}&x={x}&y={y}',
+            attribution : '<a href="http://www.kartverket.no/">Kartverket</a>'
+        },
+        {
             name: 'Stamen Terrain',
             tileUrl: 'http://tile.stamen.com/terrain/{z}/{x}/{y}.png',
             attribution : 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.'
