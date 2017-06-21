@@ -20,6 +20,7 @@ import org.opentripplanner.common.model.P2;
 import org.opentripplanner.graph_builder.annotation.BikeParkUnlinked;
 import org.opentripplanner.graph_builder.annotation.BikeRentalStationUnlinked;
 import org.opentripplanner.graph_builder.annotation.StopUnlinked;
+import org.opentripplanner.graph_builder.annotation.StopLinkedTooFar;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
@@ -75,11 +76,7 @@ public class SimpleStreetSplitter {
 
     public static final int MAX_SEARCH_RADIUS_METERS = 1000;
 
-	public static final int MIN_SNAP_DISTANCE_WARNING = 0;
-
-	public static final String stopLinkDistanceFilename = "StopLinkDistance.csv";
-
-	private CsvWriter stopLinkDistanceCsvWriter;
+	public static final int MIN_SNAP_DISTANCE_WARNING = 50;
 
     /** if there are two ways and the distances to them differ by less than this value, we link to both of them */
     public static final double DUPLICATE_WAY_EPSILON_METERS = 0.001;
@@ -109,14 +106,6 @@ public class SimpleStreetSplitter {
         this.graph = graph;
         this.transitStopIndex = transitStopIndex;
         this.destructiveSplitting = destructiveSplitting;
-
-        try {
-            this.stopLinkDistanceCsvWriter = new CsvWriter(new FileWriter(stopLinkDistanceFilename, false), ',');
-            this.stopLinkDistanceCsvWriter.writeRecord(new String[] {"StopName", "StopId", "Distance", "Latitude", "Longitude" });
-        }
-        catch (IOException e) {
-            LOG.debug("Could not open csv file {} for writing", stopLinkDistanceFilename);
-        }
 
         //We build a spatial index if it isn't provided
         if (hashGridSpatialIndex == null) {
@@ -223,19 +212,9 @@ public class SimpleStreetSplitter {
         });
 
 		if (!candidateEdges.isEmpty() && vertex instanceof TransitStop) {
-			int distance = (int) SphericalDistanceLibrary.degreesToMeters(distances.get(candidateEdges.get(0).getId()));
+			int distance = (int)SphericalDistanceLibrary.degreesToMeters(distances.get(candidateEdges.get(0).getId()));
 			if (distance > MIN_SNAP_DISTANCE_WARNING) {
-			    try {
-                    stopLinkDistanceCsvWriter.writeRecord(new String[] { vertex.getName(),
-                            ((TransitStop) vertex).getStopId().toString(), Integer.toString(distance),
-                            Double.toString(vertex.getLat()), Double.toString(vertex.getLon())});
-                    stopLinkDistanceCsvWriter.flush();
-                }
-                catch (IOException e) {
-			        LOG.debug("Could not write to CSV");
-                }
-				LOG.info(String.format("Stop far from edge (%s - %d meters - %f - %f)", vertex.getName(), distance,
-						vertex.getLat(), vertex.getLon()));
+                LOG.info(String.format(graph.addBuilderAnnotation(new StopLinkedTooFar((TransitStop)vertex, distance))));
 			}
 		}
 
