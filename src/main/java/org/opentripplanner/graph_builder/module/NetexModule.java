@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.onebusaway2.gtfs.model.*;
 import org.onebusaway2.gtfs.model.calendar.CalendarServiceData;
-import org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.graph_builder.model.NetexBundle;
 import org.opentripplanner.graph_builder.model.NetexDao;

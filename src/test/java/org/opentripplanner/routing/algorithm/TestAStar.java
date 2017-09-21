@@ -20,7 +20,6 @@ import junit.framework.TestCase;
 import org.onebusaway2.gtfs.model.calendar.CalendarServiceData;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
-import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
 import org.opentripplanner.routing.graph.Graph;
@@ -30,6 +29,7 @@ import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.util.TestUtils;
 
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 public class TestAStar extends TestCase {
     
@@ -37,7 +37,7 @@ public class TestAStar extends TestCase {
 
     public void testBasic() throws Exception {
 
-        GtfsContext context = GtfsLibrary.readGtfs(new File(ConstantsForTests.CALTRAIN_GTFS));
+        GtfsContext context = contextBuilder(ConstantsForTests.CALTRAIN_GTFS).build();
 
         Graph gg = new Graph();
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);

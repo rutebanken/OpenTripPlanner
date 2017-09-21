@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 import static org.opentripplanner.util.TestUtils.AUGUST;
 
 import java.io.File;
@@ -33,7 +34,6 @@ import org.onebusaway2.gtfs.model.calendar.CalendarServiceData;
 import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
-import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.routing.algorithm.AStar;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
@@ -54,7 +54,6 @@ public class TimetableTest {
     
     private static Graph graph;
     private AStar aStar = new AStar();
-    private static GtfsContext context;
     private static Map<AgencyAndId, TripPattern> patternIndex;
     private static TripPattern pattern;
     private static Timetable timetable;
@@ -64,7 +63,7 @@ public class TimetableTest {
     @BeforeClass
     public static void setUp() throws Exception {
 
-        context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
+        GtfsContext context = contextBuilder(ConstantsForTests.FAKE_GTFS).build();
         graph = new Graph();
 
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);

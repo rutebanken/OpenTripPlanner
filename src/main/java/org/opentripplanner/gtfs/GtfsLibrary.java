@@ -13,42 +13,14 @@
 
 package org.opentripplanner.gtfs;
 
-
-import java.io.File;
-import java.io.IOException;
-
 import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.Route;
-import org.onebusaway2.gtfs.services.GtfsDao;
-import org.onebusaway2.gtfs.services.calendar.CalendarService;
-import org.opentripplanner.graph_builder.module.GtfsFeedId;
-import org.opentripplanner.gtfs.mapping.ModelMapper;
 import org.opentripplanner.routing.core.TraverseMode;
 
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarService;
 
 public class GtfsLibrary {
 
     public static final char ID_SEPARATOR = ':'; // note this is different than what OBA GTFS uses to match our 1.0 API
-
-    public static GtfsContext createContext(GtfsFeedId feedId, GtfsDao dao) {
-        CalendarService calendarService = createCalendarService(dao);
-        return createContext(feedId, dao, calendarService);
-    }
-
-    public static GtfsContext createContext(GtfsFeedId feedId, GtfsDao dao, CalendarService calendarService) {
-        return new GtfsContextImpl(feedId, dao, calendarService);
-    }
-
-    public static GtfsContext readGtfs(File path) throws IOException {
-        GtfsImport gtfsImport = new GtfsImport(path);
-
-        GtfsFeedId feedId = gtfsImport.getFeedId();
-        GtfsDao otpDao = ModelMapper.mapDao(gtfsImport.getDao());
-        CalendarService calendarService = createCalendarService(otpDao);
-
-        return new GtfsContextImpl(feedId, otpDao, calendarService);
-    }
 
     /* Using in index since we can't modify OBA libs and the colon in the expected separator in the 1.0 API. */
     public static AgencyAndId convertIdFromString(String value) {
@@ -124,36 +96,6 @@ public class GtfsLibrary {
             return TraverseMode.FUNICULAR;
         default:
             throw new IllegalArgumentException("unknown gtfs route type " + routeType);
-        }
-    }
-
-    private static class GtfsContextImpl implements GtfsContext {
-
-        private GtfsFeedId _feedId;
-
-        private GtfsDao _dao;
-
-        private CalendarService _calendar;
-
-        public GtfsContextImpl(GtfsFeedId feedId, GtfsDao dao, CalendarService calendar) {
-            _feedId = feedId;
-            _dao = dao;
-            _calendar = calendar;
-        }
-
-        @Override
-        public GtfsFeedId getFeedId() {
-            return _feedId;
-        }
-
-        @Override
-        public GtfsDao getDao() {
-            return _dao;
-        }
-
-        @Override
-        public CalendarService getCalendarService() {
-            return _calendar;
         }
     }
 }

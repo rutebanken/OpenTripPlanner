@@ -42,6 +42,7 @@ import org.onebusaway2.gtfs.model.Transfer;
 import org.onebusaway2.gtfs.model.Trip;
 import org.onebusaway2.gtfs.services.GtfsDao;
 import org.onebusaway2.gtfs.services.calendar.CalendarService;
+import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -285,15 +286,11 @@ public class GTFSPatternHopFactory {
 
     private static final Logger LOG = LoggerFactory.getLogger(GTFSPatternHopFactory.class);
 
-    private static final int SECONDS_IN_HOUR = 60 * 60; // rename to seconds in hour
-
     private static GeometryFactory _geometryFactory = GeometryUtils.getGeometryFactory();
 
     private GtfsFeedId _feedId;
 
     private GtfsDao _dao;
-
-    private CalendarService _calendarService;
 
     private Map<ShapeSegmentKey, LineString> _geometriesByShapeSegmentKey = new HashMap<ShapeSegmentKey, LineString>();
 
@@ -302,8 +299,6 @@ public class GTFSPatternHopFactory {
     private Map<AgencyAndId, double[]> _distancesByShapeId = new HashMap<AgencyAndId, double[]>();
 
     private FareServiceFactory fareServiceFactory;
-
-    private Multimap<StopPattern, TripPattern> tripPatterns = HashMultimap.create();
 
     private GtfsStopContext context = new GtfsStopContext();
 
@@ -320,13 +315,24 @@ public class GTFSPatternHopFactory {
     public GTFSPatternHopFactory(GtfsContext context) {
         this._feedId = context.getFeedId();
         this._dao = context.getDao();
-        this._calendarService = context.getCalendarService();
     }
     
     public GTFSPatternHopFactory() {
         this._feedId = null;
         this._dao = null;
-        this._calendarService = null;
+    }
+
+    public GTFSPatternHopFactory(
+            GtfsFeedId feedId, GtfsDao dao, FareServiceFactory fareServiceFactory,
+            double maxStopToShapeSnapDistance, int subwayAccessTime, int maxInterlineDistance
+    ) {
+
+        this._feedId = feedId;
+        this._dao = dao;
+        this.fareServiceFactory = fareServiceFactory;
+        this.maxStopToShapeSnapDistance = maxStopToShapeSnapDistance;
+        this.subwayAccessTime = subwayAccessTime;
+        this.maxInterlineDistance = maxInterlineDistance;
     }
 
     /** Generate the edges. Assumes that there are already vertices in the graph for the stops. */
@@ -352,23 +358,7 @@ public class GTFSPatternHopFactory {
         }
         
         LOG.debug("building hops from trips");
-        Collection<Trip> trips = _dao.getAllTrips();
-        int tripCount = 0;
 
-        /* First, record which trips are used by one or more frequency entries.
-         * These trips will be ignored for the purposes of non-frequency routing, and
-         * all the frequency entries referencing the same trip can be added at once to the same
-         * Timetable/TripPattern.
-         */
-        ListMultimap<Trip, Frequency> frequenciesForTrip = ArrayListMultimap.create();        
-        for(Frequency freq : _dao.getAllFrequencies()) {
-            frequenciesForTrip.put(freq.getTrip(), freq);
-        }
-        
-        /* Then loop over all trips, handling each one as a frequency-based or scheduled trip. */
-        int freqCount = 0;
-        int nonFreqCount = 0;
-        
         /* The hops don't actually exist when we build their geometries, but we have to build their geometries
          * below, before we throw away the modified stopTimes, saving only the tripTimes (which don't have enough
          * information to build a geometry). So we keep them here.
@@ -378,90 +368,31 @@ public class GTFSPatternHopFactory {
          */
         Map<TripPattern, LineString[]> geometriesByTripPattern = Maps.newHashMap();
         
-        TRIP : for (Trip trip : trips) {
-            if (++tripCount % 100000 == 0) {
-                LOG.debug("loading trips {}/{}", tripCount, trips.size());
-            }
-
-            // TODO: move to a validator module
-            if ( ! _calendarService.getServiceIds().contains(trip.getServiceId())) {
-                LOG.warn(graph.addBuilderAnnotation(new TripUndefinedService(trip)));
-                continue TRIP; // Invalid trip, skip it, it will break later
-            }
-
-            /* Fetch the stop times for this trip. Copy the list since it's immutable. */
-            List<StopTime> stopTimes = new ArrayList<StopTime>(_dao.getStopTimesForTrip(trip));
-
-            /* GTFS stop times frequently contain duplicate, missing, or incorrect entries. Repair them. */
-            TIntList removedStopSequences = removeRepeatedStops(stopTimes);
-            if (!removedStopSequences.isEmpty()) {
-                LOG.warn(graph.addBuilderAnnotation(new RepeatedStops(trip, removedStopSequences)));
-            }
-            filterStopTimes(stopTimes, graph);
-            interpolateStopTimes(stopTimes);   
-            
-            /* If after filtering this trip does not contain at least 2 stoptimes, it does not serve any purpose. */
-            if (stopTimes.size() < 2) {
-                LOG.warn(graph.addBuilderAnnotation(new TripDegenerate(trip)));
-                continue TRIP;
-            }
-
-            /* Try to get the direction id for the trip, set to -1 if not found */
-            int directionId;
-            try {
-                directionId = Integer.parseInt(trip.getDirectionId());
-            } catch (NumberFormatException e) {
-                LOG.debug("Trip {} does not have direction id, defaults to -1");
-                directionId = -1;
-            }
-
-            /* Get the existing TripPattern for this filtered StopPattern, or create one. */
-            StopPattern stopPattern = new StopPattern(stopTimes);
-            TripPattern tripPattern = findOrCreateTripPattern(stopPattern, trip.getRoute(), directionId);
-
-            /* Create a TripTimes object for this list of stoptimes, which form one trip. */
-            TripTimes tripTimes = new TripTimes(trip, stopTimes, graph.deduplicator);
-
-            /* If this trip is referenced by one or more lines in frequencies.txt, wrap it in a FrequencyEntry. */
-            List<Frequency> frequencies = frequenciesForTrip.get(trip);
-            if (frequencies != null && !(frequencies.isEmpty())) {
-                for (Frequency freq : frequencies) {
-                    tripPattern.add(new FrequencyEntry(freq, tripTimes));
-                    freqCount++;
-                }
-                // TODO replace: createGeometry(graph, trip, stopTimes, hops);
-            }
-
-            /* This trip was not frequency-based. Add the TripTimes directly to the TripPattern's scheduled timetable. */
-            else {
-                tripPattern.add(tripTimes);
-                nonFreqCount++;
-            }
-            
-            // create geometries if they aren't already created
-            // note that this is not only done on new trip patterns, because it is possible that
-            // there would be a trip pattern with no geometry yet because it failed some of these tests
-            if (!geometriesByTripPattern.containsKey(tripPattern) && 
-                    trip.getShapeId() != null && trip.getShapeId().getId() != null &&
-                    !trip.getShapeId().getId().equals("")) {
-                // save the geometry to later be applied to the hops
-                geometriesByTripPattern.put(tripPattern,  createGeometry(graph, trip, stopTimes));
-            }
-
-
-        } // end foreach TRIP
-        LOG.info("Added {} frequency-based and {} single-trip timetable entries.", freqCount, nonFreqCount);
-        graph.hasFrequencyService = graph.hasFrequencyService || freqCount > 0;
-        graph.hasScheduledService = graph.hasScheduledService || nonFreqCount > 0;
-
-        /* Generate unique human-readable names for all the TableTripPatterns. */
-        TripPattern.generateUniqueNames(tripPatterns.values());
-
-        /* Generate unique short IDs for all the TableTripPatterns. */
-        TripPattern.generateUniqueIds(tripPatterns.values());
+        Collection<TripPattern> tripPatterns = _dao.getTripPatterns().values();
 
         /* Loop over all new TripPatterns, creating edges, setting the service codes and geometries, etc. */
-        for (TripPattern tripPattern : tripPatterns.values()) {
+        for (TripPattern tripPattern : tripPatterns) {
+            for (Trip trip : tripPattern.getTrips()) {
+                // create geometries if they aren't already created
+                // note that this is not only done on new trip patterns, because it is possible that
+                // there would be a trip pattern with no geometry yet because it failed some of these tests
+                if (!geometriesByTripPattern.containsKey(tripPattern) && trip.getShapeId() != null
+                        && trip.getShapeId().getId() != null && !trip.getShapeId().getId().equals("")) {
+                    // save the geometry to later be applied to the hops
+                    geometriesByTripPattern.put(tripPattern,
+                            createGeometry(graph, trip, _dao.getStopTimesForTrip(trip)));
+                }
+            }
+        }
+
+        /* Generate unique human-readable names for all the TableTripPatterns. */
+        TripPattern.generateUniqueNames(tripPatterns);
+
+        /* Generate unique short IDs for all the TableTripPatterns. */
+        TripPattern.generateUniqueIds(tripPatterns);
+
+        /* Loop over all new TripPatterns, creating edges, setting the service codes and geometries, etc. */
+        for (TripPattern tripPattern : tripPatterns) {
             tripPattern.makePatternVerticesAndEdges(graph, context.stationStopNodes);
             // Add the geometries to the hop edges.
             LineString[] geom = geometriesByTripPattern.get(tripPattern);
@@ -489,7 +420,7 @@ public class GTFSPatternHopFactory {
         }
 
         /* Identify interlined trips and create the necessary edges. */
-        interline(tripPatterns.values(), graph);
+        interline(tripPatterns, graph);
 
         /* Interpret the transfers explicitly defined in transfers.txt. */
         loadTransfers(graph);
@@ -504,26 +435,13 @@ public class GTFSPatternHopFactory {
 
         /* Is this the wrong place to do this? It should be done on all feeds at once, or at deserialization. */
         // it is already done at deserialization, but standalone mode allows using graphs without serializing them.
-        for (TripPattern tableTripPattern : tripPatterns.values()) {
+        for (TripPattern tableTripPattern : tripPatterns) {
             tableTripPattern.scheduledTimetable.finish();
         }
         
         clearCachedData(); // eh?
         graph.putService(FareService.class, fareServiceFactory.makeFareService());
         graph.putService(OnBoardDepartService.class, new OnBoardDepartServiceImpl());
-    }
-
-    private TripPattern findOrCreateTripPattern(StopPattern stopPattern, Route route, int directionId) {
-        for(TripPattern tripPattern : tripPatterns.get(stopPattern)) {
-            if(tripPattern.route.equals(route) && tripPattern.directionId == directionId) {
-                return tripPattern;
-            }
-        }
-
-        TripPattern tripPattern = new TripPattern(route, stopPattern);
-        tripPattern.directionId = directionId;
-        tripPatterns.put(stopPattern, tripPattern);
-        return tripPattern;
     }
 
     /**
@@ -804,128 +722,6 @@ public class GTFSPatternHopFactory {
         return null;
     }
 
-    /**
-     * Scan through the given list, looking for clearly incorrect series of stoptimes and unsetting
-     * them. This includes duplicate times (0-time hops), as well as negative, fast or slow hops.
-     * Unsetting the arrival/departure time of clearly incorrect stoptimes will cause them to be
-     * interpolated in the next step. Annotations are also added to the graph to reveal the problems
-     * to the user.
-     *
-     * @param stopTimes the stoptimes to be filtered (from a single trip)
-     * @param graph the graph where annotations will be registered
-     */
-    private void filterStopTimes(List<StopTime> stopTimes, Graph graph) {
-
-        if (stopTimes.size() < 2) return;
-        StopTime st0 = stopTimes.get(0);
-
-        /* Set departure time if it is missing */
-        if (!st0.isDepartureTimeSet() && st0.isArrivalTimeSet()) {
-            st0.setDepartureTime(st0.getArrivalTime());
-        }
-
-        /* If the feed does not specify any timepoints, we want to mark all times that are present as timepoints. */
-        boolean hasTimepoints = false;
-        for (StopTime stopTime : stopTimes) {
-            if (stopTime.getTimepoint() == 1) {
-                hasTimepoints = true;
-                break;
-            }
-        }
-        // TODO verify that the first (and last?) stop should always be considered a timepoint.
-        if (!hasTimepoints) st0.setTimepoint(1);
-
-        /* Indicates that stop times in this trip are being shifted forward one day. */
-        boolean midnightCrossed = false;
-
-        for (int i = 1; i < stopTimes.size(); i++) {
-            boolean st1bogus = false;
-            StopTime st1 = stopTimes.get(i);
-
-            /* If the feed did not specify any timepoints, mark all times that are present as timepoints. */
-            if ( !hasTimepoints && (st1.isDepartureTimeSet() || st1.isArrivalTimeSet())) {
-                st1.setTimepoint(1);
-            }
-
-            if (midnightCrossed) {
-                if (st1.isDepartureTimeSet())
-                    st1.setDepartureTime(st1.getDepartureTime() + 24 * SECONDS_IN_HOUR);
-                if (st1.isArrivalTimeSet())
-                    st1.setArrivalTime(st1.getArrivalTime() + 24 * SECONDS_IN_HOUR);
-            }
-            /* Set departure time if it is missing. */
-            // TODO: doc: what if arrival time is missing?
-            if (!st1.isDepartureTimeSet() && st1.isArrivalTimeSet()) {
-                st1.setDepartureTime(st1.getArrivalTime());
-            }
-            /* Do not process (skip over) non-timepoint stoptimes, leaving them in place for interpolation. */
-            // All non-timepoint stoptimes in a series will have identical arrival and departure values of MISSING_VALUE.
-            if ( ! (st1.isArrivalTimeSet() && st1.isDepartureTimeSet())) {
-                continue;
-            }
-            int dwellTime = st0.getDepartureTime() - st0.getArrivalTime();
-            if (dwellTime < 0) {
-                LOG.warn(graph.addBuilderAnnotation(new NegativeDwellTime(st0)));
-                if (st0.getArrivalTime() > 23 * SECONDS_IN_HOUR && st0.getDepartureTime() < 1 * SECONDS_IN_HOUR) {
-                    midnightCrossed = true;
-                    st0.setDepartureTime(st0.getDepartureTime() + 24 * SECONDS_IN_HOUR);
-                } else {
-                    st0.setDepartureTime(st0.getArrivalTime());
-                }
-            }
-            int runningTime = st1.getArrivalTime() - st0.getDepartureTime();
-
-            if (runningTime < 0) {
-                LOG.warn(graph.addBuilderAnnotation(new NegativeHopTime(new StopTime(st0), new StopTime(st1))));
-                // negative hops are usually caused by incorrect coding of midnight crossings
-                midnightCrossed = true;
-                if (st0.getDepartureTime() > 23 * SECONDS_IN_HOUR && st1.getArrivalTime() < 1 * SECONDS_IN_HOUR) {
-                    st1.setArrivalTime(st1.getArrivalTime() + 24 * SECONDS_IN_HOUR);
-                } else {
-                    st1.setArrivalTime(st0.getDepartureTime());
-                }
-            }
-            double hopDistance = SphericalDistanceLibrary.fastDistance(
-                   st0.getStop().getLat(), st0.getStop().getLon(),
-                   st1.getStop().getLat(), st1.getStop().getLon());
-            double hopSpeed = hopDistance/runningTime;
-            /* zero-distance hops are probably not harmful, though they could be better
-             * represented as dwell times
-            if (hopDistance == 0) {
-                LOG.warn(GraphBuilderAnnotation.register(graph,
-                        Variety.HOP_ZERO_DISTANCE, runningTime,
-                        st1.getTrip().getId(),
-                        st1.getStopSequence()));
-            }
-            */
-            // sanity-check the hop
-            if (st0.getArrivalTime() == st1.getArrivalTime() ||
-                st0.getDepartureTime() == st1.getDepartureTime()) {
-                LOG.trace("{} {}", st0, st1);
-                // series of identical stop times at different stops
-                LOG.trace(graph.addBuilderAnnotation(new HopZeroTime((float) hopDistance,
-                          st1.getTrip(), st1.getStopSequence())));
-                // clear stoptimes that are obviously wrong, causing them to later be interpolated
-/* FIXME (lines commented out because they break routability in multi-feed NYC for some reason -AMB) */
-//                st1.clearArrivalTime();
-//                st1.clearDepartureTime();
-                st1bogus = true;
-            } else if (hopSpeed > 45) {
-                // 45 m/sec ~= 100 miles/hr
-                // elapsed time of 0 will give speed of +inf
-                LOG.trace(graph.addBuilderAnnotation(new HopSpeedFast((float) hopSpeed,
-                        (float) hopDistance, st0.getTrip(), st0.getStopSequence())));
-            } else if (hopSpeed < 0.1) {
-                // 0.1 m/sec ~= 0.2 miles/hr
-                LOG.trace(graph.addBuilderAnnotation(new HopSpeedSlow((float) hopSpeed,
-                        (float) hopDistance, st0.getTrip(), st0.getStopSequence())));
-            }
-            // st0 should reflect the last stoptime that was not clearly incorrect
-            if ( ! st1bogus)
-                st0 = st1;
-        } // END for loop over stop times
-    }
-
     private void loadAgencies(Graph graph) {
         for (Agency agency : _dao.getAllAgencies()) {
             graph.addAgency(_feedId.getId(), agency);
@@ -983,75 +779,6 @@ public class GTFSPatternHopFactory {
                     new PreAlightEdge(arrive, stopVertex);
                     new PreBoardEdge(stopVertex, depart);
                 }
-            }
-        }
-    }
-
-    /**
-     * Scan through the given list of stoptimes, interpolating the missing (unset) ones.
-     * This is currently done by assuming equidistant stops and constant speed.
-     * While we may not be able to improve the constant speed assumption, we can
-     * TODO: use route matching (or shape distance etc.) to improve inter-stop distances
-     *
-     * @param stopTimes the stoptimes (from a single trip) to be interpolated
-     */
-    private void interpolateStopTimes(List<StopTime> stopTimes) {
-        int lastStop = stopTimes.size() - 1;
-        int numInterpStops = -1;
-        int departureTime = -1, prevDepartureTime = -1;
-        int interpStep = 0;
-
-        int i;
-        for (i = 0; i < lastStop; i++) {
-            StopTime st0 = stopTimes.get(i);
-
-            prevDepartureTime = departureTime;
-            departureTime = st0.getDepartureTime();
-
-            /* Interpolate, if necessary, the times of non-timepoint stops */
-            /* genuine interpolation needed */
-            if (!(st0.isDepartureTimeSet() && st0.isArrivalTimeSet())) {
-                // figure out how many such stops there are in a row.
-                int j;
-                StopTime st = null;
-                for (j = i + 1; j < lastStop + 1; ++j) {
-                    st = stopTimes.get(j);
-                    if ((st.isDepartureTimeSet() && st.getDepartureTime() != departureTime)
-                            || (st.isArrivalTimeSet() && st.getArrivalTime() != departureTime)) {
-                        break;
-                    }
-                }
-                if (j == lastStop + 1) {
-                    throw new RuntimeException(
-                            "Could not interpolate arrival/departure time on stop " + i
-                            + " (missing final stop time) on trip " + st0.getTrip());
-                }
-                numInterpStops = j - i;
-                int arrivalTime;
-                if (st.isArrivalTimeSet()) {
-                    arrivalTime = st.getArrivalTime();
-                } else {
-                    arrivalTime = st.getDepartureTime();
-                }
-                interpStep = (arrivalTime - prevDepartureTime) / (numInterpStops + 1);
-                if (interpStep < 0) {
-                    throw new RuntimeException(
-                            "trip goes backwards for some reason");
-                }
-                for (j = i; j < i + numInterpStops; ++j) {
-                    //System.out.println("interpolating " + j + " between " + prevDepartureTime + " and " + arrivalTime);
-                    departureTime = prevDepartureTime + interpStep * (j - i + 1);
-                    st = stopTimes.get(j);
-                    if (st.isArrivalTimeSet()) {
-                        departureTime = st.getArrivalTime();
-                    } else {
-                        st.setArrivalTime(departureTime);
-                    }
-                    if (!st.isDepartureTimeSet()) {
-                        st.setDepartureTime(departureTime);
-                    }
-                }
-                i = j - 1;
             }
         }
     }
@@ -1322,46 +1049,6 @@ public class GTFSPatternHopFactory {
         double indexPart = (distance - distances[index - 1])
                 / (distances[index] - prevDistance);
         return new LinearLocation(index - 1, indexPart);
-    }
-
-    /**
-     * Filter out any series of stop times that refer to the same stop. This is very inefficient in
-     * an array-backed list, but we are assuming that this is a rare occurrence. The alternative is
-     * to copy every list of stop times during filtering.
-     *
-     * TODO: OBA GFTS makes the stoptime lists unmodifiable, so this will not work.
-     * We need to copy any modified list.
-     *
-     * @return whether any repeated stops were filtered out.
-     */
-    private TIntList removeRepeatedStops (List<StopTime> stopTimes) {
-        boolean filtered = false;
-        StopTime prev = null;
-        Iterator<StopTime> it = stopTimes.iterator();
-        TIntList stopSequencesRemoved = new TIntArrayList();
-        while (it.hasNext()) {
-            StopTime st = it.next();
-            if (prev != null) {
-                if (prev.getStop().equals(st.getStop())) {
-                    // OBA gives us unmodifiable lists, but we have copied them.
-
-                    // Merge the two stop times, making sure we're not throwing out a stop time with times in favor of an
-                    // interpolated stop time
-                    // keep the arrival time of the previous stop, unless it didn't have an arrival time, in which case
-                    // replace it with the arrival time of this stop time
-                    // This is particularly important at the last stop in a route (see issue #2220)
-                    if (prev.getArrivalTime() == StopTime.MISSING_VALUE) prev.setArrivalTime(st.getArrivalTime());
-
-                    // prefer to replace with the departure time of this stop time, unless this stop time has no departure time
-                    if (st.getDepartureTime() != StopTime.MISSING_VALUE) prev.setDepartureTime(st.getDepartureTime());
-
-                    it.remove();
-                    stopSequencesRemoved.add(st.getStopSequence());
-                }
-            }
-            prev = st;
-        }
-        return stopSequencesRemoved;
     }
 
     public void setFareServiceFactory(FareServiceFactory fareServiceFactory) {

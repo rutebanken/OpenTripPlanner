@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 import java.io.File;
 import java.text.ParseException;
@@ -36,7 +37,7 @@ import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.onebusaway2.gtfs.services.GtfsDao;
 import org.opentripplanner.ConstantsForTests;
 import org.opentripplanner.gtfs.GtfsContext;
-import org.opentripplanner.gtfs.GtfsLibrary;
+import org.opentripplanner.gtfs.GtfsContextBuilder;
 import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.edgetype.TimetableSnapshot;
 import org.opentripplanner.routing.edgetype.TransitBoardAlight;
@@ -68,7 +69,12 @@ public class TimetableSnapshotSourceTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        context = GtfsLibrary.readGtfs(new File(ConstantsForTests.FAKE_GTFS));
+        GtfsContextBuilder contextBuilder = contextBuilder(ConstantsForTests.FAKE_GTFS)
+                .withGraphBuilderAnnotationsAndDeduplicator(graph);
+
+        context = contextBuilder
+                .turnOffRepairStopTimesAndTripPatternsGeneration()
+                .build();
 
         GtfsDao dao = context.getDao();
 
@@ -98,6 +104,8 @@ public class TimetableSnapshotSourceTest {
         for (Pathway pathway : dao.getAllPathways()) {
             pathway.getId().setAgencyId(feedId);
         }
+
+        contextBuilder.repairStopTimesAndGenerateTripPatterns();
 
         GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
         factory.run(graph);

@@ -14,6 +14,7 @@
 */
 package org.opentripplanner.graph_builder.model;
 
+import com.google.common.collect.Multimap;
 import org.onebusaway2.gtfs.model.Agency;
 import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.FareAttribute;
@@ -31,6 +32,8 @@ import org.onebusaway2.gtfs.model.Transfer;
 import org.onebusaway2.gtfs.model.Trip;
 import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.onebusaway2.gtfs.services.GtfsDao;
+import org.opentripplanner.model.StopPattern;
+import org.opentripplanner.routing.edgetype.TripPattern;
 import org.rutebanken.netex.model.DayType;
 import org.rutebanken.netex.model.OperatingPeriod;
 
@@ -170,6 +173,11 @@ public class NetexToGtfsDao implements GtfsDao {
 
     @Override
     public Collection<Trip> getAllTrips() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public Multimap<StopPattern, TripPattern> getTripPatterns() {
         throw new UnsupportedOperationException("Not implemented");
     }
 

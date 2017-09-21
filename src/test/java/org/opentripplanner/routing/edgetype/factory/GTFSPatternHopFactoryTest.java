@@ -19,7 +19,8 @@ import java.io.IOException;
 import org.junit.Test;
 import org.onebusaway2.gtfs.services.MockGtfs;
 import org.opentripplanner.graph_builder.module.GtfsFeedId;
-import org.opentripplanner.gtfs.GtfsLibrary;
+import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.gtfs.GtfsContextBuilder;
 import org.opentripplanner.routing.edgetype.TransitBoardAlight;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.graph.Edge;
@@ -40,10 +41,14 @@ public class GTFSPatternHopFactoryTest {
                 "t0,09:00:00,17:00:00,300");
 
         GtfsFeedId feedId = new GtfsFeedId.Builder().id("FEED").build();
-        GTFSPatternHopFactory factory = new GTFSPatternHopFactory(
-                GtfsLibrary.createContext(feedId, gtfs.read())
-        );
         Graph graph = new Graph();
+
+        GtfsContext context = new GtfsContextBuilder(feedId, gtfs.read())
+                .withGraphBuilderAnnotationsAndDeduplicator(graph)
+                .build();
+
+        GTFSPatternHopFactory factory = new GTFSPatternHopFactory(context);
+
         factory.run(graph);
 
         for (Edge edge : graph.getEdges()) {
