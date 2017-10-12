@@ -153,6 +153,8 @@ public class CalendarServiceDataFactoryImpl {
             }
             data.putTimeZoneForAgencyId(agency.getId(), timeZone);
         }
+        // Added for NeTEx test
+        data.putTimeZoneForAgencyId("RB", TimeZone.getTimeZone("Europe/Oslo"));
     }
 
     private void addDatesFromCalendar(ServiceCalendar calendar, TimeZone timeZone,

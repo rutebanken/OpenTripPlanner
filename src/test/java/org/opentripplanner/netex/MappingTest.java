@@ -58,23 +58,17 @@ public class MappingTest {
 
     @Test
     public void hashTest() {
-        Collection<StopTime> stopTimes = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> stopTimes2 = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> gtfsStopTimes = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> netexStopTimes = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
 
-        Collection<StopTime> stopTimesRemove = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> stopTimes2Remove = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> gtfsStopTimesRemove = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> netexStopTimesRemove = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
 
-        StopTime stopTime = stopTimes.stream().min(Comparator.comparingInt(StopTime::getStopSequence)).get();
-        int hash = stopTime.hashCode();
+        gtfsStopTimes.removeAll(netexStopTimesRemove);
+        netexStopTimes.removeAll(gtfsStopTimesRemove);
 
-        StopTime stopTime2 = stopTimes2.stream().min(Comparator.comparingInt(StopTime::getStopSequence)).get();
-        int hash2 = stopTime2.hashCode();
-
-        stopTimes.removeAll(stopTimes2Remove);
-        stopTimes2.removeAll(stopTimesRemove);
-
-
-        Assert.fail();
+        Assert.assertEquals(0, gtfsStopTimes.size());
+        Assert.assertEquals(0, netexStopTimes.size());
     }
 
     @Test

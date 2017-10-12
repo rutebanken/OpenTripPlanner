@@ -15,6 +15,8 @@ import org.opentripplanner.netex.mapping.NetexMapper;
 import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
 import org.opentripplanner.routing.edgetype.factory.GtfsStopContext;
 import org.opentripplanner.routing.graph.Graph;
+import org.opentripplanner.routing.impl.DefaultFareServiceFactory;
+import org.opentripplanner.routing.services.FareServiceFactory;
 import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Route;
 import org.slf4j.Logger;
@@ -25,7 +27,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +39,8 @@ public class NetexModule implements GraphBuilderModule {
     private static final Logger LOG = LoggerFactory.getLogger(NetexModule.class);
 
     private List<NetexBundle> netexBundles;
+
+    private FareServiceFactory _fareServiceFactory = new DefaultFareServiceFactory();
 
     private NetexStopPlaceBundle netexStopPlaceBundle;
 
@@ -56,16 +59,28 @@ public class NetexModule implements GraphBuilderModule {
         try {
             NetexStopDao netexStopDao = loadBundle(netexStopPlaceBundle);
 
-            for(NetexBundle bundle : netexBundles){
-                NetexDao netexDao = loadBundle(bundle, netexStopDao);
+            for(NetexBundle netexBundle : netexBundles){
+                NetexDao netexDao = loadBundle(netexBundle, netexStopDao);
 
                 NetexMapper otpMapper = new NetexMapper();
                 GtfsDao otpDao = otpMapper.mapNetexToOtp(netexDao);
                 calendarService.addData(createCalendarServiceData(otpDao), otpDao);
 
-                GTFSPatternHopFactory hf = new GTFSPatternHopFactory();
+                GTFSPatternHopFactory hf = new GTFSPatternHopFactory(new GtfsFeedId.Builder().id("RB").build(),
+                        otpDao,
+                        _fareServiceFactory,
+                        netexBundle.getMaxStopToShapeSnapDistance(),
+                        netexBundle.subwayAccessTime,
+                        netexBundle.maxInterlineDistance);
                 hf.setStopContext(stopContext);
                 hf.run(graph);
+
+                if (netexBundle.linkStopsToParentStations) {
+                    hf.linkStopsToParentStations(graph);
+                }
+                if (netexBundle.parentStationTransfers) {
+                    hf.createParentStationTransfers();
+                }
             }
         } catch (Exception e){
             throw new RuntimeException(e);

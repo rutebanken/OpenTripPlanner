@@ -15,6 +15,16 @@ public class NetexBundle {
     private File file;
     public static final String NETEX_COMMON_FILE_NAME_PREFIX =  "_";
 
+    public boolean linkStopsToParentStations = false;
+
+    public boolean parentStationTransfers = false;
+
+    public int subwayAccessTime;
+
+    public int maxInterlineDistance;
+
+    private double maxStopToShapeSnapDistance = 150;
+
     public NetexBundle(File file) {
         this.file = file;
     }
@@ -68,5 +78,11 @@ public class NetexBundle {
         }
     }
 
+    public double getMaxStopToShapeSnapDistance() {
+        return maxStopToShapeSnapDistance;
+    }
 
+    public void setMaxStopToShapeSnapDistance(double maxStopToShapeSnapDistance) {
+        this.maxStopToShapeSnapDistance = maxStopToShapeSnapDistance;
+    }
 }

@@ -68,26 +68,17 @@ public class TripPatternMapper {
                 stopTime.setTrip(trip);
                 stopTime.setStopSequence(stopSequence++);
 
-                // Fetch time zone info from NeTEx file and convert to Europe/Oslo time
-                TimeZone tz1 = TimeZone.getTimeZone(netexDao.getTimeZone());
-                TimeZone tz2 = TimeZone.getTimeZone("Europe/Oslo");
-                // Offset in seconds
-                long timeZoneOffset = (tz2.getRawOffset() - tz1.getRawOffset()
-                        + tz2.getDSTSavings() - tz1.getDSTSavings())/1000;
-
                 if(passingTime.getArrivalTime() != null){
                     int arrivalTime = passingTime.getArrivalTime().toSecondOfDay();
                     if(passingTime.getArrivalDayOffset() != null && passingTime.getArrivalDayOffset().intValue() == 1){
                         arrivalTime = arrivalTime + (3600 * 24);
                     }
-                    arrivalTime += timeZoneOffset;
                     stopTime.setArrivalTime(arrivalTime);
                 }else if(passingTime.getDepartureTime() != null) {
                     int arrivalTime = passingTime.getDepartureTime().toSecondOfDay();
                     if(passingTime.getDepartureDayOffset() != null && passingTime.getDepartureDayOffset().intValue() == 1){
                         arrivalTime = arrivalTime + (3600 * 24);
                     }
-                    arrivalTime += timeZoneOffset;
                     stopTime.setArrivalTime(arrivalTime);
                 }
 
@@ -96,7 +87,6 @@ public class TripPatternMapper {
                     if(passingTime.getDepartureDayOffset() != null && passingTime.getDepartureDayOffset().intValue() == 1){
                         departureTime = departureTime + (3600 * 24);
                     }
-                    departureTime += timeZoneOffset;
                     stopTime.setDepartureTime(departureTime);
                 }
                 else if(passingTime.getArrivalTime() != null) {
@@ -104,7 +94,6 @@ public class TripPatternMapper {
                     if(passingTime.getArrivalDayOffset() != null && passingTime.getArrivalDayOffset().intValue() == 1){
                         departureTime = departureTime + (3600 * 24);
                     }
-                    departureTime += timeZoneOffset;
                     stopTime.setDepartureTime(departureTime);
                 }
                 StopPointInJourneyPattern stopPoint = findStopPoint(ref, serviceJourneyPattern);
@@ -150,7 +139,7 @@ public class TripPatternMapper {
             }
         }
 
-        gtfsDao.getTripPatterns().add(tripPattern);
+        gtfsDao.getTripPatterns().put(stopPattern, tripPattern);
     }
 
 
