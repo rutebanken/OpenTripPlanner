@@ -9,9 +9,6 @@ import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
-
 public class NetexMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetexMapper.class);
@@ -22,7 +19,7 @@ public class NetexMapper {
     RouteMapper routeMapper = new RouteMapper();
     StopMapper stopMapper = new StopMapper();
     TripPatternMapper tripPatternMapper = new TripPatternMapper();
-    CalendarMapper2 calendarMapper = new CalendarMapper2();
+    CalendarMapper calendarMapper = new CalendarMapper();
 
     public GtfsDao mapNetexToOtp(NetexDao netexDao) {
         for (Operator operator : netexDao.getOperators().values()) {
