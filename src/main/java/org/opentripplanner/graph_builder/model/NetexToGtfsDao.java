@@ -51,12 +51,12 @@ public class NetexToGtfsDao implements GtfsDao {
 
     @Override
     public Collection<Agency> getAllAgencies() {
-        return netexDao.getAllAgencies();
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
     public List<AgencyAndId> getAllServiceIds() {
-        return new ArrayList<>(netexDao.getServiceIds());
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
@@ -145,7 +145,7 @@ public class NetexToGtfsDao implements GtfsDao {
 
     @Override
     public Collection<Stop> getAllStops() {
-        return netexDao.getAllStops();
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override

@@ -18,6 +18,8 @@ package org.onebusaway2.gtfs.model;
 
 import org.onebusaway2.gtfs.model.calendar.TimeToStringConverter;
 
+import java.util.Objects;
+
 public final class StopTime extends IdentityBean<Integer> implements Comparable<StopTime> {
 
     private static final long serialVersionUID = 1L;
@@ -224,5 +226,34 @@ public final class StopTime extends IdentityBean<Integer> implements Comparable<
         return "StopTime(seq=" + getStopSequence() + " stop=" + getStop().getId() + " trip="
                 + getTrip().getId() + " times=" + TimeToStringConverter.toHH_MM_SS(getArrivalTime())
                 + "-" + TimeToStringConverter.toHH_MM_SS(getDepartureTime()) + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        StopTime other = (StopTime) obj;
+        if (!trip.getId().toString().equals(other.getTrip().getId().toString()))
+            return false;
+        if (!stop.getId().toString().equals(other.getStop().getId().toString()))
+            return false;
+        if (pickupType != other.pickupType)
+            return false;
+        if (dropOffType != other.dropOffType)
+            return false;
+        if (arrivalTime != other.arrivalTime)
+            return false;
+        if (departureTime != other.departureTime)
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(trip.getId().toString(), stop.getId().toString(), pickupType, dropOffType, arrivalTime, departureTime);
     }
 }

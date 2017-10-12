@@ -39,7 +39,9 @@ import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.onebusaway.gtfs.services.GenericMutableDao;
+import org.onebusaway.gtfs.services.GtfsDao;
 import org.onebusaway.gtfs.services.GtfsMutableRelationalDao;
+import org.onebusaway.gtfs.services.GtfsRelationalDao;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
@@ -153,6 +155,17 @@ public class GtfsModule implements GraphBuilderModule {
         graph.hasTransit = true;
         graph.calculateTransitCenter();
 
+    }
+
+    public List<org.onebusaway2.gtfs.services.GtfsDao> getOtpDao()
+            throws IOException {
+        List<org.onebusaway2.gtfs.services.GtfsDao> otpDaoList = new ArrayList<>();
+
+        for (GtfsBundle gtfsBundle : this.gtfsBundles) {
+            otpDaoList.add(mapDao(loadBundle(gtfsBundle)));
+        }
+
+        return otpDaoList;
     }
 
     /****
@@ -395,5 +408,4 @@ public class GtfsModule implements GraphBuilderModule {
             bundle.checkInputs();
         }
     }
-
 }

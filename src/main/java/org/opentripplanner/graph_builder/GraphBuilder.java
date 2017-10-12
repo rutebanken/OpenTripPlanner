@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.model.NetexBundle;
+import org.opentripplanner.graph_builder.model.NetexStopPlaceBundle;
 import org.opentripplanner.graph_builder.module.*;
 import org.opentripplanner.graph_builder.module.map.BusRouteStreetMatcher;
 import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
@@ -179,6 +180,7 @@ public class GraphBuilder implements Runnable {
         LOG.info("Wiring up and configuring graph builder task.");
         GraphBuilder graphBuilder = new GraphBuilder();
         List<File> gtfsFiles = Lists.newArrayList();
+        File netexStopPlaceFile = null;
         List<File> netexFiles = Lists.newArrayList();
         List<File> osmFiles =  Lists.newArrayList();
         JsonNode builderConfig = null;
@@ -213,6 +215,10 @@ public class GraphBuilder implements Runnable {
                     } else {
                         LOG.info("Skipping DEM file {}", file);
                     }
+                    break;
+                case NETEX_STOPPLACE:
+                    LOG.info("Found NETEX stop place file {}", file);
+                    netexStopPlaceFile = file;
                     break;
                 case NETEX:
                     LOG.info("Found NETEX file {}", file);
@@ -277,12 +283,13 @@ public class GraphBuilder implements Runnable {
                 graphBuilder.addModule(new TransitToTaggedStopsModule());
             }
         }else if(hasNETEX){
+            NetexStopPlaceBundle netexStopPlaceBundle = new NetexStopPlaceBundle(netexStopPlaceFile);
             List<NetexBundle> netexBundles = Lists.newArrayList();
             for(File netexFile : netexFiles){
                 NetexBundle netexBundle = new NetexBundle(netexFile);
                 netexBundles.add(netexBundle);
             }
-            NetexModule netexModule = new NetexModule(netexBundles);
+            NetexModule netexModule = new NetexModule(netexBundles, netexStopPlaceBundle);
             graphBuilder.addModule(netexModule);
             if ( hasOSM ) {
                 if (builderParams.matchBusRoutesToStreets) {
@@ -342,8 +349,8 @@ public class GraphBuilder implements Runnable {
      * We want to detect even those that are not graph builder inputs so we can effectively warn when unrecognized file
      * types are present. This helps point out when config files have been misnamed (builder-config vs. build-config).
      */
-    private static enum InputFileType {
-        GTFS, OSM, DEM, CONFIG, GRAPH, NETEX, OTHER;
+    private enum InputFileType {
+        GTFS, OSM, DEM, CONFIG, GRAPH, NETEX_STOPPLACE, NETEX, OTHER;
         public static InputFileType forFile(File file) {
             String name = file.getName();
             if (name.endsWith(".zip")) {
@@ -357,9 +364,18 @@ public class GraphBuilder implements Runnable {
             if (name.endsWith(".zip")) {
                 try {
                     ZipFile zip = new ZipFile(file);
-                    ZipEntry stopTimesEntry = zip.getEntry(NetexBundle.NETEX_COMMON_FILE_NAME);
+                    ZipEntry netexStopPlaceFile = zip.getEntry(NetexStopPlaceBundle.NETEX_STOP_PLACE_FILE);
                     zip.close();
-                    if (stopTimesEntry != null) return NETEX;
+                    if (netexStopPlaceFile != null) return NETEX_STOPPLACE;
+                } catch (Exception e) { /* fall through */ }
+            }
+            if (name.endsWith(".zip")) {
+                try {
+                    ZipFile zip = new ZipFile(file);
+                    //ZipEntry stopTimesEntry = zip.getEntry(NetexBundle.NETEX_COMMON_FILE_NAME);
+                    ZipEntry netexCommonFile = zip.stream().filter(files -> !files.getName().startsWith(NetexBundle.NETEX_COMMON_FILE_NAME_PREFIX)).findFirst().orElse(null);
+                    zip.close();
+                    if (netexCommonFile != null) return NETEX;
                 } catch (Exception e) { /* fall through */ }
             }
             if (name.endsWith(".pbf")) return OSM;

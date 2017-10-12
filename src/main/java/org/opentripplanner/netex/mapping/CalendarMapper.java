@@ -21,13 +21,17 @@ import org.rutebanken.netex.model.DayOfWeekEnumeration;
 import org.rutebanken.netex.model.DayType;
 import org.rutebanken.netex.model.OperatingPeriod;
 import org.rutebanken.netex.model.PropertyOfDay;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
 // TODO TGR - Add Unit tests
 public class CalendarMapper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CalendarMapper.class);
 
     public static ServiceCalendar mapToServiceCalendar(
             DayType dayType, OperatingPeriod period, AgencyAndId serviceId
@@ -97,7 +101,7 @@ public class CalendarMapper {
         }
     }
 
-    public static ServiceDate mapToStartDate(OffsetDateTime date) {
+    public static ServiceDate mapToStartDate(LocalDateTime date) {
         return new ServiceDate(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
     }
 }

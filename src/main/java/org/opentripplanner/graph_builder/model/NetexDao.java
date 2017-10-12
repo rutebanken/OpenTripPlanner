@@ -1,45 +1,54 @@
 package org.opentripplanner.graph_builder.model;
 
-import org.onebusaway2.gtfs.model.Agency;
-import org.onebusaway2.gtfs.model.AgencyAndId;
-import org.onebusaway2.gtfs.model.Stop;
-import org.onebusaway2.gtfs.model.StopTime;
-import org.onebusaway2.gtfs.model.Trip;
-import org.onebusaway2.gtfs.services.GtfsDao;
-import org.opentripplanner.routing.edgetype.TripPattern;
-import org.rutebanken.netex.model.Authority;
-import org.rutebanken.netex.model.DayType;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.Line;
-import org.rutebanken.netex.model.OperatingPeriod;
-import org.rutebanken.netex.model.Operator;
-import org.rutebanken.netex.model.Route;
-import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.*;
 
 import java.util.*;
 
 public class NetexDao {
 
-    private Map<String, Stop> stopsById = new HashMap<>();
+    private Map<String, StopPlace> stopPlaceMap = new HashMap<>();
+
+    public Map<String, StopPlace> getStopPlaceMap() {
+        return stopPlaceMap;
+    }
+
+    public Map<String, Quay> getQuayMap() {
+        return quayMap;
+    }
+
+    private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
     private Map<String, String> stopPointQuayMap = new HashMap<>();
-    private Map<String, JourneyPattern> journeyPatternsById = new HashMap<>();
+    private Map<String, ServiceJourneyPattern> journeyPatternsById = new HashMap<>();
     private Map<String, Route> routeById = new HashMap<>();
     private Map<String, Line> lineById = new HashMap<>();
-    private Map<String, org.onebusaway2.gtfs.model.Route> otpRouteById = new HashMap<>();
     private Map<String, List<ServiceJourney>> serviceJourneyById = new HashMap<>();
-    private List<TripPattern> tripPatterns = new ArrayList<>();
-    private List<Trip> trips = new ArrayList<>();
-    private Map<Trip, List<StopTime>> stopTimesForTrip = new HashMap<>();
-    private Set<AgencyAndId> serviceIds = new HashSet<>();
     private Map<String, DayType> dayTypeById = new HashMap<>();
-    private Map<String, Object> dayTypeAssignment = new HashMap<>();
+    private Map<String, List<DayTypeAssignment>> dayTypeAssignment = new HashMap<>();
+    private Map<String, Boolean> dayTypeAvailable = new HashMap<>();
     private Map<String, OperatingPeriod> operatingPeriodById = new HashMap<>();
     private Map<String, Operator> operators = new HashMap<>();
     private Map<String, Authority> authorities = new HashMap<>();
-    private Map<String , String> authoritiesByGroupOfLinesId = new HashMap<>();
-    private List<Agency> agencies = new ArrayList<>();
+    private Map<String, String> authoritiesByGroupOfLinesId = new HashMap<>();
+    private Map<String, String> authoritiesByNetworkId = new HashMap<>();
+    private Map<String, String> serviceIds = new HashMap<>();
+    private Map<String, StopPlace> parentStopPlaceById = new HashMap<>();
+
+    public Map<String, StopPlace> getParentStopPlaceById() {
+        return parentStopPlaceById;
+    }
+
+
     private String timeZone;
+
+
+    public Map<String, Boolean> getDayTypeAvailable() {
+        return dayTypeAvailable;
+    }
+
+    public Map<String, String> getServiceIds() {
+        return serviceIds;
+    }
 
     public String getTimeZone() {
         return timeZone;
@@ -47,10 +56,6 @@ public class NetexDao {
 
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
-    }
-
-    public Map<String, Stop> getStopsById() {
-        return stopsById;
     }
 
     public Map<String, String> getStopPointStopPlaceMap() {
@@ -61,11 +66,7 @@ public class NetexDao {
         return serviceJourneyById;
     }
 
-    public Collection<Stop> getAllStops(){
-        return stopsById.values();
-    }
-
-    public Map<String, JourneyPattern> getJourneyPatternsById() {
+    public Map<String, ServiceJourneyPattern> getJourneyPatternsById() {
         return journeyPatternsById;
     }
 
@@ -77,40 +78,8 @@ public class NetexDao {
         return routeById;
     }
 
-    public List<Trip> getTrips() {
-        return trips;
-    }
-
-    public void setTrips(List<Trip> trips) {
-        this.trips = trips;
-    }
-
-    public List<TripPattern> getTripPatterns() {
-        return tripPatterns;
-    }
-
-    public Map<Trip, List<StopTime>> getStopTimesForTrip() {
-        return stopTimesForTrip;
-    }
-
-    public Set<AgencyAndId> getServiceIds() {
-        return serviceIds;
-    }
-
-    public Map<String, Object> getDayTypeAssignment() {
+    public Map<String, List<DayTypeAssignment>> getDayTypeAssignment() {
         return dayTypeAssignment;
-    }
-
-    public Map<String, org.onebusaway2.gtfs.model.Route> getOtpRouteById() {
-        return otpRouteById;
-    }
-
-    public Map<String, Operator> getOperators() {
-        return operators;
-    }
-
-    public List<Agency> getAllAgencies(){
-        return agencies;
     }
 
     public Map<String, DayType> getDayTypeById() {
@@ -125,19 +94,19 @@ public class NetexDao {
         return authorities;
     }
 
+    public Map<String, Operator> getOperators() {
+        return operators;
+    }
+
     public Map<String, String> getAuthoritiesByGroupOfLinesId() {
         return authoritiesByGroupOfLinesId;
     }
 
-    public void clearJourneyPatterns(){
-        journeyPatternsById = new HashMap<>();
+    public Map<String, String> getAuthoritiesByNetworkId() {
+        return authoritiesByNetworkId;
     }
 
     public Map<String, String> getStopPointQuayMap() {
         return stopPointQuayMap;
-    }
-
-    public void setStopPointQuayMap(Map<String, String> stopPointQuayMap) {
-        this.stopPointQuayMap = stopPointQuayMap;
     }
 }

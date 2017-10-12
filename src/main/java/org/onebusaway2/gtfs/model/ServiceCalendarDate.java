@@ -17,6 +17,8 @@ package org.onebusaway2.gtfs.model;
 
 import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 
+import java.util.Objects;
+
 /**
  * @author bdferris
  *
@@ -73,5 +75,34 @@ public final class ServiceCalendarDate extends IdentityBean<Integer> {
     public String toString() {
         return "<CalendarDate serviceId=" + this.serviceId + " date=" + this.date + " exception="
                 + this.exceptionType + ">";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o)
+            return true;
+        // null check
+        if (o == null)
+            return false;
+        // type check and cast
+        if (getClass() != o.getClass())
+            return false;
+        ServiceCalendarDate serviceCalendarDate = (ServiceCalendarDate) o;
+        String test1 = serviceCalendarDate.getDate().toString();
+        String test2 = this.getDate().toString();
+
+        String test3 = serviceCalendarDate.getServiceId().toString();
+        String test4 = this.getServiceId().toString();
+
+
+        // field comparison
+        return (serviceCalendarDate.getDate().toString().equals(this.getDate().toString()) &&
+                serviceCalendarDate.getServiceId().toString().equals(this.getServiceId().toString())) ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getDate().toString(), getServiceId().toString());
     }
 }
