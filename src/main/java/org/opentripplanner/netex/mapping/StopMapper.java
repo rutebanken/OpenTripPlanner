@@ -19,6 +19,7 @@ public class StopMapper {
         ArrayList<Stop> stops = new ArrayList<>();
 
         Stop stop = new Stop();
+        stop.setLocationType(1);
         if (stopPlace.getName() != null) {
             stop.setName(stopPlace.getName().getValue());
         } else if (stopPlace.getParentSiteRef() != null && parentStopPlacesById.containsKey(stopPlace.getParentSiteRef().getRef())) {
@@ -48,6 +49,7 @@ public class StopMapper {
             if(quayObject instanceof Quay){
                 Quay quay = (Quay) quayObject;
                 Stop stopQuay = new Stop();
+                stopQuay.setLocationType(0);
                 stopQuay.setName(stop.getName());
                 stopQuay.setLat(quay.getCentroid().getLocation().getLatitude().doubleValue());
                 stopQuay.setLon(quay.getCentroid().getLocation().getLongitude().doubleValue());

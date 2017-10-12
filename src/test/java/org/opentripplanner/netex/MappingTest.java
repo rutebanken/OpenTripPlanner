@@ -57,12 +57,16 @@ public class MappingTest {
     }
 
     @Test
-    public void hashTest() {
-        Collection<StopTime> gtfsStopTimes = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> netexStopTimes = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+    public void singleTripTest() {
+        Collection<StopTime> gtfsStopTimes = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip()
+                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> netexStopTimes = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip()
+                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
 
-        Collection<StopTime> gtfsStopTimesRemove = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> netexStopTimesRemove = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip().getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> gtfsStopTimesRemove = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip()
+                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
+        Collection<StopTime> netexStopTimesRemove = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip()
+                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
 
         gtfsStopTimes.removeAll(netexStopTimesRemove);
         netexStopTimes.removeAll(gtfsStopTimesRemove);

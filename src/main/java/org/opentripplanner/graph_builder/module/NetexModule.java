@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarSrvDataWithoutDatesForLocalizedSrvId;
 
 public class NetexModule implements GraphBuilderModule {
 
@@ -64,7 +65,10 @@ public class NetexModule implements GraphBuilderModule {
 
                 NetexMapper otpMapper = new NetexMapper();
                 GtfsDao otpDao = otpMapper.mapNetexToOtp(netexDao);
-                calendarService.addData(createCalendarServiceData(otpDao), otpDao);
+                calendarService.addData(
+                        createCalendarSrvDataWithoutDatesForLocalizedSrvId(otpDao),
+                        otpDao
+                );
 
                 GTFSPatternHopFactory hf = new GTFSPatternHopFactory(new GtfsFeedId.Builder().id("RB").build(),
                         otpDao,
