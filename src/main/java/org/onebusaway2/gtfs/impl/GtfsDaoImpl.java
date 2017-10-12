@@ -17,6 +17,8 @@
  */
 package org.onebusaway2.gtfs.impl;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.onebusaway2.gtfs.model.Agency;
 import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.FareAttribute;
@@ -34,6 +36,8 @@ import org.onebusaway2.gtfs.model.StopTime;
 import org.onebusaway2.gtfs.model.Transfer;
 import org.onebusaway2.gtfs.model.Trip;
 import org.onebusaway2.gtfs.services.GtfsDao;
+import org.onebusaway2.gtfs.services.GtfsDaoMutable;
+import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.routing.edgetype.TripPattern;
 
 import java.util.ArrayList;
@@ -57,7 +61,7 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author bdferris
  */
-public class GtfsDaoImpl implements GtfsDao {
+public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Collection<Agency> agencies;
 
@@ -87,13 +91,10 @@ public class GtfsDaoImpl implements GtfsDao {
 
     private Collection<Trip> trips;
 
-    public Collection<TripPattern> getTripPatterns() {
-        return tripPatterns;
-    }
-
-    private Collection<TripPattern> tripPatterns;
-
     // Indexes
+
+    private Multimap<StopPattern, TripPattern> tripPatterns = HashMultimap.create();
+
     private Map<AgencyAndId, List<String>> tripAgencyIdsByServiceId = null;
 
     private Map<Stop, List<Stop>> stopsByStation = null;
@@ -131,7 +132,7 @@ public class GtfsDaoImpl implements GtfsDao {
         this.stopTimes = new ArrayList<>();
         this.transfers = new ArrayList<>();
         this.trips = new ArrayList<>();
-        this.tripPatterns = new ArrayList<>();
+        this.tripPatterns = HashMultimap.create();
         this.routeById = new HashMap<>();
         this.stopTimesByTrip = new HashMap<>();
     }
@@ -230,6 +231,11 @@ public class GtfsDaoImpl implements GtfsDao {
     }
 
     @Override
+    public Multimap<StopPattern, TripPattern> getTripPatterns() {
+        return tripPatterns;
+    }
+
+    @Override
     public Collection<Pathway> getAllPathways() {
         return pathways;
     }
@@ -303,6 +309,11 @@ public class GtfsDaoImpl implements GtfsDao {
         }
 
         return list(stopTimesByTrip.get(trip));
+    }
+
+    @Override
+    public void updateStopTimesForTrip(Trip trip, List<StopTime> stopTimes) {
+        stopTimesByTrip.put(trip, stopTimes);
     }
 
     @Override

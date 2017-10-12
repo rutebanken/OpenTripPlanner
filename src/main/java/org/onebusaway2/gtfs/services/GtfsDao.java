@@ -1,5 +1,6 @@
 package org.onebusaway2.gtfs.services;
 
+import com.google.common.collect.Multimap;
 import org.onebusaway2.gtfs.model.Agency;
 import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.FareAttribute;
@@ -15,6 +16,8 @@ import org.onebusaway2.gtfs.model.Stop;
 import org.onebusaway2.gtfs.model.StopTime;
 import org.onebusaway2.gtfs.model.Transfer;
 import org.onebusaway2.gtfs.model.Trip;
+import org.opentripplanner.model.StopPattern;
+import org.opentripplanner.routing.edgetype.TripPattern;
 
 import java.util.Collection;
 import java.util.List;
@@ -68,6 +71,8 @@ public interface GtfsDao {
     Collection<Transfer> getAllTransfers();
 
     Collection<Trip> getAllTrips();
+
+    Multimap<StopPattern, TripPattern> getTripPatterns();
 
     List<String> getTripAgencyIdsReferencingServiceId(AgencyAndId serviceId);
 
