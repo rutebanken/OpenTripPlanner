@@ -28,6 +28,7 @@ import org.onebusaway2.gtfs.model.Agency;
 import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.Stop;
 import org.onebusaway2.gtfs.model.FeedInfo;
+import org.onebusaway2.gtfs.model.Notice;
 import org.onebusaway2.gtfs.model.calendar.CalendarServiceData;
 import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.onebusaway2.gtfs.services.calendar.CalendarService;
@@ -84,6 +85,25 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     private final Map<Edge, List<TurnRestriction>> turnRestrictions = Maps.newHashMap();
 
     public final StreetNotesService streetNotesService = new StreetNotesService();
+
+    public void setNoticeMap(Map<AgencyAndId, Notice> noticeMap) {
+        this.noticeMap = noticeMap;
+    }
+
+    public void setNoticeAssignmentMap(Map<AgencyAndId, List<Notice>> noticeAssignmentMap) {
+        this.noticeAssignmentMap = noticeAssignmentMap;
+    }
+
+    public Map<AgencyAndId, Notice> getNoticeMap() {
+        return noticeMap;
+    }
+
+    public Map<AgencyAndId, List<Notice>> getNoticeAssignmentMap() {
+        return noticeAssignmentMap;
+    }
+
+    private Map<AgencyAndId, Notice> noticeMap = new HashMap<>();
+    private Map<AgencyAndId, List<Notice>> noticeAssignmentMap = new HashMap<>();
 
     // transit feed validity information in seconds since epoch
     private long transitServiceStarts = Long.MAX_VALUE;

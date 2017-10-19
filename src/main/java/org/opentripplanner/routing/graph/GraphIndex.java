@@ -27,6 +27,7 @@ import org.onebusaway2.gtfs.model.FeedInfo;
 import org.onebusaway2.gtfs.model.Route;
 import org.onebusaway2.gtfs.model.Stop;
 import org.onebusaway2.gtfs.model.Trip;
+import org.onebusaway2.gtfs.model.Notice;
 import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.onebusaway2.gtfs.services.calendar.CalendarService;
 import org.opentripplanner.common.LuceneIndex;
@@ -101,6 +102,8 @@ public class GraphIndex {
     final HashGridSpatialIndex<TransitStop> stopSpatialIndex = new HashGridSpatialIndex<TransitStop>();
     public final Map<Stop, StopCluster> stopClusterForStop = Maps.newHashMap();
     public final Map<String, StopCluster> stopClusterForId = Maps.newHashMap();
+    private Map<AgencyAndId, Notice> noticeMap = new HashMap<>();
+    private Map<AgencyAndId, List<Notice>> noticeAssignmentMap = new HashMap<>();
 
     /* Should eventually be replaced with new serviceId indexes. */
     private final CalendarService calendarService;
@@ -178,6 +181,9 @@ public class GraphIndex {
         for (Route route : patternsForRoute.asMap().keySet()) {
             routeForId.put(route.getId(), route);
         }
+
+        noticeMap = graph.getNoticeMap();
+        noticeAssignmentMap = graph.getNoticeAssignmentMap();
 
         // Copy these two service indexes from the graph until we have better ones.
         calendarService = graph.getCalendarService();
@@ -692,4 +698,23 @@ public class GraphIndex {
         return allAgencies;
     }
 
+    public void setNoticeMap(Map<AgencyAndId, Notice> noticeMap) {
+        this.noticeMap = noticeMap;
+    }
+
+    public void setNoticeAssignmentMap(Map<AgencyAndId, List<Notice>> noticeAssignmentMap) {
+        this.noticeAssignmentMap = noticeAssignmentMap;
+    }
+
+    public Map<AgencyAndId, Notice> getNoticeMap() {
+        return noticeMap;
+    }
+
+    public Map<AgencyAndId, List<Notice>> getNoticeAssignmentMap() {
+        return noticeAssignmentMap;
+    }
+
+    public Collection<Notice> getNoticesForElement(AgencyAndId id) {
+        return this.noticeAssignmentMap.containsKey(id) ? this.noticeAssignmentMap.get(id) : new ArrayList<>();
+    }
 }

@@ -33,6 +33,16 @@ public class NetexDao {
     private Map<String, String> authoritiesByNetworkId = new HashMap<>();
     private Map<String, String> serviceIds = new HashMap<>();
     private Map<String, StopPlace> parentStopPlaceById = new HashMap<>();
+    private Map<String, Notice> noticeMap = new HashMap<>();
+    private Map<String, NoticeAssignment> noticeAssignmentMap = new HashMap<>();
+
+    public Map<String, Notice> getNoticeMap() {
+        return noticeMap;
+    }
+
+    public Map<String, NoticeAssignment> getNoticeAssignmentMap() {
+        return noticeAssignmentMap;
+    }
 
     public Map<String, StopPlace> getParentStopPlaceById() {
         return parentStopPlaceById;

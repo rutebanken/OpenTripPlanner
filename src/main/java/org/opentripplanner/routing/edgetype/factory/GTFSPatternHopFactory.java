@@ -29,17 +29,7 @@ import com.vividsolutions.jts.linearref.LocationIndexedLine;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import org.apache.commons.math3.util.FastMath;
-import org.onebusaway2.gtfs.model.Agency;
-import org.onebusaway2.gtfs.model.AgencyAndId;
-import org.onebusaway2.gtfs.model.FeedInfo;
-import org.onebusaway2.gtfs.model.Frequency;
-import org.onebusaway2.gtfs.model.Pathway;
-import org.onebusaway2.gtfs.model.Route;
-import org.onebusaway2.gtfs.model.ShapePoint;
-import org.onebusaway2.gtfs.model.Stop;
-import org.onebusaway2.gtfs.model.StopTime;
-import org.onebusaway2.gtfs.model.Transfer;
-import org.onebusaway2.gtfs.model.Trip;
+import org.onebusaway2.gtfs.model.*;
 import org.onebusaway2.gtfs.services.GtfsDao;
 import org.onebusaway2.gtfs.services.calendar.CalendarService;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
@@ -437,6 +427,18 @@ public class GTFSPatternHopFactory {
         // it is already done at deserialization, but standalone mode allows using graphs without serializing them.
         for (TripPattern tableTripPattern : tripPatterns) {
             tableTripPattern.scheduledTimetable.finish();
+        }
+
+        graph.setNoticeMap(_dao.getNoticeById());
+        for (NoticeAssignment noticeAssignment : _dao.getNoticeAssignmentById().values()) {
+            Notice notice = _dao.getNoticeById().get(noticeAssignment.getNoticeId());
+            if (graph.getNoticeAssignmentMap().containsKey(noticeAssignment.getElementId())) {
+                graph.getNoticeAssignmentMap().get(noticeAssignment.getElementId()).add(notice);
+            }
+            else {
+                graph.getNoticeAssignmentMap().put(noticeAssignment.getElementId(),
+                        new ArrayList(Arrays.asList(notice)));
+            }
         }
         
         clearCachedData(); // eh?

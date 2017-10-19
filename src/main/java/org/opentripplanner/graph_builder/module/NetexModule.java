@@ -315,6 +315,12 @@ public class NetexModule implements GraphBuilderModule {
                     }
                 }
             }
+
+            if (sf.getNotices() != null) {
+                for (Notice notice : sf.getNotices().getNotice()) {
+                    netexDao.getNoticeMap().put(notice.getId(), notice);
+                }
+            }
         }
     }
 
@@ -341,6 +347,19 @@ public class NetexModule implements GraphBuilderModule {
                         }
                     } else {
                         LOG.warn("Mismatch between ServiceJourney and JourneyPattern. ServiceJourney will be skipped. - " + sj.getId());
+                    }
+                }
+            }
+
+
+
+            if (timetableFrame.getNoticeAssignments() != null) {
+                for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : timetableFrame.getNoticeAssignments()
+                        .getNoticeAssignment_()) {
+                    NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+
+                    if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
+                        netexDao.getNoticeAssignmentMap().put(noticeAssignment.getId(), noticeAssignment);
                     }
                 }
             }

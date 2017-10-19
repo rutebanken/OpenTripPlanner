@@ -19,23 +19,7 @@ package org.onebusaway2.gtfs.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.onebusaway2.gtfs.model.Agency;
-import org.onebusaway2.gtfs.model.AgencyAndId;
-import org.onebusaway2.gtfs.model.FareAttribute;
-import org.onebusaway2.gtfs.model.FareRule;
-import org.onebusaway2.gtfs.model.FeedInfo;
-import org.onebusaway2.gtfs.model.Frequency;
-import org.onebusaway2.gtfs.model.IdentityBean;
-import org.onebusaway2.gtfs.model.Pathway;
-import org.onebusaway2.gtfs.model.Route;
-import org.onebusaway2.gtfs.model.ServiceCalendar;
-import org.onebusaway2.gtfs.model.ServiceCalendarDate;
-import org.onebusaway2.gtfs.model.ShapePoint;
-import org.onebusaway2.gtfs.model.Stop;
-import org.onebusaway2.gtfs.model.StopTime;
-import org.onebusaway2.gtfs.model.Transfer;
-import org.onebusaway2.gtfs.model.Trip;
-import org.onebusaway2.gtfs.services.GtfsDao;
+import org.onebusaway2.gtfs.model.*;
 import org.onebusaway2.gtfs.services.GtfsDaoMutable;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -48,7 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -91,6 +74,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Collection<Trip> trips;
 
+    private Collection<Notice> notices;
+
+    private Collection<NoticeAssignment> noticeAssignments;
+
     // Indexes
 
     private Multimap<StopPattern, TripPattern> tripPatterns = HashMultimap.create();
@@ -117,6 +104,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Map<AgencyAndId, Route> routeById = null;
 
+    private Map<AgencyAndId, Notice> noticeById = null;
+
+    private Map<AgencyAndId, NoticeAssignment> noticeAssignmentById = null;
+
     public GtfsDaoImpl() {
         this.agencies = new ArrayList<>();
         this.calendarDates = new ArrayList<>();
@@ -135,6 +126,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.tripPatterns = HashMultimap.create();
         this.routeById = new HashMap<>();
         this.stopTimesByTrip = new HashMap<>();
+        this.noticeById = new HashMap<>();
+        this.noticeAssignmentById = new HashMap<>();
     }
 
     public GtfsDaoImpl(Collection<Agency> agencies, Collection<ServiceCalendarDate> calendarDates,
@@ -159,6 +152,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.stopTimes = insertIds(stopTimes);
         this.transfers = insertIds(transfers);
         this.trips = trips;
+        this.noticeById = new HashMap<>();
+        this.noticeAssignmentById = new HashMap<>();
     }
 
     @Override
@@ -219,6 +214,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
     public Map<AgencyAndId, Stop> stopsById() {
         return stops;
     }
+
+    public Map<AgencyAndId, Notice> getNoticeById() { return noticeById; }
+
+    public Map<AgencyAndId, NoticeAssignment> getNoticeAssignmentById() { return noticeAssignmentById; }
 
     @Override
     public Collection<Transfer> getAllTransfers() {
