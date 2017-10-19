@@ -363,6 +363,16 @@ public class NetexModule implements GraphBuilderModule {
                     }
                 }
             }
+
+            if (timetableFrame.getJourneyInterchanges() != null) {
+                for (Interchange_VersionStructure interchange_versionStructure : timetableFrame.getJourneyInterchanges()
+                        .getServiceJourneyPatternInterchangeOrServiceJourneyInterchange()) {
+                    if (interchange_versionStructure instanceof  ServiceJourneyInterchange) {
+                        ServiceJourneyInterchange interchange = (ServiceJourneyInterchange) interchange_versionStructure;
+                        netexDao.getInterchanges().put(interchange.getId(), interchange);
+                    }
+                }
+            }
         }
     }
 

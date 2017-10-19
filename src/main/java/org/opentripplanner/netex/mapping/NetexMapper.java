@@ -10,6 +10,9 @@ import org.rutebanken.netex.model.Notice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+
 public class NetexMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(NetexMapper.class);
@@ -23,6 +26,7 @@ public class NetexMapper {
     CalendarMapper calendarMapper = new CalendarMapper();
     NoticeMapper noticeMapper = new NoticeMapper();
     NoticeAssignmentMapper noticeAssignmentMapper = new NoticeAssignmentMapper();
+    TransferMapper transferMapper = new TransferMapper();
 
     public GtfsDao mapNetexToOtp(NetexDao netexDao) {
         for (Operator operator : netexDao.getOperators().values()) {
@@ -50,6 +54,7 @@ public class NetexMapper {
         for (ServiceJourneyPattern serviceJourneyPattern : netexDao.getJourneyPatternsById().values()) {
             if (serviceJourneyPattern != null) {
                 tripPatternMapper.mapTripPattern(serviceJourneyPattern, gtfsDao, netexDao);
+                gtfsDao.getTripsById().putAll(gtfsDao.getAllTrips().stream().collect(toMap(Trip::getId, identity())));
             }
         }
 
@@ -68,6 +73,15 @@ public class NetexMapper {
             if (noticeAssignment != null) {
                 org.onebusaway2.gtfs.model.NoticeAssignment otpNoticeAssignment = noticeAssignmentMapper.mapNoticeAssignment(noticeAssignment);
                 gtfsDao.getNoticeAssignmentById().put(otpNoticeAssignment.getId(), otpNoticeAssignment);
+            }
+        }
+
+        for (org.rutebanken.netex.model.ServiceJourneyInterchange interchange : netexDao.getInterchanges().values()) {
+            if (interchange != null) {
+                Transfer transfer = transferMapper.mapTransfer(interchange, gtfsDao, netexDao);
+                if (transfer != null) {
+                    gtfsDao.getAllTransfers().add(transfer);
+                }
             }
         }
 

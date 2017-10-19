@@ -108,6 +108,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Map<AgencyAndId, NoticeAssignment> noticeAssignmentById = null;
 
+    private Map<AgencyAndId, Trip> tripsById = null;
+
     public GtfsDaoImpl() {
         this.agencies = new ArrayList<>();
         this.calendarDates = new ArrayList<>();
@@ -128,6 +130,7 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.stopTimesByTrip = new HashMap<>();
         this.noticeById = new HashMap<>();
         this.noticeAssignmentById = new HashMap<>();
+        this.tripsById = new HashMap<>();
     }
 
     public GtfsDaoImpl(Collection<Agency> agencies, Collection<ServiceCalendarDate> calendarDates,
@@ -152,6 +155,7 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.stopTimes = insertIds(stopTimes);
         this.transfers = insertIds(transfers);
         this.trips = trips;
+        this.tripsById = trips.stream().collect(toMap(Trip::getId, identity()));
         this.noticeById = new HashMap<>();
         this.noticeAssignmentById = new HashMap<>();
     }
@@ -213,6 +217,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     public Map<AgencyAndId, Stop> stopsById() {
         return stops;
+    }
+
+    public Map<AgencyAndId, Trip> getTripsById() {
+        return tripsById;
     }
 
     public Map<AgencyAndId, Notice> getNoticeById() { return noticeById; }

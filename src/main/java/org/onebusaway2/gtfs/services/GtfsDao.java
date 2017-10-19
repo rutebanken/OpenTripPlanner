@@ -59,6 +59,8 @@ public interface GtfsDao {
 
     Collection<Trip> getAllTrips();
 
+    Map<AgencyAndId, Trip> getTripsById();
+
     Map<AgencyAndId, Notice> getNoticeById();
 
     Map<AgencyAndId, NoticeAssignment> getNoticeAssignmentById();
