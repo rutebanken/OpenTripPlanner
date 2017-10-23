@@ -47,7 +47,7 @@ public class CalendarMapper {
                 // Add or remove single days
                 if (dayTypeAssignment.getDate() != null) {
                     LocalDateTime date = dayTypeAssignment.getDate();
-                    ServiceCalendarDate serviceCalendarDate = getServiceCalenderDate(date, serviceId, 1);
+                    ServiceCalendarDate serviceCalendarDate = mapServiceCalendarDate(date, serviceId, 1);
                     if (isAvailable) {
                         serviceCalendarDates.add(serviceCalendarDate);
                     } else {
@@ -72,7 +72,7 @@ public class CalendarMapper {
                     }
 
                     for (LocalDateTime date = fromDate; date.isBefore(toDate); date = date.plusDays(1)) {
-                        ServiceCalendarDate serviceCalendarDate = getServiceCalenderDate(date, serviceId, 1);
+                        ServiceCalendarDate serviceCalendarDate = mapServiceCalendarDate(date, serviceId, 1);
 
                         if (daysOfWeek.contains(DayOfWeekEnumeration.EVERYDAY)) {
                             serviceCalendarDates.add(serviceCalendarDate);
@@ -201,7 +201,7 @@ public class CalendarMapper {
         }
     }
 
-    private static ServiceCalendarDate getServiceCalenderDate(LocalDateTime date, AgencyAndId serviceId, Integer exceptionType) {
+    private static ServiceCalendarDate mapServiceCalendarDate(LocalDateTime date, AgencyAndId serviceId, Integer exceptionType) {
         ServiceCalendarDate serviceCalendarDate = new ServiceCalendarDate();
         serviceCalendarDate.setServiceId(serviceId);
         serviceCalendarDate.setDate(new ServiceDate(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));

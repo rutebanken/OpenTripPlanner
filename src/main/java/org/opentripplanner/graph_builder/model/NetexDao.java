@@ -7,15 +7,6 @@ import java.util.*;
 public class NetexDao {
 
     private Map<String, StopPlace> stopPlaceMap = new HashMap<>();
-
-    public Map<String, StopPlace> getStopPlaceMap() {
-        return stopPlaceMap;
-    }
-
-    public Map<String, Quay> getQuayMap() {
-        return quayMap;
-    }
-
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
     private Map<String, String> stopPointQuayMap = new HashMap<>();
@@ -33,14 +24,17 @@ public class NetexDao {
     private Map<String, String> authoritiesByNetworkId = new HashMap<>();
     private Map<String, String> serviceIds = new HashMap<>();
     private Map<String, StopPlace> parentStopPlaceById = new HashMap<>();
-
-    public Map<String, StopPlace> getParentStopPlaceById() {
-        return parentStopPlaceById;
-    }
-
-
     private String timeZone;
 
+    public Map<String, StopPlace> getStopPlaceMap() {
+        return stopPlaceMap;
+    }
+
+    public Map<String, Quay> getQuayMap() {
+        return quayMap;
+    }
+
+    public Map<String, StopPlace> getParentStopPlaceById() { return parentStopPlaceById; }
 
     public Map<String, Boolean> getDayTypeAvailable() {
         return dayTypeAvailable;
