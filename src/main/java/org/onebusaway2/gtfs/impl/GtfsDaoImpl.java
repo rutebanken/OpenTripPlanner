@@ -68,6 +68,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Map<AgencyAndId, Stop> stops;
 
+    private Map<AgencyAndId, Stop> multiModalStops;
+
     private Collection<StopTime> stopTimes;
 
     private Collection<Transfer> transfers;
@@ -85,6 +87,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
     private Map<AgencyAndId, List<String>> tripAgencyIdsByServiceId = null;
 
     private Map<Stop, List<Stop>> stopsByStation = null;
+
+    private Map<Stop, List<Stop>> stationsByMultiModalStop = null;
 
     public Map<Trip, List<StopTime>> getStopTimesByTrip() {
         return stopTimesByTrip;
@@ -131,6 +135,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.noticeById = new HashMap<>();
         this.noticeAssignmentById = new HashMap<>();
         this.tripsById = new HashMap<>();
+        this.stationsByMultiModalStop = new HashMap<>();
+        this.multiModalStops = new HashMap<>();
     }
 
     public GtfsDaoImpl(Collection<Agency> agencies, Collection<ServiceCalendarDate> calendarDates,
@@ -158,6 +164,8 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.tripsById = trips.stream().collect(toMap(Trip::getId, identity()));
         this.noticeById = new HashMap<>();
         this.noticeAssignmentById = new HashMap<>();
+        this.stationsByMultiModalStop = new HashMap<>();
+        this.multiModalStops = new HashMap<>();
     }
 
     @Override
@@ -388,5 +396,15 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private static <T extends IdentityBean<Integer>> Collection<T> insertIds(Collection<T> dates) {
         return new ArrayListWithIdGeneration<>(dates);
+    }
+
+    @Override
+    public Map<AgencyAndId, Stop> getMultiModalStops() {
+        return multiModalStops;
+    }
+
+    @Override
+    public Map<Stop, List<Stop>> getStationsByMultiModalStop() {
+        return stationsByMultiModalStop;
     }
 }

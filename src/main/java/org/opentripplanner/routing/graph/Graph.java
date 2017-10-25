@@ -231,6 +231,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     /** Parent stops **/
     public Map<AgencyAndId, Stop> parentStopById = new HashMap<>();
 
+    /** Multimodal stops **/
+    public Map<AgencyAndId, Stop> multiModalStopById = new HashMap<>();
+
     public Graph(Graph basedOn) {
         this();
         this.bundle = basedOn.getBundle();

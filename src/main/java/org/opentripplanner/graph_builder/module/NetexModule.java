@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarSrvDataWithoutDatesForLocalizedSrvId;
 
 public class NetexModule implements GraphBuilderModule {
@@ -81,6 +80,9 @@ public class NetexModule implements GraphBuilderModule {
 
                 if (netexBundle.linkStopsToParentStations) {
                     hf.linkStopsToParentStations(graph);
+                }
+                if (netexBundle.linkStopsToParentStations) {
+                    hf.linkMultiModalStops(graph);
                 }
                 if (netexBundle.parentStationTransfers) {
                     hf.createParentStationTransfers();
@@ -203,7 +205,7 @@ public class NetexModule implements GraphBuilderModule {
             for (StopPlace stopPlace : stopPlaceList) {
                 if (stopPlace.getKeyList().getKeyValue().stream().anyMatch(keyValueStructure ->
                         keyValueStructure.getKey().equals("IS_PARENT_STOP_PLACE") && keyValueStructure.getValue().equals("true"))) {
-                    netexStopDao.parentStopPlaceById.put(stopPlace.getId(), stopPlace);
+                    netexStopDao.multimodalStopPlaceById.put(stopPlace.getId(), stopPlace);
                 } else {
                     netexStopDao.getStopsById().put(stopPlace.getId(), stopPlace);
                     if (stopPlace.getQuays() == null) {
@@ -258,7 +260,7 @@ public class NetexModule implements GraphBuilderModule {
 
             // Load parent stops from NetexStopDao into NetexDao
 
-            for (StopPlace stopPlace : netexStopDao.parentStopPlaceById.values()) {
+            for (StopPlace stopPlace : netexStopDao.multimodalStopPlaceById.values()) {
                 if (!netexDao.getParentStopPlaceById().containsKey(stopPlace.getId())) {
                     netexDao.getParentStopPlaceById().put(stopPlace.getId(), stopPlace);
                 }

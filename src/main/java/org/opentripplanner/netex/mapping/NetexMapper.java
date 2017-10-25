@@ -43,9 +43,16 @@ public class NetexMapper {
             }
         }
 
+        for (StopPlace stopPlace : netexDao.getParentStopPlaceById().values()) {
+            if (stopPlace != null) {
+                Stop stop = stopMapper.mapMultiModalStop(stopPlace);
+                gtfsDao.getMultiModalStops().put(stop.getId(), stop);
+            }
+        }
+
         for (StopPlace stopPlace : netexDao.getStopPlaceMap().values()) {
             if (stopPlace != null) {
-                for (Stop stop : stopMapper.mapParentAndChildStops(stopPlace, netexDao.getParentStopPlaceById())) {
+                for (Stop stop : stopMapper.mapParentAndChildStops(stopPlace, gtfsDao)) {
                     gtfsDao.stopsById().put(stop.getId(), stop);
                 }
             }

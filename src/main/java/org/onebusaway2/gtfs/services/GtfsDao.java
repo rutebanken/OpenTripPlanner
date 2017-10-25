@@ -70,4 +70,10 @@ public interface GtfsDao {
     List<String> getTripAgencyIdsReferencingServiceId(AgencyAndId serviceId);
 
     List<Stop> getStopsForStation(Stop station);
+
+    Map<AgencyAndId, Stop> getMultiModalStops();
+
+    Map<Stop, List<Stop>> getStationsByMultiModalStop();
+
+
 }

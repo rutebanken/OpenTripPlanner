@@ -15,10 +15,7 @@ package org.opentripplanner.routing.edgetype.factory;
 
 import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Strings;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -749,7 +746,7 @@ public class GTFSPatternHopFactory {
     }
 
     private void loadStops(Graph graph) {
-        for (Stop stop : _dao.getAllStops()) {
+        for (Stop stop : Iterables.concat(_dao.getAllStops(), _dao.getMultiModalStops().values())) {
             if (context.stops.contains(stop.getId())) {
                 LOG.error("Skipping stop {} because we already loaded an identical ID.", stop.getId());
                 continue;
@@ -1131,7 +1128,25 @@ public class GTFSPatternHopFactory {
                     LOG.warn(graph.addBuilderAnnotation(new NonStationParentStation(stopVertex)));
                 }
             }
-        }        
+        }
+    }
+
+    public void linkMultiModalStops(Graph graph) {
+        for (Stop multiModalStop : _dao.getMultiModalStops().values()) {
+            TransitStation multiModalStopVertex = (TransitStation) context.stationStopNodes.get(multiModalStop);
+            if (_dao.getStationsByMultiModalStop().containsKey(multiModalStop)) {
+                for (Stop station : _dao.getStationsByMultiModalStop().get(multiModalStop)) {
+                    for (Stop stop : _dao.getStopsForStation(station)) {
+                        TransitStop stopVertex = (TransitStop) context.stationStopNodes.get(stop);
+                        new StationStopEdge(multiModalStopVertex, stopVertex);
+                        new StationStopEdge(stopVertex, multiModalStopVertex);
+                    }
+                }
+            }
+            else {
+                LOG.warn("Multimodal stop " + multiModalStop.getId() + " does not contain any stations.");
+            }
+        }
     }
     
     /**

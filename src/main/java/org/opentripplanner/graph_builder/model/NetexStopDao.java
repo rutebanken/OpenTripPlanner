@@ -11,6 +11,7 @@ public class NetexStopDao {
     private Map<String, StopPlace> stopsById = new HashMap<>();
     private Map<String, Quay> quayById = new HashMap<>();
     private Map<Quay, StopPlace> stopPlaceByQuay = new HashMap<>();
+    public Map<String, StopPlace> multimodalStopPlaceById = new HashMap<>();
 
     public Map<Quay, StopPlace> getStopPlaceByQuay() {
         return stopPlaceByQuay;
@@ -27,6 +28,4 @@ public class NetexStopDao {
     public Collection<StopPlace> getAllStopPlaces() {
         return stopsById.values();
     }
-
-    public Map<String, StopPlace> parentStopPlaceById = new HashMap<>();
 }

@@ -11,11 +11,10 @@ public class NetexDao {
     public Map<String, StopPlace> getStopPlaceMap() {
         return stopPlaceMap;
     }
-
     public Map<String, Quay> getQuayMap() {
         return quayMap;
     }
-
+    private Map<String, StopPlace> multimodalStopPlaceById = new HashMap<>();
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
     private Map<String, String> stopPointQuayMap = new HashMap<>();
@@ -123,5 +122,13 @@ public class NetexDao {
 
     public Map<String, String> getStopPointQuayMap() {
         return stopPointQuayMap;
+    }
+
+    public Map<String, StopPlace> getMultimodalStopPlaceById() {
+        return multimodalStopPlaceById;
+    }
+
+    public void setMultimodalStopPlaceById(Map<String, StopPlace> multimodalStopPlaceById) {
+        this.multimodalStopPlaceById = multimodalStopPlaceById;
     }
 }
