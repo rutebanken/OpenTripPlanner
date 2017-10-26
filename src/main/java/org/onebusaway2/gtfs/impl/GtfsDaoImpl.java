@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
@@ -98,6 +99,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
 
     private Map<Stop, List<Stop>> stopsByStation = null;
 
+    public Map<Trip, List<StopTime>> getStopTimesByTrip() {
+        return stopTimesByTrip;
+    }
+
     private Map<Trip, List<StopTime>> stopTimesByTrip = null;
 
     private Map<AgencyAndId, List<ShapePoint>> shapePointsByShapeId = null;
@@ -105,6 +110,32 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
     private Map<AgencyAndId, List<ServiceCalendarDate>> calendarDatesByServiceId = null;
 
     private Map<AgencyAndId, List<ServiceCalendar>> calendarsByServiceId = null;
+
+    public Map<AgencyAndId, Route> getRouteById() {
+        return routeById;
+    }
+
+    private Map<AgencyAndId, Route> routeById = null;
+
+    public GtfsDaoImpl() {
+        this.agencies = new ArrayList<>();
+        this.calendarDates = new ArrayList<>();
+        this.calendars = new ArrayList<>();
+        this.fareAttributes = new ArrayList<>();
+        this.fareRules = new ArrayList<>();
+        this.feedInfos = new ArrayList<>();
+        this.frequencies = new ArrayList<>();
+        this.pathways = new ArrayList<>();
+        this.routes = new ArrayList<>();
+        this.shapePoints = new ArrayList<>();
+        this.stops = new HashMap<>();
+        this.stopTimes = new ArrayList<>();
+        this.transfers = new ArrayList<>();
+        this.trips = new ArrayList<>();
+        this.tripPatterns = HashMultimap.create();
+        this.routeById = new HashMap<>();
+        this.stopTimesByTrip = new HashMap<>();
+    }
 
     public GtfsDaoImpl(Collection<Agency> agencies, Collection<ServiceCalendarDate> calendarDates,
             Collection<ServiceCalendar> calendars, Collection<FareAttribute> fareAttributes,
@@ -122,6 +153,7 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.frequencies = insertIds(frequencies);
         this.pathways = pathways;
         this.routes = routes;
+        this.routeById = routes.stream().collect(toMap(Route::getId, identity()));
         this.shapePoints = shapePoints;
         this.stops = stops.stream().collect(toMap(Stop::getId, identity()));
         this.stopTimes = insertIds(stopTimes);
@@ -182,6 +214,10 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
     @Override
     public Collection<Stop> getAllStops() {
         return stops.values();
+    }
+
+    public Map<AgencyAndId, Stop> stopsById() {
+        return stops;
     }
 
     @Override
@@ -309,6 +345,9 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         throw new MultipleCalendarsForServiceIdException(serviceId);
     }
 
+    public Route getRouteById(AgencyAndId id) {
+        return routeById.get(id);
+    }
 
     /*  Private Methods */
 

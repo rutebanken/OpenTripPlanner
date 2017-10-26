@@ -2,20 +2,21 @@ package org.opentripplanner.graph_builder.module;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
-import org.onebusaway2.gtfs.model.*;
+import org.onebusaway2.gtfs.impl.GtfsDaoImpl;
 import org.onebusaway2.gtfs.model.calendar.CalendarServiceData;
+import org.onebusaway2.gtfs.services.GtfsDao;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.graph_builder.model.NetexBundle;
 import org.opentripplanner.graph_builder.model.NetexDao;
-import org.opentripplanner.graph_builder.model.NetexToGtfsDao;
+import org.opentripplanner.graph_builder.model.NetexStopDao;
+import org.opentripplanner.graph_builder.model.NetexStopPlaceBundle;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
-import org.opentripplanner.model.StopPattern;
-import org.opentripplanner.routing.edgetype.TripPattern;
-import org.opentripplanner.routing.edgetype.factory.NetexPatternHopFactory;
-import org.opentripplanner.routing.edgetype.factory.NetexStopContext;
+import org.opentripplanner.netex.mapping.NetexMapper;
+import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
+import org.opentripplanner.routing.edgetype.factory.GtfsStopContext;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.routing.trippattern.Deduplicator;
-import org.opentripplanner.routing.trippattern.TripTimes;
+import org.opentripplanner.routing.impl.DefaultFareServiceFactory;
+import org.opentripplanner.routing.services.FareServiceFactory;
 import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Route;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 
 import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarSrvDataWithoutDatesForLocalizedSrvId;
 
 public class NetexModule implements GraphBuilderModule {
 
@@ -39,11 +41,13 @@ public class NetexModule implements GraphBuilderModule {
 
     private List<NetexBundle> netexBundles;
 
-    private NetexDao dao;
+    private FareServiceFactory _fareServiceFactory = new DefaultFareServiceFactory();
 
-    public NetexModule(List<NetexBundle> netexBundles) {
+    private NetexStopPlaceBundle netexStopPlaceBundle;
+
+    public NetexModule(List<NetexBundle> netexBundles, NetexStopPlaceBundle netexStopPlaceBundle) {
         this.netexBundles = netexBundles;
-        dao = new NetexDao();
+        this.netexStopPlaceBundle = netexStopPlaceBundle;
     }
 
     @Override
@@ -51,22 +55,38 @@ public class NetexModule implements GraphBuilderModule {
 
         graph.clearTimeZone();
         MultiCalendarServiceImpl calendarService = new MultiCalendarServiceImpl();
-        NetexStopContext netexStopContext = new NetexStopContext();
+        GtfsStopContext stopContext = new GtfsStopContext();
 
-        try{
-            for(NetexBundle bundle : netexBundles){
-                loadBundle(bundle);
+        try {
+            NetexStopDao netexStopDao = loadBundle(netexStopPlaceBundle);
 
-                NetexToGtfsDao otpDao = new NetexToGtfsDao(this.dao);
-                calendarService.addData(createCalendarServiceData(otpDao), otpDao);
+            for(NetexBundle netexBundle : netexBundles){
+                NetexDao netexDao = loadBundle(netexBundle, netexStopDao);
 
-                NetexPatternHopFactory hf = new NetexPatternHopFactory();
-                hf.setStopContext(netexStopContext);
-                hf.setNetexDao(this.dao);
+                NetexMapper otpMapper = new NetexMapper();
+                GtfsDao otpDao = otpMapper.mapNetexToOtp(netexDao);
+                calendarService.addData(
+                        createCalendarSrvDataWithoutDatesForLocalizedSrvId(otpDao),
+                        otpDao
+                );
+
+                GTFSPatternHopFactory hf = new GTFSPatternHopFactory(new GtfsFeedId.Builder().id("RB").build(),
+                        otpDao,
+                        _fareServiceFactory,
+                        netexBundle.getMaxStopToShapeSnapDistance(),
+                        netexBundle.subwayAccessTime,
+                        netexBundle.maxInterlineDistance);
+                hf.setStopContext(stopContext);
                 hf.run(graph);
 
+                if (netexBundle.linkStopsToParentStations) {
+                    hf.linkStopsToParentStations(graph);
+                }
+                if (netexBundle.parentStationTransfers) {
+                    hf.createParentStationTransfers();
+                }
             }
-        }catch (Exception e){
+        } catch (Exception e){
             throw new RuntimeException(e);
         }
 
@@ -76,7 +96,6 @@ public class NetexModule implements GraphBuilderModule {
 
         graph.hasTransit = true;
         graph.calculateTransitCenter();
-
     }
 
     @Override
@@ -84,21 +103,69 @@ public class NetexModule implements GraphBuilderModule {
         netexBundles.forEach(NetexBundle::checkInputs);
     }
 
-    private void loadBundle(NetexBundle netexBundle) throws Exception {
-        loadFile(netexBundle.getCommonFile());
+    private NetexDao loadBundle(NetexBundle netexBundle, NetexStopDao netexStopDao) throws Exception {
+        NetexDao netexDao = new NetexDao();
+        LOG.info("Loading common file...");
+        Unmarshaller unmarshaller = getUnmarshaller();
+        loadFile(netexBundle.getCommonFile(), unmarshaller, netexDao, netexStopDao);
         List<ZipEntry> entries = netexBundle.getFileEntries();
         for(ZipEntry entry : entries){
+            LOG.info("Loading line file " + entry.getName());
             InputStream fileInputStream = netexBundle.getFileInputStream(entry);
-            loadFile(fileInputStream);
+            loadFile(fileInputStream, unmarshaller, netexDao, netexStopDao);
+        }
+        return netexDao;
+    }
+
+    private NetexStopDao loadBundle(NetexStopPlaceBundle netexBundle) throws Exception {
+        NetexStopDao netexStopDao = new NetexStopDao();
+        LOG.info("Loading stop place file...");
+        Unmarshaller unmarshaller = getUnmarshaller();
+        loadFile(netexBundle.getStopPlaceFile(), unmarshaller, netexStopDao);
+        return netexStopDao;
+    }
+
+    public org.onebusaway2.gtfs.services.GtfsDao getOtpDao() throws Exception {
+        org.onebusaway2.gtfs.services.GtfsDao otpDao = new GtfsDaoImpl();
+
+        NetexStopDao netexStopDao = loadBundle(netexStopPlaceBundle);
+
+        for(NetexBundle bundle : netexBundles) {
+            NetexDao netexDao = loadBundle(bundle, netexStopDao);
+
+            NetexMapper otpMapper = new NetexMapper();
+            otpDao = otpMapper.mapNetexToOtp(netexDao);
+        }
+
+        return otpDao;
+    }
+
+    private Unmarshaller getUnmarshaller() throws Exception {
+        JAXBContext jaxbContext = JAXBContext.newInstance(PublicationDeliveryStructure.class);
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        return unmarshaller;
+    }
+
+    private void loadFile(InputStream is, Unmarshaller unmarshaller, NetexStopDao netexStopDao) throws Exception {
+        byte[] bytesArray = IOUtils.toByteArray(is);
+
+        @SuppressWarnings("unchecked")
+        JAXBElement<PublicationDeliveryStructure> jaxbElement = (JAXBElement<PublicationDeliveryStructure>) unmarshaller
+                .unmarshal(new ByteArrayInputStream(bytesArray));
+
+        PublicationDeliveryStructure value = jaxbElement.getValue();
+        List<JAXBElement<? extends Common_VersionFrameStructure>> compositeFrameOrCommonFrames = value.getDataObjects().getCompositeFrameOrCommonFrame();
+        for(JAXBElement frame : compositeFrameOrCommonFrames){
+            if (frame.getValue() instanceof SiteFrame) {
+                loadSiteFrames(frame, netexStopDao);
+            }
         }
     }
 
-    private void loadFile(InputStream is) throws Exception {
-        JAXBContext jaxbContext = JAXBContext.newInstance(PublicationDeliveryStructure.class);
-
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+    private void loadFile(InputStream is, Unmarshaller unmarshaller, NetexDao netexDao, NetexStopDao netexStopDao) throws Exception {
         byte[] bytesArray = IOUtils.toByteArray(is);
 
+        @SuppressWarnings("unchecked")
         JAXBElement<PublicationDeliveryStructure> jaxbElement = (JAXBElement<PublicationDeliveryStructure>) unmarshaller
                 .unmarshal(new ByteArrayInputStream(bytesArray));
 
@@ -115,27 +182,48 @@ public class NetexModule implements GraphBuilderModule {
                     timeZone = frameDefaults.getDefaultLocale().getTimeZone();
                 }
 
-                dao.setTimeZone(timeZone);
+                netexDao.setTimeZone(timeZone);
                 List<JAXBElement<? extends Common_VersionFrameStructure>> commonFrames = cf.getFrames().getCommonFrame();
                 for (JAXBElement commonFrame : commonFrames) {
-                    loadResourceFrames(commonFrame);
-                    loadSiteFrames(commonFrame);
-                    loadServiceCalendarFrames(commonFrame);
-                    loadTimeTableFrames(commonFrame);
-                    loadServiceFrames(commonFrame);
+                    loadResourceFrames(commonFrame, netexDao);
+                    loadServiceCalendarFrames(commonFrame, netexDao);
+                    loadTimeTableFrames(commonFrame, netexDao);
+                    loadServiceFrames(commonFrame, netexDao, netexStopDao);
                 }
-
             }
         }
-
-        for(JourneyPattern journeyPattern : dao.getJourneyPatternsById().values()){
-            TripPattern tripPattern = mapTripPattern(journeyPattern);
-            dao.getTripPatterns().add(tripPattern);
-        }
-        dao.clearJourneyPatterns();
     }
 
-    private void loadServiceFrames(JAXBElement commonFrame) {
+    // Stop places and quays
+    private void loadSiteFrames(JAXBElement commonFrame, NetexStopDao netexStopDao) {
+        if (commonFrame.getValue() instanceof SiteFrame) {
+            SiteFrame sf = (SiteFrame) commonFrame.getValue();
+            StopPlacesInFrame_RelStructure stopPlaces = sf.getStopPlaces();
+            List<StopPlace> stopPlaceList = stopPlaces.getStopPlace();
+            for (StopPlace stopPlace : stopPlaceList) {
+                if (stopPlace.getKeyList().getKeyValue().stream().anyMatch(keyValueStructure ->
+                        keyValueStructure.getKey().equals("IS_PARENT_STOP_PLACE") && keyValueStructure.getValue().equals("true"))) {
+                    netexStopDao.parentStopPlaceById.put(stopPlace.getId(), stopPlace);
+                } else {
+                    netexStopDao.getStopsById().put(stopPlace.getId(), stopPlace);
+                    if (stopPlace.getQuays() == null) {
+                        LOG.warn(stopPlace.getId() + " does not contain any quays");
+                    } else {
+                        List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
+                        for (Object quayObject : quayRefOrQuay) {
+                            if (quayObject instanceof Quay) {
+                                Quay quay = (Quay) quayObject;
+                                netexStopDao.getQuayById().put(quay.getId(), quay);
+                                netexStopDao.getStopPlaceByQuay().put(quay, stopPlace);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void loadServiceFrames(JAXBElement commonFrame, NetexDao netexDao, NetexStopDao netexStopDao) {
         if (commonFrame.getValue() instanceof ServiceFrame) {
             ServiceFrame sf = (ServiceFrame) commonFrame.getValue();
 
@@ -146,9 +234,33 @@ public class NetexModule implements GraphBuilderModule {
                 for (JAXBElement assignment : assignments) {
                     if(assignment.getValue() instanceof PassengerStopAssignment) {
                         PassengerStopAssignment passengerStopAssignment = (PassengerStopAssignment) assignment.getValue();
-                        dao.getStopPointStopPlaceMap().put(passengerStopAssignment.getScheduledStopPointRef().getRef(), passengerStopAssignment.getStopPlaceRef().getRef());
-                        dao.getStopPointQuayMap().put(passengerStopAssignment.getScheduledStopPointRef().getRef(), passengerStopAssignment.getQuayRef().getRef());
+                        if (passengerStopAssignment.getQuayRef() != null) {
+                            if (netexStopDao.getQuayById().containsKey(passengerStopAssignment.getQuayRef().getRef())) {
+                                Quay quay = netexStopDao.getQuayById().get(passengerStopAssignment.getQuayRef().getRef());
+                                StopPlace stopPlace = netexStopDao.getStopPlaceByQuay().get(quay);
+                                netexDao.getStopPointStopPlaceMap().put(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), stopPlace.getId());
+                                netexDao.getStopPointQuayMap().put(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), quay.getId());
+
+                                // Load stopPlace and quay from netexStopDao into netexDao
+                                if (!netexDao.getStopPlaceMap().containsKey(stopPlace.getId())) {
+                                    netexDao.getStopPlaceMap().put(stopPlace.getId(), stopPlace);
+                                }
+                                if (!netexDao.getQuayMap().containsKey(quay.getId())) {
+                                    netexDao.getQuayMap().put(quay.getId(), quay);
+                                }
+                            } else {
+                                LOG.warn("Quay " + passengerStopAssignment.getQuayRef().getRef() + " not found in stop place file.");
+                            }
+                        }
                     }
+                }
+            }
+
+            // Load parent stops from NetexStopDao into NetexDao
+
+            for (StopPlace stopPlace : netexStopDao.parentStopPlaceById.values()) {
+                if (!netexDao.getParentStopPlaceById().containsKey(stopPlace.getId())) {
+                    netexDao.getParentStopPlaceById().put(stopPlace.getId(), stopPlace);
                 }
             }
 
@@ -159,7 +271,7 @@ public class NetexModule implements GraphBuilderModule {
                 for (JAXBElement element : route_) {
                     if (element.getValue() instanceof Route) {
                         Route route = (Route) element.getValue();
-                        dao.getRouteById().put(route.getId(), route);
+                        netexDao.getRouteById().put(route.getId(), route);
                     }
                 }
             }
@@ -168,10 +280,13 @@ public class NetexModule implements GraphBuilderModule {
             Network network = sf.getNetwork();
             if(network != null){
                 OrganisationRefStructure orgRef = network.getTransportOrganisationRef().getValue();
-                GroupsOfLinesInFrame_RelStructure groupsOfLines = network.getGroupsOfLines();
-                List<GroupOfLines> groupOfLines = groupsOfLines.getGroupOfLines();
-                for(GroupOfLines group: groupOfLines){
-                    dao.getAuthoritiesByGroupOfLinesId().put(group.getId(), orgRef.getRef());
+                netexDao.getAuthoritiesByNetworkId().put(network.getId(), orgRef.getRef());
+                if (network.getGroupsOfLines() != null) {
+                    GroupsOfLinesInFrame_RelStructure groupsOfLines = network.getGroupsOfLines();
+                    List<GroupOfLines> groupOfLines = groupsOfLines.getGroupOfLines();
+                    for (GroupOfLines group : groupOfLines) {
+                        netexDao.getAuthoritiesByGroupOfLinesId().put(group.getId(), orgRef.getRef());
+                    }
                 }
             }
 
@@ -183,8 +298,7 @@ public class NetexModule implements GraphBuilderModule {
                 for (JAXBElement element : line_) {
                     if (element.getValue() instanceof Line) {
                         Line line = (Line) element.getValue();
-                        dao.getLineById().put(line.getId(), line);
-                        dao.getOtpRouteById().put(line.getId(), mapRoute(line));
+                        netexDao.getLineById().put(line.getId(), line);
                     }
 
                 }
@@ -195,294 +309,46 @@ public class NetexModule implements GraphBuilderModule {
             if(journeyPatterns != null){
                 List<JAXBElement<?>> journeyPattern_orJourneyPatternView = journeyPatterns.getJourneyPattern_OrJourneyPatternView();
                 for (JAXBElement pattern : journeyPattern_orJourneyPatternView) {
-                    if (pattern.getValue() instanceof JourneyPattern) {
-                        JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
-                        dao.getJourneyPatternsById().put(journeyPattern.getId(), journeyPattern);
+                    if (pattern.getValue() instanceof ServiceJourneyPattern) {
+                        ServiceJourneyPattern serviceJourneyPattern = (ServiceJourneyPattern) pattern.getValue();
+                        netexDao.getJourneyPatternsById().put(serviceJourneyPattern.getId(), serviceJourneyPattern);
                     }
                 }
             }
         }
     }
 
-    private void loadTimeTableFrames(JAXBElement commonFrame) {
+    // ServiceJourneys
+    private void loadTimeTableFrames(JAXBElement commonFrame, NetexDao netexDao) {
         if(commonFrame.getValue() instanceof TimetableFrame){
             TimetableFrame timetableFrame = (TimetableFrame) commonFrame.getValue();
 
             JourneysInFrame_RelStructure vehicleJourneys = timetableFrame.getVehicleJourneys();
             List<Journey_VersionStructure> datedServiceJourneyOrDeadRunOrServiceJourney = vehicleJourneys.getDatedServiceJourneyOrDeadRunOrServiceJourney();
             for(Journey_VersionStructure jStructure : datedServiceJourneyOrDeadRunOrServiceJourney){
-               if(jStructure instanceof ServiceJourney){
-                   ServiceJourney sj = (ServiceJourney) jStructure;
-                   String journeyPatternId = sj.getJourneyPatternRef().getValue().getRef();
+                if(jStructure instanceof ServiceJourney){
+                    loadServiceIds((ServiceJourney)jStructure, netexDao);
+                    ServiceJourney sj = (ServiceJourney) jStructure;
+                    String journeyPatternId = sj.getJourneyPatternRef().getValue().getRef();
+                    if (netexDao.getJourneyPatternsById().get(journeyPatternId).getPointsInSequence().
+                            getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern().size()
+                            == sj.getPassingTimes().getTimetabledPassingTime().size()) {
 
-                   if(dao.getServiceJourneyById().get(journeyPatternId) != null){
-                       dao.getServiceJourneyById().get(journeyPatternId).add(sj);
-                   }else{
-                       dao.getServiceJourneyById().put(journeyPatternId, Lists.newArrayList(sj));
-                   }
-               }
-            }
-        }
-    }
-
-    private void loadServiceCalendarFrames(JAXBElement commonFrame) {
-        if (commonFrame.getValue() instanceof ServiceCalendarFrame){
-            ServiceCalendarFrame scf = (ServiceCalendarFrame) commonFrame.getValue();
-            DayTypes_RelStructure dayTypes = scf.getServiceCalendar().getDayTypes();
-            for(JAXBElement dt : dayTypes.getDayTypeRefOrDayType_()){
-                if(dt.getValue() instanceof DayType){
-                    DayType dayType = (DayType) dt.getValue();
-                    dao.getDayTypeById().put(dayType.getId(), dayType);
-                }
-            }
-
-            List<DayTypeAssignment> dayTypeAssignments = scf.getDayTypeAssignments().getDayTypeAssignment();
-            for(DayTypeAssignment dayTypeAssignment : dayTypeAssignments){
-                String ref = dayTypeAssignment.getDayTypeRef().getValue().getRef();
-                if(dayTypeAssignment.getOperatingDayRef() != null){
-                    dao.getDayTypeAssignment().put(ref, dayTypeAssignment.getOperatingDayRef().getRef());
-                }else{
-                    dao.getDayTypeAssignment().put(ref, dayTypeAssignment.getDate());
-                }
-            }
-
-            OperatingPeriods_RelStructure operatingPeriods = scf.getServiceCalendar().getOperatingPeriods();
-            if(operatingPeriods != null){
-                List<Object> periods = operatingPeriods.getOperatingPeriodRefOrOperatingPeriodOrUicOperatingPeriod();
-                for(Object obj : periods){
-                    if(obj instanceof OperatingPeriod){
-                        OperatingPeriod op = (OperatingPeriod) obj;
-                        dao.getOperatingPeriodById().put(op.getId(), op);
+                        if (netexDao.getServiceJourneyById().get(journeyPatternId) != null) {
+                            netexDao.getServiceJourneyById().get(journeyPatternId).add(sj);
+                        } else {
+                            netexDao.getServiceJourneyById().put(journeyPatternId, Lists.newArrayList(sj));
+                        }
+                    } else {
+                        LOG.warn("Mismatch between ServiceJourney and JourneyPattern. ServiceJourney will be skipped. - " + sj.getId());
                     }
                 }
             }
         }
     }
 
-    private void loadSiteFrames(JAXBElement commonFrame) {
-        if (commonFrame.getValue() instanceof SiteFrame) {
-            SiteFrame sf = (SiteFrame) commonFrame.getValue();
-            StopPlacesInFrame_RelStructure stopPlaces = sf.getStopPlaces();
-            List<StopPlace> stopPlaceList = stopPlaces.getStopPlace();
-            for (StopPlace stopPlace : stopPlaceList) {
-                mapAndStoreStopPlace(stopPlace);
-            }
-        }
-    }
-
-    private void loadResourceFrames(JAXBElement commonFrame) {
-        if(commonFrame.getValue() instanceof ResourceFrame){
-            ResourceFrame resourceFrame = (ResourceFrame) commonFrame.getValue();
-            List<JAXBElement<? extends DataManagedObjectStructure>> organisations = resourceFrame.getOrganisations().getOrganisation_();
-            for(JAXBElement element : organisations){
-                if(element.getValue() instanceof Authority){
-                    Authority authority = (Authority) element.getValue();
-                    dao.getAuthorities().put(authority.getId(), authority);
-                    dao.getAllAgencies().add(mapAgency(authority));
-                }
-            }
-        }
-    }
-
-    private TripPattern mapTripPattern(JourneyPattern journeyPattern){
-
-        List<Trip> trips = new ArrayList<>();
-
-        //find matching journey pattern
-        List<ServiceJourney> serviceJourneys = dao.getServiceJourneyById().get(journeyPattern.getId());
-
-        StopPattern stopPattern = null;
-
-        Route route = dao.getRouteById().get(journeyPattern.getRouteRef().getRef());
-        String lineRef = route.getLineRef().getValue().getRef();
-
-        for(ServiceJourney serviceJourney : serviceJourneys){
-            Trip trip = mapServiceJourney(serviceJourney);
-            trips.add(trip);
-
-            TimetabledPassingTimes_RelStructure passingTimes = serviceJourney.getPassingTimes();
-            List<TimetabledPassingTime> timetabledPassingTime = passingTimes.getTimetabledPassingTime();
-            List<StopTime> stopTimes = new ArrayList<>();
-
-            for(TimetabledPassingTime passingTime : timetabledPassingTime){
-                JAXBElement<? extends PointInJourneyPatternRefStructure> pointInJourneyPatternRef = passingTime.getPointInJourneyPatternRef();
-                String ref = pointInJourneyPatternRef.getValue().getRef();
-
-                Stop quay = findQuay(ref, journeyPattern);
-                Stop stop = findStopPlace(ref, journeyPattern);
-
-                if(stop != null){
-                    stop.getId().setAgencyId(getAgencyIdForLine(lineRef));
-                }
-
-                if(quay == null){
-                    if(stop != null && stop.getLat() != 0 && stop.getLon() != 0){
-                        quay = stop;
-                    }else{
-                        break;
-                    }
-
-                }else{
-                    quay.getId().setAgencyId(getAgencyIdForLine(lineRef));
-                }
-
-                StopTime stopTime = new StopTime();
-                stopTime.setTrip(trip);
-
-                if(passingTime.getArrivalTime() != null){
-                    int secondOfDay = passingTime.getArrivalTime().toLocalTime().toSecondOfDay();
-                    if(passingTime.getArrivalDayOffset() != null && passingTime.getArrivalDayOffset().intValue() == 1){
-                        secondOfDay = secondOfDay + (3600 * 24);
-                    }
-                    stopTime.setArrivalTime(secondOfDay);
-                }else if(passingTime.getDepartureTime() != null) {
-                    int arrivalTime = passingTime.getDepartureTime().toLocalTime().toSecondOfDay();
-                    if(passingTime.getDepartureDayOffset() != null && passingTime.getDepartureDayOffset().intValue() == 1){
-                        arrivalTime = arrivalTime + (3600 * 24);
-                    }
-                    stopTime.setArrivalTime(arrivalTime);
-                }
-
-                if(passingTime.getDepartureTime() != null) {
-                    int departureTime = passingTime.getDepartureTime().toLocalTime().toSecondOfDay();
-                    if(passingTime.getDepartureDayOffset() != null && passingTime.getDepartureDayOffset().intValue() == 1){
-                        departureTime = departureTime + (3600 * 24);
-                    }
-                    stopTime.setDepartureTime(departureTime);
-                }
-                StopPointInJourneyPattern stopPoint = findStopPoint(ref, journeyPattern);
-                if(stopPoint != null){
-                    stopTime.setDropOffType(stopPoint.isForAlighting() != null && !stopPoint.isForAlighting() ? 1 : 0);
-                    stopTime.setPickupType(stopPoint.isForBoarding() != null && !stopPoint.isForBoarding() ? 1 : 0);
-                }
-
-                stopTime.setStop(quay);
-                stopTimes.add(stopTime);
-            }
-
-            if(stopPattern == null){
-                stopPattern = new StopPattern(stopTimes);
-            }
-            dao.getStopTimesForTrip().put(trip, stopTimes);
-        }
-
-        Line line = dao.getLineById().get(lineRef);
-
-        TripPattern tripPattern = new TripPattern(dao.getOtpRouteById().get(line.getId()), stopPattern);
-        tripPattern.code = journeyPattern.getId();
-        tripPattern.name = journeyPattern.getName() == null ? "" : journeyPattern.getName().getValue();
-
-        Deduplicator deduplicator = new Deduplicator();
-
-        for(Trip trip : trips){
-            TripTimes tripTimes = new TripTimes(trip, dao.getStopTimesForTrip().get(trip), deduplicator);
-            tripPattern.add(tripTimes);
-        }
-        return tripPattern;
-
-    }
-
-    private Stop findStopPlace(String pointInJourneyPatterRef, JourneyPattern journeyPattern){
-        List<PointInLinkSequence_VersionedChildStructure> points =
-                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
-        for(PointInLinkSequence_VersionedChildStructure point : points){
-            if(point instanceof StopPointInJourneyPattern){
-                StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
-                if(stop.getId().equals(pointInJourneyPatterRef)){
-                    JAXBElement<? extends ScheduledStopPointRefStructure> scheduledStopPointRef = ((StopPointInJourneyPattern) point).getScheduledStopPointRef();
-
-                    String stopId = dao.getStopPointStopPlaceMap().get(scheduledStopPointRef.getValue().getRef());
-                    return dao.getStopsById().get(stopId);
-                }
-            }
-        }
-        return null;
-    }
-
-    private Stop findQuay(String pointInJourneyPatterRef, JourneyPattern journeyPattern){
-        List<PointInLinkSequence_VersionedChildStructure> points =
-                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
-        for(PointInLinkSequence_VersionedChildStructure point : points){
-            if(point instanceof StopPointInJourneyPattern){
-                StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
-                if(stop.getId().equals(pointInJourneyPatterRef)){
-                    JAXBElement<? extends ScheduledStopPointRefStructure> scheduledStopPointRef = ((StopPointInJourneyPattern) point).getScheduledStopPointRef();
-                    String stopId = dao.getStopPointQuayMap().get(scheduledStopPointRef.getValue().getRef());
-                    Stop quay = dao.getStopsById().get(stopId);
-                    if(quay == null){
-                        LOG.error("Quay not found for reference: " + stopId);
-                    }
-                    return quay;
-                }
-            }
-        }
-        return null;
-    }
-
-    private StopPointInJourneyPattern findStopPoint(String pointInJourneyPatterRef, JourneyPattern journeyPattern){
-        List<PointInLinkSequence_VersionedChildStructure> points =
-                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
-        for(PointInLinkSequence_VersionedChildStructure point : points){
-            if(point instanceof StopPointInJourneyPattern){
-                StopPointInJourneyPattern stopPoint = (StopPointInJourneyPattern) point;
-                if(stopPoint.getId().equals(pointInJourneyPatterRef)){
-                    return stopPoint;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Agency id must be added when the stop is related to a line
-     */
-    private void mapAndStoreStopPlace(StopPlace stopPlace){
-        Stop stop = new Stop();
-        stop.setName(stopPlace.getName().getValue());
-        if(stopPlace.getCentroid() != null){
-            stop.setLat(stopPlace.getCentroid().getLocation().getLatitude().doubleValue());
-            stop.setLon(stopPlace.getCentroid().getLocation().getLongitude().doubleValue());
-        }else{
-            LOG.error("Stop place without coordinates");
-        }
-
-        stop.setId(new AgencyAndId("", replaceTokensAndRemovePrefix(stopPlace.getId())));
-        dao.getStopsById().put(stopPlace.getId(), stop);
-        List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
-        for(Object quayObject : quayRefOrQuay){
-            if(quayObject instanceof Quay){
-                Quay quay = (Quay) quayObject;
-                Stop stopQuay = new Stop();
-                stopQuay.setName(stop.getName());
-                stopQuay.setLat(quay.getCentroid().getLocation().getLatitude().doubleValue());
-                stopQuay.setLon(quay.getCentroid().getLocation().getLongitude().doubleValue());
-                stopQuay.setId(new AgencyAndId("", replaceTokensAndRemovePrefix(quay.getId())));
-                stopQuay.setParentStation(stop.getId().getId());
-                dao.getStopsById().put(quay.getId(), stopQuay);
-            }
-        }
-    }
-
-    private Trip mapServiceJourney(ServiceJourney serviceJourney){
-
-        JAXBElement<? extends LineRefStructure> lineRefStruct = serviceJourney.getLineRef();
-
-        String lineRef = null;
-        if(lineRefStruct != null){
-            lineRef = lineRefStruct.getValue().getRef();
-        }else if(serviceJourney.getJourneyPatternRef() != null){
-            JourneyPattern journeyPattern = dao.getJourneyPatternsById().get(serviceJourney.getJourneyPatternRef().getValue().getRef());
-            String routeRef = journeyPattern.getRouteRef().getRef();
-            lineRef = dao.getRouteById().get(routeRef).getLineRef().getValue().getRef();
-        }
-
-        Trip trip = new Trip();
-        String agencyIdForLine = getAgencyIdForLine(lineRef);
-        trip.setId(new AgencyAndId(agencyIdForLine, replaceTokensAndRemovePrefix(serviceJourney.getId())));
-
-        trip.setRoute(dao.getOtpRouteById().get(lineRef));
+    private void loadServiceIds (ServiceJourney serviceJourney, NetexDao netexDao) {
         DayTypeRefs_RelStructure dayTypes = serviceJourney.getDayTypes();
-
         StringBuilder serviceId = new StringBuilder();
         boolean first = true;
         for(JAXBElement dt : dayTypes.getDayTypeRef()){
@@ -496,69 +362,77 @@ public class NetexModule implements GraphBuilderModule {
             }
         }
 
-        AgencyAndId key = new AgencyAndId(agencyIdForLine, serviceId.toString());
-        trip.setServiceId(key);
-        dao.getServiceIds().add(key);
-        return trip;
-    }
-
-    private org.onebusaway2.gtfs.model.Route mapRoute(Line line){
-        org.onebusaway2.gtfs.model.Route mapped = new org.onebusaway2.gtfs.model.Route();
-        AuthorityRefStructure authorityRefStruct = line.getAuthorityRef();
-        String authorityRef;
-        if(authorityRefStruct == null){
-            authorityRef = dao.getAuthoritiesByGroupOfLinesId().get(line.getRepresentedByGroupRef().getRef());
-        }else{
-            authorityRef = authorityRefStruct.getRef();
+        // Add all unique service ids to map. Used when mapping calendars later.
+        if (!netexDao.getServiceIds().containsKey(serviceId.toString())) {
+            netexDao.getServiceIds().put(serviceId.toString(), serviceId.toString());
         }
-        Authority authority = dao.getAuthorities().get(authorityRef);
-        Agency agency = mapAgency(authority);
-        mapped.setId(new AgencyAndId(agency.getName(), replaceTokensAndRemovePrefix(line.getId())));
-        mapped.setAgency(agency);
-        mapped.setLongName(line.getName().getValue());
-        mapped.setShortName(line.getPublicCode());
-        mapped.setType(mapTransportType(line.getTransportMode().value()));
-        return mapped;
     }
 
-    private int mapTransportType(String type){
-        if("bus".equals(type)){
-            return 3;
-        }else if("tram".equals(type)){
-            return 0;
-        }else if("rail".equals(type)){
-            return 2;
-        }else if("metro".equals(type)){
-            return 1;
-        }else if("water".equals(type)){
-            return 4;
-        }else if("cabelway".equals(type)){
-            return 5;
-        }else if("funicular".equals(type)){
-            return 7;
-        }else if("air".equals(type)){
-            return 1100; //extended GTFS traverse mode
+    // ServiceCalendar
+    private void loadServiceCalendarFrames(JAXBElement commonFrame, NetexDao netexDao) {
+        if (commonFrame.getValue() instanceof ServiceCalendarFrame){
+            ServiceCalendarFrame scf = (ServiceCalendarFrame) commonFrame.getValue();
+
+            if (scf.getServiceCalendar() != null) {
+                DayTypes_RelStructure dayTypes = scf.getServiceCalendar().getDayTypes();
+                for (JAXBElement dt : dayTypes.getDayTypeRefOrDayType_()) {
+                    if (dt.getValue() instanceof DayType) {
+                        DayType dayType = (DayType) dt.getValue();
+                        netexDao.getDayTypeById().put(dayType.getId(), dayType);
+                    }
+                }
+            }
+
+            if (scf.getDayTypes() != null) {
+                List<JAXBElement<? extends DataManagedObjectStructure>> dayTypes = scf.getDayTypes().getDayType_();
+                for (JAXBElement dt : dayTypes) {
+                    if (dt.getValue() instanceof DayType) {
+                        DayType dayType = (DayType) dt.getValue();
+                        netexDao.getDayTypeById().put(dayType.getId(), dayType);
+                    }
+                }
+            }
+
+            if (scf.getOperatingPeriods() != null) {
+                for (OperatingPeriod_VersionStructure operatingPeriodStruct : scf.getOperatingPeriods().getOperatingPeriodOrUicOperatingPeriod()) {
+                    OperatingPeriod operatingPeriod = (OperatingPeriod) operatingPeriodStruct;
+                    netexDao.getOperatingPeriodById().put(operatingPeriod.getId(), operatingPeriod);
+                }
+            }
+
+            List<DayTypeAssignment> dayTypeAssignments = scf.getDayTypeAssignments().getDayTypeAssignment();
+            for(DayTypeAssignment dayTypeAssignment : dayTypeAssignments){
+                String ref = dayTypeAssignment.getDayTypeRef().getValue().getRef();
+                netexDao.getDayTypeAvailable().put(dayTypeAssignment.getId(), dayTypeAssignment.isIsAvailable() == null ? true : dayTypeAssignment.isIsAvailable());
+
+                if (netexDao.getDayTypeAssignment().containsKey(ref)) {
+                    netexDao.getDayTypeAssignment().get(ref).add(dayTypeAssignment);
+                } else {
+                    netexDao.getDayTypeAssignment().put(ref, new ArrayList<DayTypeAssignment>() {
+                        {
+                            add(dayTypeAssignment);
+                        }
+                    });
+                }
+            }
         }
-        throw new IllegalArgumentException("Unknown route type " + type);
     }
 
-    private Agency mapAgency(Authority authority){
-        Agency agency = new Agency();
-        agency.setId(authority.getName().getValue());
-        agency.setName(authority.getName().getValue());
-        agency.setTimezone(dao.getTimeZone());
-        return agency;
-    }
-
-    private String getAgencyIdForLine(String lineRef){
-        Line line = dao.getLineById().get(lineRef);
-        String authRef = dao.getAuthoritiesByGroupOfLinesId().get(line.getRepresentedByGroupRef().getRef());
-        Authority authority = dao.getAuthorities().get(authRef);
-        return authority.getName().getValue();
-    }
-
-    private String replaceTokensAndRemovePrefix(String string){
-        String sub = string.substring(string.indexOf(":") + 1);
-        return sub.replace(":", "_");
+    // Authorities and operators
+    private void loadResourceFrames(JAXBElement commonFrame, NetexDao netexDao) {
+        if(commonFrame.getValue() instanceof ResourceFrame){
+            ResourceFrame resourceFrame = (ResourceFrame) commonFrame.getValue();
+            List<JAXBElement<? extends DataManagedObjectStructure>> organisations = resourceFrame.getOrganisations().getOrganisation_();
+            for(JAXBElement element : organisations){
+                if(element.getValue() instanceof Authority){
+                    Authority authority = (Authority) element.getValue();
+                    netexDao.getAuthorities().put(authority.getId(), authority);
+                }
+                if(element.getValue() instanceof Operator){
+                    Operator operator = (Operator) element.getValue();
+                    netexDao.getOperators().put(operator.getId(), operator);
+                }
+            }
+        }
     }
 }

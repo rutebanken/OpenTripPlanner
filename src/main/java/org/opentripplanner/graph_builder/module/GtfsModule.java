@@ -40,7 +40,6 @@ import org.onebusaway.gtfs.model.Trip;
 import org.onebusaway.gtfs.serialization.GtfsReader;
 import org.onebusaway.gtfs.services.GenericMutableDao;
 import org.onebusaway.gtfs.services.GtfsMutableRelationalDao;
-import org.onebusaway2.gtfs.services.GtfsDao;
 import org.onebusaway2.gtfs.services.GtfsDaoMutable;
 import org.onebusaway2.gtfs.services.calendar.CalendarService;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
@@ -162,6 +161,17 @@ public class GtfsModule implements GraphBuilderModule {
 
     }
 
+    public List<org.onebusaway2.gtfs.services.GtfsDao> getOtpDao()
+            throws IOException {
+        List<org.onebusaway2.gtfs.services.GtfsDao> otpDaoList = new ArrayList<>();
+
+        for (GtfsBundle gtfsBundle : this.gtfsBundles) {
+            otpDaoList.add(mapDao(loadBundle(gtfsBundle)));
+        }
+
+        return otpDaoList;
+    }
+
     /****
      * Private Methods
      ****/
@@ -170,7 +180,7 @@ public class GtfsModule implements GraphBuilderModule {
         new RepairStopTimesForEachTripOperation(dao, graph).run();
     }
 
-    private void createTripPatterns(Graph graph, GtfsDao dao, CalendarService calendarService) {
+    private void createTripPatterns(Graph graph, org.onebusaway2.gtfs.services.GtfsDao dao, CalendarService calendarService) {
         GenerateTripPatternsOperation buildTPOp = new GenerateTripPatternsOperation(
                 dao, graph, graph.deduplicator, calendarService
         );
@@ -415,5 +425,4 @@ public class GtfsModule implements GraphBuilderModule {
             bundle.checkInputs();
         }
     }
-
 }

@@ -2,6 +2,7 @@ package org.opentripplanner.graph_builder.model;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -12,7 +13,17 @@ import java.util.zip.ZipFile;
 public class NetexBundle {
 
     private File file;
-    public static final String NETEX_COMMON_FILE_NAME =  "_common.xml";
+    public static final String NETEX_COMMON_FILE_NAME_PREFIX =  "_";
+
+    public boolean linkStopsToParentStations = false;
+
+    public boolean parentStationTransfers = false;
+
+    public int subwayAccessTime;
+
+    public int maxInterlineDistance;
+
+    private double maxStopToShapeSnapDistance = 150;
 
     public NetexBundle(File file) {
         this.file = file;
@@ -29,7 +40,7 @@ public class NetexBundle {
     public InputStream getCommonFile(){
         try {
             ZipFile zipFile = new ZipFile(file, ZipFile.OPEN_READ);
-            ZipEntry entry = zipFile.getEntry(NETEX_COMMON_FILE_NAME);
+            ZipEntry entry = zipFile.stream().filter(files -> files.getName().startsWith(NETEX_COMMON_FILE_NAME_PREFIX)).findFirst().orElseThrow(FileNotFoundException::new);
             return zipFile.getInputStream(entry);
 
         } catch (IOException e) {
@@ -40,7 +51,7 @@ public class NetexBundle {
     public List<ZipEntry> getFileEntries(){
         try {
             ZipFile zipFile = new ZipFile(file, ZipFile.OPEN_READ);
-            return zipFile.stream().filter(entry -> !entry.getName().equals(NETEX_COMMON_FILE_NAME)).collect(Collectors.toList());
+            return zipFile.stream().filter(files -> !files.getName().startsWith(NETEX_COMMON_FILE_NAME_PREFIX)).collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -67,5 +78,11 @@ public class NetexBundle {
         }
     }
 
+    public double getMaxStopToShapeSnapDistance() {
+        return maxStopToShapeSnapDistance;
+    }
 
+    public void setMaxStopToShapeSnapDistance(double maxStopToShapeSnapDistance) {
+        this.maxStopToShapeSnapDistance = maxStopToShapeSnapDistance;
+    }
 }
