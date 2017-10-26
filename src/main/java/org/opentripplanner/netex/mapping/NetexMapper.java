@@ -43,7 +43,7 @@ public class NetexMapper {
             }
         }
 
-        for (StopPlace stopPlace : netexDao.getParentStopPlaceById().values()) {
+        for (StopPlace stopPlace : netexDao.getMultimodalStopPlaceById().values()) {
             if (stopPlace != null) {
                 Stop stop = stopMapper.mapMultiModalStop(stopPlace);
                 gtfsDao.getMultiModalStops().put(stop.getId(), stop);

@@ -51,6 +51,7 @@ import org.opentripplanner.graph_builder.module.GtfsFeedId;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.model.StopPattern;
+import org.opentripplanner.netex.mapping.AgencyAndIdFactory;
 import org.opentripplanner.routing.core.StopTransfer;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -1075,6 +1076,40 @@ public class GTFSPatternHopFactory {
                 AgencyAndId parentStationId = new AgencyAndId(agencyId, parentStation);
 
                 Stop parentStop = _dao.getStopForId(parentStationId);
+                Vertex parentStopVertex = context.stationStopNodes.get(parentStop);
+
+                new FreeEdge(parentStopVertex, stopVertex);
+                new FreeEdge(stopVertex, parentStopVertex);
+
+                // Stops with location_type=2 (entrances as defined in the pathways.txt
+                // proposal) have no arrive/depart vertices, hence the null checks.
+                Vertex stopArriveVertex = context.stopArriveNodes.get(stop);
+                Vertex parentStopArriveVertex = context.stopArriveNodes.get(parentStop);
+                if (stopArriveVertex != null && parentStopArriveVertex != null) {
+                    new FreeEdge(parentStopArriveVertex, stopArriveVertex);
+                    new FreeEdge(stopArriveVertex, parentStopArriveVertex);
+                }
+
+                Vertex stopDepartVertex = context.stopDepartNodes.get(stop);
+                Vertex parentStopDepartVertex = context.stopDepartNodes.get(parentStop);
+                if (stopDepartVertex != null && parentStopDepartVertex != null) {
+                    new FreeEdge(parentStopDepartVertex, stopDepartVertex);
+                    new FreeEdge(stopDepartVertex, parentStopDepartVertex);
+                }
+
+                // TODO: provide a cost for these edges when stations and
+                // stops have different locations
+            }
+        }
+    }
+
+    public void createMultiModalStationTransfers () {
+        for (Stop stop : _dao.getAllStops()) {
+            String multiModalStation = stop.getMultiModalStation();
+            if (multiModalStation != null) {
+                Vertex stopVertex = context.stationStopNodes.get(stop);
+
+                Stop parentStop = _dao.getMultiModalStops().get(AgencyAndIdFactory.getAgencyAndId(multiModalStation));
                 Vertex parentStopVertex = context.stationStopNodes.get(parentStop);
 
                 new FreeEdge(parentStopVertex, stopVertex);

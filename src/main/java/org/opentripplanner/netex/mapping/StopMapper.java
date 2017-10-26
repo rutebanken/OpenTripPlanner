@@ -69,6 +69,9 @@ public class StopMapper {
                 stopQuay.setLon(quay.getCentroid().getLocation().getLongitude().doubleValue());
                 stopQuay.setId(AgencyAndIdFactory.getAgencyAndId(quay.getId()));
                 stopQuay.setParentStation(stop.getId().getId());
+                if (multiModalStop != null) {
+                    stopQuay.setMultiModalStation(multiModalStop.getId().getId());
+                }
                 stops.add(stopQuay);
             }
         }
