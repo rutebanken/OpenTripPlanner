@@ -322,9 +322,9 @@ public class NetexModule implements GraphBuilderModule {
             if(journeyPatterns != null){
                 List<JAXBElement<?>> journeyPattern_orJourneyPatternView = journeyPatterns.getJourneyPattern_OrJourneyPatternView();
                 for (JAXBElement pattern : journeyPattern_orJourneyPatternView) {
-                    if (pattern.getValue() instanceof ServiceJourneyPattern) {
-                        ServiceJourneyPattern serviceJourneyPattern = (ServiceJourneyPattern) pattern.getValue();
-                        netexDao.getJourneyPatternsById().put(serviceJourneyPattern.getId(), serviceJourneyPattern);
+                    if (pattern.getValue() instanceof JourneyPattern) {
+                        JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
+                        netexDao.getJourneyPatternsById().put(journeyPattern.getId(), journeyPattern);
                     }
                 }
             }

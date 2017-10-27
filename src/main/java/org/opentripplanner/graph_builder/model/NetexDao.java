@@ -18,7 +18,7 @@ public class NetexDao {
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
     private Map<String, String> stopPointQuayMap = new HashMap<>();
-    private Map<String, ServiceJourneyPattern> journeyPatternsById = new HashMap<>();
+    private Map<String, JourneyPattern> journeyPatternsById = new HashMap<>();
     private Map<String, Route> routeById = new HashMap<>();
     private Map<String, Line> lineById = new HashMap<>();
     private Map<String, List<ServiceJourney>> serviceJourneyById = new HashMap<>();
@@ -80,7 +80,7 @@ public class NetexDao {
         return serviceJourneyById;
     }
 
-    public Map<String, ServiceJourneyPattern> getJourneyPatternsById() {
+    public Map<String, JourneyPattern> getJourneyPatternsById() {
         return journeyPatternsById;
     }
 

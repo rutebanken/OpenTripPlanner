@@ -27,8 +27,8 @@ public class TripMapper {
         if(lineRefStruct != null){
             lineRef = lineRefStruct.getValue().getRef();
         }else if(serviceJourney.getJourneyPatternRef() != null){
-            ServiceJourneyPattern serviceJourneyPattern = netexDao.getJourneyPatternsById().get(serviceJourney.getJourneyPatternRef().getValue().getRef());
-            String routeRef = serviceJourneyPattern.getRouteRef().getRef();
+            JourneyPattern journeyPattern = netexDao.getJourneyPatternsById().get(serviceJourney.getJourneyPatternRef().getValue().getRef());
+            String routeRef = journeyPattern.getRouteRef().getRef();
             lineRef = netexDao.getRouteById().get(routeRef).getLineRef().getValue().getRef();
         }
 

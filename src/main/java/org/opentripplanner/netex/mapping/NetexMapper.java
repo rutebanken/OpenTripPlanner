@@ -58,9 +58,9 @@ public class NetexMapper {
             }
         }
 
-        for (ServiceJourneyPattern serviceJourneyPattern : netexDao.getJourneyPatternsById().values()) {
-            if (serviceJourneyPattern != null) {
-                tripPatternMapper.mapTripPattern(serviceJourneyPattern, gtfsDao, netexDao);
+        for (JourneyPattern journeyPattern : netexDao.getJourneyPatternsById().values()) {
+            if (journeyPattern != null) {
+                tripPatternMapper.mapTripPattern(journeyPattern, gtfsDao, netexDao);
                 gtfsDao.getTripsById().putAll(gtfsDao.getAllTrips().stream().collect(toMap(Trip::getId, identity())));
             }
         }

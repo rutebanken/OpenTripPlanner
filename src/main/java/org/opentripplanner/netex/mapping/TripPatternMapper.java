@@ -25,21 +25,21 @@ public class TripPatternMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TripPatternMapper.class);
 
-    public void mapTripPattern(ServiceJourneyPattern serviceJourneyPattern, GtfsDaoImpl gtfsDao, NetexDao netexDao){
+    public void mapTripPattern(JourneyPattern journeyPattern, GtfsDaoImpl gtfsDao, NetexDao netexDao){
         TripMapper tripMapper = new TripMapper();
 
         List<Trip> trips = new ArrayList<>();
 
         //find matching journey pattern
-        List<ServiceJourney> serviceJourneys = netexDao.getServiceJourneyById().get(serviceJourneyPattern.getId());
+        List<ServiceJourney> serviceJourneys = netexDao.getServiceJourneyById().get(journeyPattern.getId());
 
         StopPattern stopPattern = null;
 
-        Route route = netexDao.getRouteById().get(serviceJourneyPattern.getRouteRef().getRef());
+        Route route = netexDao.getRouteById().get(journeyPattern.getRouteRef().getRef());
         org.onebusaway2.gtfs.model.Route otpRoute = gtfsDao.getRouteById().get(AgencyAndIdFactory.getAgencyAndId(route.getLineRef().getValue().getRef()));
 
         if (serviceJourneys == null) {
-            LOG.warn("ServiceJourneyPattern " + serviceJourneyPattern.getId() + " does not contain any serviceJourneys.");
+            LOG.warn("ServiceJourneyPattern " + journeyPattern.getId() + " does not contain any serviceJourneys.");
             return;
         }
 
@@ -57,7 +57,7 @@ public class TripPatternMapper {
                 JAXBElement<? extends PointInJourneyPatternRefStructure> pointInJourneyPatternRef = passingTime.getPointInJourneyPatternRef();
                 String ref = pointInJourneyPatternRef.getValue().getRef();
 
-                Stop quay = findQuay(ref, serviceJourneyPattern, netexDao, gtfsDao);
+                Stop quay = findQuay(ref, journeyPattern, netexDao, gtfsDao);
 
                 if (quay == null) {
                     LOG.warn("Quay not found for timetabledPassingTime: " + passingTime.getId());
@@ -96,7 +96,7 @@ public class TripPatternMapper {
                     }
                     stopTime.setDepartureTime(departureTime);
                 }
-                StopPointInJourneyPattern stopPoint = findStopPoint(ref, serviceJourneyPattern);
+                StopPointInJourneyPattern stopPoint = findStopPoint(ref, journeyPattern);
                 if(stopPoint != null){
                     stopTime.setDropOffType(stopPoint.isForAlighting() != null && !stopPoint.isForAlighting() ? 1 : 0);
                     stopTime.setPickupType(stopPoint.isForBoarding() != null && !stopPoint.isForBoarding() ? 1 : 0);
@@ -119,13 +119,13 @@ public class TripPatternMapper {
         }
 
         if (stopPattern.size == 0) {
-            LOG.warn("ServiceJourneyPattern " + serviceJourneyPattern.getId() + " does not contain a valid stop pattern.");
+            LOG.warn("ServiceJourneyPattern " + journeyPattern.getId() + " does not contain a valid stop pattern.");
             return;
         }
 
         TripPattern tripPattern = new TripPattern(otpRoute, stopPattern);
-        tripPattern.code = serviceJourneyPattern.getId();
-        tripPattern.name = serviceJourneyPattern.getName() == null ? "" : serviceJourneyPattern.getName().getValue();
+        tripPattern.code = journeyPattern.getId();
+        tripPattern.name = journeyPattern.getName() == null ? "" : journeyPattern.getName().getValue();
 
         Deduplicator deduplicator = new Deduplicator();
 
@@ -171,9 +171,9 @@ public class TripPatternMapper {
         return null;
     }
 
-    private Stop findQuay(String pointInJourneyPatterRef, ServiceJourneyPattern serviceJourneyPattern, NetexDao netexDao, GtfsDao gtfsDao){
+    private Stop findQuay(String pointInJourneyPatterRef, JourneyPattern journeyPattern, NetexDao netexDao, GtfsDao gtfsDao){
         List<PointInLinkSequence_VersionedChildStructure> points =
-                serviceJourneyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
+                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
         for(PointInLinkSequence_VersionedChildStructure point : points){
             if(point instanceof StopPointInJourneyPattern){
                 StopPointInJourneyPattern stop = (StopPointInJourneyPattern) point;
@@ -197,9 +197,9 @@ public class TripPatternMapper {
         return null;
     }
 
-    private StopPointInJourneyPattern findStopPoint(String pointInJourneyPatterRef, ServiceJourneyPattern serviceJourneyPattern){
+    private StopPointInJourneyPattern findStopPoint(String pointInJourneyPatterRef, JourneyPattern journeyPattern){
         List<PointInLinkSequence_VersionedChildStructure> points =
-                serviceJourneyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
+                journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern();
         for(PointInLinkSequence_VersionedChildStructure point : points){
             if(point instanceof StopPointInJourneyPattern){
                 StopPointInJourneyPattern stopPoint = (StopPointInJourneyPattern) point;
