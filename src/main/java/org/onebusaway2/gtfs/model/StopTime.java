@@ -20,13 +20,13 @@ import org.onebusaway2.gtfs.model.calendar.TimeToStringConverter;
 
 import java.util.Objects;
 
-public final class StopTime extends IdentityBean<Integer> implements Comparable<StopTime> {
+public final class StopTime extends IdentityBean<AgencyAndId> implements Comparable<StopTime> {
 
     private static final long serialVersionUID = 1L;
 
     public static final int MISSING_VALUE = -999;
 
-    private int id;
+    private AgencyAndId id;
 
     private Trip trip;
 
@@ -72,11 +72,11 @@ public final class StopTime extends IdentityBean<Integer> implements Comparable<
         this.trip = st.trip;
     }
 
-    public Integer getId() {
+    public AgencyAndId getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(AgencyAndId id) {
         this.id = id;
     }
 

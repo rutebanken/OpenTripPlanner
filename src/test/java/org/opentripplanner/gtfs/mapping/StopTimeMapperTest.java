@@ -93,7 +93,7 @@ public class StopTimeMapperTest {
     public void testMap() throws Exception {
         org.onebusaway2.gtfs.model.StopTime result = subject.map(STOP_TIME);
 
-        assertEquals(ID, result.getId());
+        assertEquals(ID.toString(), result.getId().getId());
         assertEquals(ARRIVAL_TIME, result.getArrivalTime());
         assertEquals(DEPARTURE_TIME, result.getDepartureTime());
         assertEquals(DROP_OFF_TYPE, result.getDropOffType());

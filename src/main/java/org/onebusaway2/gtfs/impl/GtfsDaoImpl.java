@@ -158,7 +158,7 @@ public class GtfsDaoImpl implements GtfsDaoMutable {
         this.routeById = routes.stream().collect(toMap(Route::getId, identity()));
         this.shapePoints = shapePoints;
         this.stops = stops.stream().collect(toMap(Stop::getId, identity()));
-        this.stopTimes = insertIds(stopTimes);
+        this.stopTimes = stopTimes;
         this.transfers = insertIds(transfers);
         this.trips = trips;
         this.tripsById = trips.stream().collect(toMap(Trip::getId, identity()));

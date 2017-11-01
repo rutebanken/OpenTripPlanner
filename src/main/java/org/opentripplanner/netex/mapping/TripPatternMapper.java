@@ -65,6 +65,7 @@ public class TripPatternMapper {
                 }
 
                 StopTime stopTime = new StopTime();
+                stopTime.setId(AgencyAndIdFactory.getAgencyAndId(passingTime.getId()));
                 stopTime.setTrip(trip);
                 stopTime.setStopSequence(stopSequence++);
 
