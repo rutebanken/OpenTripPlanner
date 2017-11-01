@@ -81,14 +81,11 @@ public class NetexModule implements GraphBuilderModule {
                 if (netexBundle.linkStopsToParentStations) {
                     hf.linkStopsToParentStations(graph);
                 }
-                if (netexBundle.linkStopsToParentStations) {
+                if (netexBundle.linkMultiModalStopsToParentStations) {
                     hf.linkMultiModalStops(graph);
                 }
                 if (netexBundle.parentStationTransfers) {
                     hf.createParentStationTransfers();
-                }
-                if (netexBundle.parentStationTransfers) {
-                    hf.createMultiModalStationTransfers();
                 }
             }
         } catch (Exception e){

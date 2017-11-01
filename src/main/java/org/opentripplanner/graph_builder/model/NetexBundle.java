@@ -17,6 +17,8 @@ public class NetexBundle {
 
     public boolean linkStopsToParentStations = false;
 
+    public boolean linkMultiModalStopsToParentStations = false;
+
     public boolean parentStationTransfers = false;
 
     public int subwayAccessTime;

@@ -1102,40 +1102,6 @@ public class GTFSPatternHopFactory {
             }
         }
     }
-
-    public void createMultiModalStationTransfers () {
-        for (Stop stop : _dao.getAllStops()) {
-            String multiModalStation = stop.getMultiModalStation();
-            if (multiModalStation != null) {
-                Vertex stopVertex = context.stationStopNodes.get(stop);
-
-                Stop parentStop = _dao.getMultiModalStops().get(AgencyAndIdFactory.getAgencyAndId(multiModalStation));
-                Vertex parentStopVertex = context.stationStopNodes.get(parentStop);
-
-                new FreeEdge(parentStopVertex, stopVertex);
-                new FreeEdge(stopVertex, parentStopVertex);
-
-                // Stops with location_type=2 (entrances as defined in the pathways.txt
-                // proposal) have no arrive/depart vertices, hence the null checks.
-                Vertex stopArriveVertex = context.stopArriveNodes.get(stop);
-                Vertex parentStopArriveVertex = context.stopArriveNodes.get(parentStop);
-                if (stopArriveVertex != null && parentStopArriveVertex != null) {
-                    new FreeEdge(parentStopArriveVertex, stopArriveVertex);
-                    new FreeEdge(stopArriveVertex, parentStopArriveVertex);
-                }
-
-                Vertex stopDepartVertex = context.stopDepartNodes.get(stop);
-                Vertex parentStopDepartVertex = context.stopDepartNodes.get(parentStop);
-                if (stopDepartVertex != null && parentStopDepartVertex != null) {
-                    new FreeEdge(parentStopDepartVertex, stopDepartVertex);
-                    new FreeEdge(stopDepartVertex, parentStopDepartVertex);
-                }
-
-                // TODO: provide a cost for these edges when stations and
-                // stops have different locations
-            }
-        }
-    }
     
     /**
      * Links the vertices representing parent stops to their child stops bidirectionally. This is

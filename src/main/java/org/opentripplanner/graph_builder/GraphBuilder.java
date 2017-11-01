@@ -289,6 +289,7 @@ public class GraphBuilder implements Runnable {
                 NetexBundle netexBundle = new NetexBundle(netexFile);
                 if (builderParams.parentStopLinking) {
                     netexBundle.linkStopsToParentStations = true;
+                    netexBundle.linkMultiModalStopsToParentStations = true;
                 }
                 netexBundle.parentStationTransfers = builderParams.stationTransfers;
                 netexBundle.subwayAccessTime = (int)(builderParams.subwayAccessTime * 60);
