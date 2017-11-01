@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
+import org.onebusaway2.gtfs.model.AgencyAndId;
 import org.onebusaway2.gtfs.model.StopTime;
 import org.onebusaway2.gtfs.model.Trip;
 import org.opentripplanner.common.MavenVersion;
@@ -97,6 +98,16 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
      */
     int[] departureTimes;
 
+    public AgencyAndId getStopTimeIdByIndex(int i) {
+        return stopTimeIds[i];
+    }
+
+    /**
+     * Keep track of stop time ids to enable notices to point to a specific stop time.
+     */
+
+    AgencyAndId[] stopTimeIds;
+
     /**
      * These are the GTFS stop sequence numbers, which show the order in which the vehicle visits
      * the stops. Despite the face that the StopPattern or TripPattern enclosing this TripTimes
@@ -125,6 +136,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         final int nStops = stopTimes.size();
         final int[] departures = new int[nStops];
         final int[] arrivals   = new int[nStops];
+        this.stopTimeIds = new AgencyAndId[nStops];
         final int[] sequences  = new int[nStops];
         final BitSet timepoints = new BitSet(nStops);
         // Times are always shifted to zero. This is essential for frequencies and deduplication.
@@ -133,6 +145,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         for (final StopTime st : stopTimes) {
             departures[s] = st.getDepartureTime() - timeShift;
             arrivals[s] = st.getArrivalTime() - timeShift;
+            stopTimeIds[s] = st.getId();
             sequences[s] = st.getStopSequence();
             timepoints.set(s, st.getTimepoint() == 1);
             s++;
@@ -159,6 +172,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         this.headsigns = object.headsigns;
         this.scheduledDepartureTimes = object.scheduledDepartureTimes;
         this.scheduledArrivalTimes = object.scheduledArrivalTimes;
+        this.stopTimeIds = object.stopTimeIds;
         this.stopSequences = object.stopSequences;
         this.timepoints = object.timepoints;
     }
