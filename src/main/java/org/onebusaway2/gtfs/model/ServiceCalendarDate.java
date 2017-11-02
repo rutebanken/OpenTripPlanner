@@ -88,21 +88,15 @@ public final class ServiceCalendarDate extends IdentityBean<Integer> {
         // type check and cast
         if (getClass() != o.getClass())
             return false;
-        ServiceCalendarDate serviceCalendarDate = (ServiceCalendarDate) o;
-        String test1 = serviceCalendarDate.getDate().toString();
-        String test2 = this.getDate().toString();
-
-        String test3 = serviceCalendarDate.getServiceId().toString();
-        String test4 = this.getServiceId().toString();
-
+        ServiceCalendarDate other = (ServiceCalendarDate) o;
 
         // field comparison
-        return (serviceCalendarDate.getDate().toString().equals(this.getDate().toString()) &&
-                serviceCalendarDate.getServiceId().toString().equals(this.getServiceId().toString())) ;
+        return (other.getDate().equals(this.getDate()) &&
+                other.getServiceId().equals(this.getServiceId()));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getDate().toString(), getServiceId().toString());
+        return 37 * (serviceId != null ? serviceId.hashCode() : 0) + (date != null ? date.hashCode() : 0);
     }
 }

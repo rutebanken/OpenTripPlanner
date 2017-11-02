@@ -7,13 +7,6 @@ import java.util.*;
 public class NetexDao {
 
     private Map<String, StopPlace> stopPlaceMap = new HashMap<>();
-
-    public Map<String, StopPlace> getStopPlaceMap() {
-        return stopPlaceMap;
-    }
-    public Map<String, Quay> getQuayMap() {
-        return quayMap;
-    }
     private Map<String, StopPlace> multimodalStopPlaceById = new HashMap<>();
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
@@ -35,28 +28,26 @@ public class NetexDao {
     private Map<String, Notice> noticeMap = new HashMap<>();
     private Map<String, NoticeAssignment> noticeAssignmentMap = new HashMap<>();
     private Map<String, ServiceJourneyInterchange> interchanges = new HashMap<>();
-
-    public Map<String, ServiceJourneyInterchange> getInterchanges() {
-        return interchanges;
-    }
-
-    public Map<String, Notice> getNoticeMap() {
-        return noticeMap;
-    }
-
-    public Map<String, NoticeAssignment> getNoticeAssignmentMap() {
-        return noticeAssignmentMap;
-    }
-
-    public Map<String, StopPlace> getParentStopPlaceById() {
-        return parentStopPlaceById;
-    }
-
-
     private String timeZone;
 
+    public Map<String, StopPlace> getStopPlaceMap() {
+        return stopPlaceMap;
+    }
 
-    public Map<String, Boolean> getDayTypeAvailable() {
+    public Map<String, Quay> getQuayMap() {
+        return quayMap;
+    }
+
+    public Map<String, StopPlace> getParentStopPlaceById() { return parentStopPlaceById; }
+
+    public Map<String, StopPlace> getStopPlaceMap() {
+        return stopPlaceMap;
+    }
+    public Map<String, Quay> getQuayMap() {
+        return quayMap;
+    }
+
+  public Map<String, Boolean> getDayTypeAvailable() {
         return dayTypeAvailable;
     }
 
@@ -130,5 +121,16 @@ public class NetexDao {
 
     public void setMultimodalStopPlaceById(Map<String, StopPlace> multimodalStopPlaceById) {
         this.multimodalStopPlaceById = multimodalStopPlaceById;
+    }
+    public Map<String, ServiceJourneyInterchange> getInterchanges() {
+        return interchanges;
+    }
+
+    public Map<String, Notice> getNoticeMap() {
+        return noticeMap;
+    }
+
+    public Map<String, NoticeAssignment> getNoticeAssignmentMap() {
+        return noticeAssignmentMap;
     }
 }
