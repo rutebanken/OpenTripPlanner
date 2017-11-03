@@ -7,8 +7,6 @@ import java.util.*;
 public class NetexDao {
 
     private Map<String, StopPlace> stopPlaceMap = new HashMap<>();
-
-
     private Map<String, StopPlace> multimodalStopPlaceById = new HashMap<>();
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
@@ -30,10 +28,10 @@ public class NetexDao {
     private Map<String, Notice> noticeMap = new HashMap<>();
     private Map<String, NoticeAssignment> noticeAssignmentMap = new HashMap<>();
     private Map<String, ServiceJourneyInterchange> interchanges = new HashMap<>();
-
     private Map<String, StopPlace> stopsById = new HashMap<>();
     private Map<String, Quay> quayById = new HashMap<>();
     private Map<Quay, StopPlace> stopPlaceByQuay = new HashMap<>();
+    private String timeZone;
 
     public Map<String, StopPlace> getStopPlaceMap() {
         return stopPlaceMap;
@@ -73,10 +71,6 @@ public class NetexDao {
     public Map<String, StopPlace> getParentStopPlaceById() {
         return parentStopPlaceById;
     }
-
-
-    private String timeZone;
-
 
     public Map<String, Boolean> getDayTypeAvailable() {
         return dayTypeAvailable;
