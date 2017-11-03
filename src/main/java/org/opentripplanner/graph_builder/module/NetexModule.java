@@ -8,8 +8,6 @@ import org.onebusaway2.gtfs.services.GtfsDao;
 import org.opentripplanner.calendar.impl.MultiCalendarServiceImpl;
 import org.opentripplanner.graph_builder.model.NetexBundle;
 import org.opentripplanner.graph_builder.model.NetexDao;
-import org.opentripplanner.graph_builder.model.NetexStopDao;
-import org.opentripplanner.graph_builder.model.NetexStopPlaceBundle;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.netex.mapping.NetexMapper;
 import org.opentripplanner.routing.edgetype.factory.GTFSPatternHopFactory;
@@ -42,11 +40,8 @@ public class NetexModule implements GraphBuilderModule {
 
     private FareServiceFactory _fareServiceFactory = new DefaultFareServiceFactory();
 
-    private NetexStopPlaceBundle netexStopPlaceBundle;
-
-    public NetexModule(List<NetexBundle> netexBundles, NetexStopPlaceBundle netexStopPlaceBundle) {
+    public NetexModule(List<NetexBundle> netexBundles) {
         this.netexBundles = netexBundles;
-        this.netexStopPlaceBundle = netexStopPlaceBundle;
     }
 
     @Override
@@ -57,10 +52,8 @@ public class NetexModule implements GraphBuilderModule {
         GtfsStopContext stopContext = new GtfsStopContext();
 
         try {
-            NetexStopDao netexStopDao = loadBundle(netexStopPlaceBundle);
-
             for(NetexBundle netexBundle : netexBundles){
-                NetexDao netexDao = loadBundle(netexBundle, netexStopDao);
+                NetexDao netexDao = loadBundle(netexBundle);
 
                 NetexMapper otpMapper = new NetexMapper();
                 GtfsDao otpDao = otpMapper.mapNetexToOtp(netexDao);
@@ -105,35 +98,23 @@ public class NetexModule implements GraphBuilderModule {
         netexBundles.forEach(NetexBundle::checkInputs);
     }
 
-    private NetexDao loadBundle(NetexBundle netexBundle, NetexStopDao netexStopDao) throws Exception {
+    private NetexDao loadBundle(NetexBundle netexBundle) throws Exception {
         NetexDao netexDao = new NetexDao();
-        LOG.info("Loading common file...");
+        List<ZipEntry> entries = netexBundle.getFileEntriesInOrder();
         Unmarshaller unmarshaller = getUnmarshaller();
-        loadFile(netexBundle.getCommonFile(), unmarshaller, netexDao, netexStopDao);
-        List<ZipEntry> entries = netexBundle.getFileEntries();
         for(ZipEntry entry : entries){
-            LOG.info("Loading line file " + entry.getName());
+            LOG.info("Loading file " + entry.getName());
             InputStream fileInputStream = netexBundle.getFileInputStream(entry);
-            loadFile(fileInputStream, unmarshaller, netexDao, netexStopDao);
+            loadFile(fileInputStream, unmarshaller, netexDao);
         }
         return netexDao;
-    }
-
-    private NetexStopDao loadBundle(NetexStopPlaceBundle netexBundle) throws Exception {
-        NetexStopDao netexStopDao = new NetexStopDao();
-        LOG.info("Loading stop place file...");
-        Unmarshaller unmarshaller = getUnmarshaller();
-        loadFile(netexBundle.getStopPlaceFile(), unmarshaller, netexStopDao);
-        return netexStopDao;
     }
 
     public org.onebusaway2.gtfs.services.GtfsDao getOtpDao() throws Exception {
         org.onebusaway2.gtfs.services.GtfsDao otpDao = new GtfsDaoImpl();
 
-        NetexStopDao netexStopDao = loadBundle(netexStopPlaceBundle);
-
         for(NetexBundle bundle : netexBundles) {
-            NetexDao netexDao = loadBundle(bundle, netexStopDao);
+            NetexDao netexDao = loadBundle(bundle);
 
             NetexMapper otpMapper = new NetexMapper();
             otpDao = otpMapper.mapNetexToOtp(netexDao);
@@ -148,23 +129,7 @@ public class NetexModule implements GraphBuilderModule {
         return unmarshaller;
     }
 
-    private void loadFile(InputStream is, Unmarshaller unmarshaller, NetexStopDao netexStopDao) throws Exception {
-        byte[] bytesArray = IOUtils.toByteArray(is);
-
-        @SuppressWarnings("unchecked")
-        JAXBElement<PublicationDeliveryStructure> jaxbElement = (JAXBElement<PublicationDeliveryStructure>) unmarshaller
-                .unmarshal(new ByteArrayInputStream(bytesArray));
-
-        PublicationDeliveryStructure value = jaxbElement.getValue();
-        List<JAXBElement<? extends Common_VersionFrameStructure>> compositeFrameOrCommonFrames = value.getDataObjects().getCompositeFrameOrCommonFrame();
-        for(JAXBElement frame : compositeFrameOrCommonFrames){
-            if (frame.getValue() instanceof SiteFrame) {
-                loadSiteFrames(frame, netexStopDao);
-            }
-        }
-    }
-
-    private void loadFile(InputStream is, Unmarshaller unmarshaller, NetexDao netexDao, NetexStopDao netexStopDao) throws Exception {
+    private void loadFile(InputStream is, Unmarshaller unmarshaller, NetexDao netexDao) throws Exception {
         byte[] bytesArray = IOUtils.toByteArray(is);
 
         @SuppressWarnings("unchecked")
@@ -187,17 +152,21 @@ public class NetexModule implements GraphBuilderModule {
                 netexDao.setTimeZone(timeZone);
                 List<JAXBElement<? extends Common_VersionFrameStructure>> commonFrames = cf.getFrames().getCommonFrame();
                 for (JAXBElement commonFrame : commonFrames) {
+
                     loadResourceFrames(commonFrame, netexDao);
                     loadServiceCalendarFrames(commonFrame, netexDao);
                     loadTimeTableFrames(commonFrame, netexDao);
-                    loadServiceFrames(commonFrame, netexDao, netexStopDao);
+                    loadServiceFrames(commonFrame, netexDao);
                 }
+            }
+            else if (frame.getValue() instanceof SiteFrame) {
+                loadSiteFrames(frame, netexDao);
             }
         }
     }
 
     // Stop places and quays
-    private void loadSiteFrames(JAXBElement commonFrame, NetexStopDao netexStopDao) {
+    private void loadSiteFrames(JAXBElement commonFrame, NetexDao netexDao) {
         if (commonFrame.getValue() instanceof SiteFrame) {
             SiteFrame sf = (SiteFrame) commonFrame.getValue();
             StopPlacesInFrame_RelStructure stopPlaces = sf.getStopPlaces();
@@ -205,9 +174,9 @@ public class NetexModule implements GraphBuilderModule {
             for (StopPlace stopPlace : stopPlaceList) {
                 if (stopPlace.getKeyList().getKeyValue().stream().anyMatch(keyValueStructure ->
                         keyValueStructure.getKey().equals("IS_PARENT_STOP_PLACE") && keyValueStructure.getValue().equals("true"))) {
-                    netexStopDao.multimodalStopPlaceById.put(stopPlace.getId(), stopPlace);
+                    netexDao.getMultimodalStopPlaceById().put(stopPlace.getId(), stopPlace);
                 } else {
-                    netexStopDao.getStopsById().put(stopPlace.getId(), stopPlace);
+                    netexDao.getStopsById().put(stopPlace.getId(), stopPlace);
                     if (stopPlace.getQuays() == null) {
                         LOG.warn(stopPlace.getId() + " does not contain any quays");
                     } else {
@@ -215,8 +184,8 @@ public class NetexModule implements GraphBuilderModule {
                         for (Object quayObject : quayRefOrQuay) {
                             if (quayObject instanceof Quay) {
                                 Quay quay = (Quay) quayObject;
-                                netexStopDao.getQuayById().put(quay.getId(), quay);
-                                netexStopDao.getStopPlaceByQuay().put(quay, stopPlace);
+                                netexDao.getQuayById().put(quay.getId(), quay);
+                                netexDao.getStopPlaceByQuay().put(quay, stopPlace);
                             }
                         }
                     }
@@ -225,7 +194,7 @@ public class NetexModule implements GraphBuilderModule {
         }
     }
 
-    private void loadServiceFrames(JAXBElement commonFrame, NetexDao netexDao, NetexStopDao netexStopDao) {
+    private void loadServiceFrames(JAXBElement commonFrame, NetexDao netexDao) {
         if (commonFrame.getValue() instanceof ServiceFrame) {
             ServiceFrame sf = (ServiceFrame) commonFrame.getValue();
 
@@ -237,9 +206,9 @@ public class NetexModule implements GraphBuilderModule {
                     if(assignment.getValue() instanceof PassengerStopAssignment) {
                         PassengerStopAssignment passengerStopAssignment = (PassengerStopAssignment) assignment.getValue();
                         if (passengerStopAssignment.getQuayRef() != null) {
-                            if (netexStopDao.getQuayById().containsKey(passengerStopAssignment.getQuayRef().getRef())) {
-                                Quay quay = netexStopDao.getQuayById().get(passengerStopAssignment.getQuayRef().getRef());
-                                StopPlace stopPlace = netexStopDao.getStopPlaceByQuay().get(quay);
+                            if (netexDao.getQuayById().containsKey(passengerStopAssignment.getQuayRef().getRef())) {
+                                Quay quay = netexDao.getQuayById().get(passengerStopAssignment.getQuayRef().getRef());
+                                StopPlace stopPlace = netexDao.getStopPlaceByQuay().get(quay);
                                 netexDao.getStopPointStopPlaceMap().put(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), stopPlace.getId());
                                 netexDao.getStopPointQuayMap().put(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), quay.getId());
 
@@ -260,7 +229,7 @@ public class NetexModule implements GraphBuilderModule {
 
             // Load parent stops from NetexStopDao into NetexDao
 
-            for (StopPlace stopPlace : netexStopDao.getAllStopPlaces()) {
+            for (StopPlace stopPlace : netexDao.getAllStopPlaces()) {
                 if (!netexDao.getParentStopPlaceById().containsKey(stopPlace.getId())) {
                     netexDao.getParentStopPlaceById().put(stopPlace.getId(), stopPlace);
                 }
@@ -268,7 +237,7 @@ public class NetexModule implements GraphBuilderModule {
 
             // Load multimodal stops from NetexStopDao into NetexDao
 
-            for (StopPlace stopPlace : netexStopDao.multimodalStopPlaceById.values()) {
+            for (StopPlace stopPlace : netexDao.getMultimodalStopPlaceById().values()) {
                 if (!netexDao.getMultimodalStopPlaceById().containsKey(stopPlace.getId())) {
                     netexDao.getMultimodalStopPlaceById().put(stopPlace.getId(), stopPlace);
                 }
@@ -346,17 +315,22 @@ public class NetexModule implements GraphBuilderModule {
                     loadServiceIds((ServiceJourney)jStructure, netexDao);
                     ServiceJourney sj = (ServiceJourney) jStructure;
                     String journeyPatternId = sj.getJourneyPatternRef().getValue().getRef();
-                    if (netexDao.getJourneyPatternsById().get(journeyPatternId).getPointsInSequence().
-                            getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern().size()
-                            == sj.getPassingTimes().getTimetabledPassingTime().size()) {
+                    if (netexDao.getJourneyPatternsById().containsKey(journeyPatternId)) {
+                        if (netexDao.getJourneyPatternsById().get(journeyPatternId).getPointsInSequence().
+                                getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern().size()
+                                == sj.getPassingTimes().getTimetabledPassingTime().size()) {
 
-                        if (netexDao.getServiceJourneyById().get(journeyPatternId) != null) {
-                            netexDao.getServiceJourneyById().get(journeyPatternId).add(sj);
+                            if (netexDao.getServiceJourneyById().get(journeyPatternId) != null) {
+                                netexDao.getServiceJourneyById().get(journeyPatternId).add(sj);
+                            } else {
+                                netexDao.getServiceJourneyById().put(journeyPatternId, Lists.newArrayList(sj));
+                            }
                         } else {
-                            netexDao.getServiceJourneyById().put(journeyPatternId, Lists.newArrayList(sj));
+                            LOG.warn("Mismatch between ServiceJourney and JourneyPattern. ServiceJourney will be skipped. - " + sj.getId());
                         }
-                    } else {
-                        LOG.warn("Mismatch between ServiceJourney and JourneyPattern. ServiceJourney will be skipped. - " + sj.getId());
+                    }
+                    else {
+                        LOG.warn("JourneyPattern not found. " + journeyPatternId);
                     }
                 }
             }

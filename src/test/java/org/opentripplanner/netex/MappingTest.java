@@ -13,7 +13,6 @@ import org.onebusaway2.gtfs.model.calendar.ServiceDate;
 import org.onebusaway2.gtfs.services.GtfsDao;
 import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.model.NetexBundle;
-import org.opentripplanner.graph_builder.model.NetexStopPlaceBundle;
 import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.graph_builder.module.NetexModule;
 
@@ -37,14 +36,12 @@ public class MappingTest {
             Assert.fail();
         }
 
-        NetexStopPlaceBundle netexStopPlaceBundle = new NetexStopPlaceBundle(netexStopFile);
         NetexBundle netexBundle = new NetexBundle(netexFile);
         NetexModule netexModule = new NetexModule(new ArrayList<NetexBundle>() {
             {
                 add(netexBundle);
             }
-        },
-                netexStopPlaceBundle);
+        });
         this.otpDaoFromNetex = netexModule.getOtpDao();
 
         GtfsBundle gtfsBundle = new GtfsBundle(gtfsFile);

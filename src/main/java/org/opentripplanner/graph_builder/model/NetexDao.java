@@ -8,12 +8,7 @@ public class NetexDao {
 
     private Map<String, StopPlace> stopPlaceMap = new HashMap<>();
 
-    public Map<String, StopPlace> getStopPlaceMap() {
-        return stopPlaceMap;
-    }
-    public Map<String, Quay> getQuayMap() {
-        return quayMap;
-    }
+
     private Map<String, StopPlace> multimodalStopPlaceById = new HashMap<>();
     private Map<String, Quay> quayMap = new HashMap<>();
     private Map<String, String> stopPointStopPlaceMap = new HashMap<>();
@@ -35,6 +30,33 @@ public class NetexDao {
     private Map<String, Notice> noticeMap = new HashMap<>();
     private Map<String, NoticeAssignment> noticeAssignmentMap = new HashMap<>();
     private Map<String, ServiceJourneyInterchange> interchanges = new HashMap<>();
+
+    private Map<String, StopPlace> stopsById = new HashMap<>();
+    private Map<String, Quay> quayById = new HashMap<>();
+    private Map<Quay, StopPlace> stopPlaceByQuay = new HashMap<>();
+
+    public Map<String, StopPlace> getStopPlaceMap() {
+        return stopPlaceMap;
+    }
+    public Map<String, Quay> getQuayMap() {
+        return quayMap;
+    }
+
+    public Map<Quay, StopPlace> getStopPlaceByQuay() {
+        return stopPlaceByQuay;
+    }
+
+    public Map<String, StopPlace> getStopsById() {
+        return stopsById;
+    }
+
+    public Map<String, Quay> getQuayById() {
+        return quayById;
+    }
+
+    public Collection<StopPlace> getAllStopPlaces() {
+        return stopsById.values();
+    }
 
     public Map<String, ServiceJourneyInterchange> getInterchanges() {
         return interchanges;
