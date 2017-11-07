@@ -2,6 +2,7 @@ package org.opentripplanner.netex.mapping;
 
 import org.onebusaway2.gtfs.impl.GtfsDaoImpl;
 import org.onebusaway2.gtfs.model.*;
+import org.onebusaway2.gtfs.model.NoticeAssignment;
 import org.onebusaway2.gtfs.model.Route;
 import org.onebusaway2.gtfs.services.GtfsDao;
 import org.opentripplanner.graph_builder.model.NetexDao;
@@ -9,6 +10,8 @@ import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Notice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
 
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -78,8 +81,10 @@ public class NetexMapper {
 
         for (org.rutebanken.netex.model.NoticeAssignment noticeAssignment : netexDao.getNoticeAssignmentMap().values()) {
             if (noticeAssignment != null) {
-                org.onebusaway2.gtfs.model.NoticeAssignment otpNoticeAssignment = noticeAssignmentMapper.mapNoticeAssignment(noticeAssignment);
-                gtfsDao.getNoticeAssignmentById().put(otpNoticeAssignment.getId(), otpNoticeAssignment);
+                Collection<NoticeAssignment> otpNoticeAssignments = noticeAssignmentMapper.mapNoticeAssignment(noticeAssignment, netexDao);
+                for (org.onebusaway2.gtfs.model.NoticeAssignment otpNoticeAssignment : otpNoticeAssignments) {
+                    gtfsDao.getNoticeAssignmentById().put(otpNoticeAssignment.getId(), otpNoticeAssignment);
+                }
             }
         }
 

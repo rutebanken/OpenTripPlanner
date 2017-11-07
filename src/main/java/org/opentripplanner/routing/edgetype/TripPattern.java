@@ -113,6 +113,12 @@ public class TripPattern implements Cloneable, Serializable {
      */
     public String code;
 
+    /**
+     * Currently used for NeTEx id
+     */
+
+    public AgencyAndId id;
+
     /* The vertices in the Graph that correspond to each Stop in this pattern. */
     public final TransitStop[] stopVertices; // these are not unique to this pattern, can be shared. FIXME they appear to be all null. are they even used?
     public final PatternDepartVertex[] departVertices;

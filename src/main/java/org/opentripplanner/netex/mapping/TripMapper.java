@@ -1,8 +1,6 @@
 package org.opentripplanner.netex.mapping;
 
 import org.onebusaway2.gtfs.impl.GtfsDaoImpl;
-import org.onebusaway2.gtfs.model.AgencyAndId;
-import org.onebusaway2.gtfs.model.Route;
 import org.onebusaway2.gtfs.model.Trip;
 import org.opentripplanner.graph_builder.model.NetexDao;
 import org.rutebanken.netex.model.*;

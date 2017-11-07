@@ -92,9 +92,9 @@ public class CalendarMapper {
                                         if (isAvailable) {
                                             serviceCalendarDates.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
-                                        }
-                                    }
+                                    serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                }
+                            }
                                     break;
                                 case WEDNESDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.WEDNESDAY)) {

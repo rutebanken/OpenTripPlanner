@@ -291,6 +291,13 @@ public class NetexModule implements GraphBuilderModule {
                     if (pattern.getValue() instanceof JourneyPattern) {
                         JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
                         netexDao.getJourneyPatternsById().put(journeyPattern.getId(), journeyPattern);
+                        for (PointInLinkSequence_VersionedChildStructure pointInLinkSequence_versionedChildStructure
+                                : journeyPattern.getPointsInSequence().getPointInJourneyPatternOrStopPointInJourneyPatternOrTimingPointInJourneyPattern()) {
+                            if (pointInLinkSequence_versionedChildStructure instanceof StopPointInJourneyPattern) {
+                                StopPointInJourneyPattern stopPointInJourneyPattern = (StopPointInJourneyPattern) pointInLinkSequence_versionedChildStructure;
+                                netexDao.getJourneyPatternByStopPointId().put(stopPointInJourneyPattern.getId(), journeyPattern);
+                            }
+                        }
                     }
                 }
             }
@@ -298,6 +305,17 @@ public class NetexModule implements GraphBuilderModule {
             if (sf.getNotices() != null) {
                 for (Notice notice : sf.getNotices().getNotice()) {
                     netexDao.getNoticeMap().put(notice.getId(), notice);
+                }
+            }
+
+            if (sf.getNoticeAssignments() != null) {
+                for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : sf.getNoticeAssignments()
+                        .getNoticeAssignment_()) {
+                    NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
+
+                    if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
+                        netexDao.getNoticeAssignmentMap().put(noticeAssignment.getId(), noticeAssignment);
+                    }
                 }
             }
         }
@@ -331,19 +349,6 @@ public class NetexModule implements GraphBuilderModule {
                     }
                     else {
                         LOG.warn("JourneyPattern not found. " + journeyPatternId);
-                    }
-                }
-            }
-
-
-
-            if (timetableFrame.getNoticeAssignments() != null) {
-                for (JAXBElement<? extends DataManagedObjectStructure> noticeAssignmentElement : timetableFrame.getNoticeAssignments()
-                        .getNoticeAssignment_()) {
-                    NoticeAssignment noticeAssignment = (NoticeAssignment) noticeAssignmentElement.getValue();
-
-                    if (noticeAssignment.getNoticeRef() != null && noticeAssignment.getNoticedObjectRef() != null) {
-                        netexDao.getNoticeAssignmentMap().put(noticeAssignment.getId(), noticeAssignment);
                     }
                 }
             }
