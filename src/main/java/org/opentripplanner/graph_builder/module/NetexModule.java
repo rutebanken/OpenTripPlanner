@@ -26,6 +26,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -110,17 +111,17 @@ public class NetexModule implements GraphBuilderModule {
         return netexDao;
     }
 
-    public org.onebusaway2.gtfs.services.GtfsDao getOtpDao() throws Exception {
-        org.onebusaway2.gtfs.services.GtfsDao otpDao = new GtfsDaoImpl();
+    public Collection<GtfsDao> getOtpDao() throws Exception {
+        Collection<org.onebusaway2.gtfs.services.GtfsDao> otpDaoList = new ArrayList<>();
 
         for(NetexBundle bundle : netexBundles) {
             NetexDao netexDao = loadBundle(bundle);
 
             NetexMapper otpMapper = new NetexMapper();
-            otpDao = otpMapper.mapNetexToOtp(netexDao);
+            otpDaoList.add(otpMapper.mapNetexToOtp(netexDao));
         }
 
-        return otpDao;
+        return otpDaoList;
     }
 
     private Unmarshaller getUnmarshaller() throws Exception {

@@ -15,9 +15,14 @@ import org.opentripplanner.graph_builder.model.GtfsBundle;
 import org.opentripplanner.graph_builder.model.NetexBundle;
 import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.graph_builder.module.NetexModule;
+import org.opentripplanner.netex.mapping.AgencyAndIdFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 public class MappingTest {
@@ -25,10 +30,8 @@ public class MappingTest {
     private GtfsDao otpDaoFromGtfs;
     private GtfsDao otpDaoFromNetex;
 
-    File gtfsFile = new File("src/test/resources/netex_mapping_test/gtfs_data/rb_rut-aggregated-gtfs.zip");
-    File netexStopFile = new File("src/test/resources/netex_mapping_test/netex_data/stopPlaces.zip");
-    File netexFile = new File("src/test/resources/netex_mapping_test/netex_data/rb_rut-aggregated-netex.zip");
-
+    File gtfsFile = new File("src/test/resources/netex_mapping_test/gtfs_minimal_fileset/gtfs_minimal.zip");
+    File netexFile = new File("src/test/resources/netex_mapping_test/netex_minimal_fileset/netex_minimal.zip");
 
     @Before
     public void setUpNetexMapping() throws Exception {
@@ -42,7 +45,7 @@ public class MappingTest {
                 add(netexBundle);
             }
         });
-        this.otpDaoFromNetex = netexModule.getOtpDao();
+        this.otpDaoFromNetex = netexModule.getOtpDao().stream().findFirst().get();
 
         GtfsBundle gtfsBundle = new GtfsBundle(gtfsFile);
         GtfsModule gtfsModule = new GtfsModule(new ArrayList<GtfsBundle>() {
@@ -51,25 +54,6 @@ public class MappingTest {
             }
         });
         this.otpDaoFromGtfs = gtfsModule.getOtpDao().stream().findFirst().get();
-    }
-
-    @Test
-    public void singleTripTest() {
-        Collection<StopTime> gtfsStopTimes = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip()
-                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> netexStopTimes = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip()
-                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-
-        Collection<StopTime> gtfsStopTimesRemove = otpDaoFromGtfs.getAllStopTimes().stream().filter(t -> t.getTrip()
-                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-        Collection<StopTime> netexStopTimesRemove = otpDaoFromNetex.getAllStopTimes().stream().filter(t -> t.getTrip()
-                .getId().getId().equals("RUT:ServiceJourney:215-102139-2968")).collect(Collectors.toList());
-
-        gtfsStopTimes.removeAll(netexStopTimesRemove);
-        netexStopTimes.removeAll(gtfsStopTimesRemove);
-
-        Assert.assertEquals(0, gtfsStopTimes.size());
-        Assert.assertEquals(0, netexStopTimes.size());
     }
 
     @Test
@@ -91,6 +75,12 @@ public class MappingTest {
 
         HashSet<StopTime> stopTimesGtfsComp = new HashSet<>(otpDaoFromGtfs.getAllStopTimes());
         HashSet<StopTime> stopTimesNetexComp = new HashSet<>(otpDaoFromNetex.getAllStopTimes());
+
+        // Remove ids
+        stopTimesGtfs.stream().forEach(s -> s.setId(AgencyAndIdFactory.getAgencyAndId("")));
+        stopTimesNetex.stream().forEach(s -> s.setId(AgencyAndIdFactory.getAgencyAndId("")));
+        stopTimesGtfsComp.stream().forEach(s -> s.setId(AgencyAndIdFactory.getAgencyAndId("")));
+        stopTimesNetexComp.stream().forEach(s -> s.setId(AgencyAndIdFactory.getAgencyAndId("")));
 
         stopTimesGtfs.removeAll(stopTimesNetexComp);
         stopTimesNetex.removeAll(stopTimesGtfsComp);
