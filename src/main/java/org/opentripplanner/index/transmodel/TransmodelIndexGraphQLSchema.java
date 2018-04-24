@@ -1134,6 +1134,12 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(5)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
+                                .name("numberOfDeparturesPrLine")
+                                .description("Limit the numberOfDepartures pr line. Should be less then or equal to 'numberOfDepartures', if not 'numberOfDepartures' is used.")
+                                .type(Scalars.GraphQLInt)
+                                .defaultValue(1_000_000)
+                                .build())
+                        .argument(GraphQLArgument.newArgument()
                                 .name("omitNonBoarding")
                                 .type(Scalars.GraphQLBoolean)
                                 .defaultValue(false)
@@ -1146,7 +1152,13 @@ public class TransmodelIndexGraphQLSchema {
                                 .build())
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
+                            int numberOfDepartures = environment.getArgument("numberOfDepartures");
+                            int numberOfDeparturesPrLine = Math.min(
+                                    numberOfDepartures,
+                                    environment.getArgument("numberOfDeparturesPrLine")
+                            );
                             Stop stop = environment.getSource();
+
                             if (stop.getLocationType() != 1) {
                                 // Not a stop place
                                 return null;
@@ -1176,14 +1188,14 @@ public class TransmodelIndexGraphQLSchema {
                                             index.stopTimesForStop(singleStop,
                                                     startTimeSeconds,
                                                     environment.getArgument("timeRange"),
-                                                    environment.getArgument("numberOfDepartures"),
+                                                    numberOfDeparturesPrLine,
                                                     omitNonBoarding)
                                                     .stream())
                                     .flatMap(stoptimesWithPattern -> stoptimesWithPattern.times.stream())
                                     .sorted(Comparator.comparing(t -> t.serviceDay + t.realtimeDeparture))
                                     .distinct()
                                     .filter(tts -> isTripTimeShortAcceptable(tts, authorityIds, lineIds))
-                                    .limit((long) (int) environment.getArgument("numberOfDepartures"))
+                                    .limit((long) numberOfDepartures)
                                     .collect(Collectors.toList());
                         })
                         .build())
@@ -1279,6 +1291,12 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(5)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
+                                .name("numberOfDeparturesPrLine")
+                                .description("Limit the numberOfDepartures pr line. Should be less then or equal to 'numberOfDepartures', if not 'numberOfDepartures' is used.")
+                                .type(Scalars.GraphQLInt)
+                                .defaultValue(1_000_000)
+                                .build())
+                        .argument(GraphQLArgument.newArgument()
                                 .name("omitNonBoarding")
                                 .type(Scalars.GraphQLBoolean)
                                 .defaultValue(false)
@@ -1291,10 +1309,16 @@ public class TransmodelIndexGraphQLSchema {
                                 .build())
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
+                            int numberOfDepartures = environment.getArgument("numberOfDepartures");
+                            int numberOfDeparturesPrLine = Math.min(
+                                    numberOfDepartures,
+                                    environment.getArgument("numberOfDeparturesPrLine")
+                            );
 
                             Set<String> authorityIds =new HashSet();
                             Set<AgencyAndId> lineIds = new HashSet();
                             Map<String, List<String>> whiteList=environment.getArgument("whiteListed");
+
                             if (whiteList!=null){
                                 List<String> authorityIdList = whiteList.get("authorities");
                                 if (authorityIdList != null) {
@@ -1310,16 +1334,17 @@ public class TransmodelIndexGraphQLSchema {
                             Long startTimeMs = environment.getArgument("startTime") == null ? 0l : environment.getArgument("startTime");
                             Long startTimeSeconds = startTimeMs / 1000;
                             return index.stopTimesForStop(
-                                    environment.getSource(), startTimeSeconds,
+                                    environment.getSource(),
+                                    startTimeSeconds,
                                     environment.getArgument("timeRange"),
-                                    environment.getArgument("numberOfDepartures"),
+                                    numberOfDeparturesPrLine,
                                     omitNonBoarding
                             ).stream()
                                     .flatMap(stoptimesWithPattern -> stoptimesWithPattern.times.stream())
                                     .sorted(Comparator.comparing(t -> t.serviceDay + t.realtimeDeparture))
                                     .distinct()
                                     .filter(tts -> isTripTimeShortAcceptable(tts, authorityIds, lineIds))
-                                    .limit((long) (int) environment.getArgument("numberOfDepartures"))
+                                    .limit((long)numberOfDepartures)
                                     .collect(Collectors.toList());
                         })
                         .build())
