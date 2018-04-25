@@ -9,6 +9,7 @@ import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class TripTimeShort {
@@ -92,6 +93,10 @@ public class TripTimeShort {
             out.add(new TripTimeShort(times, i, table.pattern.getStop(i), serviceDay));
         }
         return out;
+    }
+
+    public static Comparator<TripTimeShort> compareByDeparture() {
+        return Comparator.comparing(t -> t.serviceDay + t.realtimeDeparture);
     }
 
     @Override
