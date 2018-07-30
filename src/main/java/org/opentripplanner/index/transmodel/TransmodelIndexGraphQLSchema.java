@@ -4,10 +4,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.LineString;
 import graphql.Scalars;
-import graphql.relay.ConnectionCursor;
 import graphql.relay.DefaultConnection;
 import graphql.relay.DefaultPageInfo;
-import graphql.relay.PageInfo;
 import graphql.relay.Relay;
 import graphql.relay.SimpleListConnection;
 import graphql.schema.*;
@@ -1265,6 +1263,7 @@ public class TransmodelIndexGraphQLSchema {
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("numberOfDepartures")
+                                .description("Limit the total number of departures returned.")
                                 .type(Scalars.GraphQLInt)
                                 .defaultValue(5)
                                 .build())
@@ -1326,10 +1325,11 @@ public class TransmodelIndexGraphQLSchema {
                                                     timeRage,
                                                     omitNonBoarding,
                                                     numberOfDepartures,
-                                                    numberOfDeparturesPrDestinationDisplay
+                                                    numberOfDeparturesPrDestinationDisplay,
+                                                    authorityIds,
+                                                    lineIds
                                             )
                                     )
-                                    .filter(tts -> isTripTimeShortAcceptable(tts, authorityIds, lineIds))
                                     .sorted(TripTimeShort.compareByDeparture())
                                     .distinct()
                                     .limit((long) numberOfDepartures)
@@ -1424,6 +1424,7 @@ public class TransmodelIndexGraphQLSchema {
                                 .build())
                         .argument(GraphQLArgument.newArgument()
                                 .name("numberOfDepartures")
+                                .description("Limit the total number of departures returned.")
                                 .type(Scalars.GraphQLInt)
                                 .defaultValue(5)
                                 .build())
@@ -1471,9 +1472,15 @@ public class TransmodelIndexGraphQLSchema {
                             Long startTimeSeconds = startTimeMs / 1000;
 
                             return getTripTimesForStop(
-                                    stop, startTimeSeconds, timeRange, omitNonBoarding, numberOfDepartures, numberOfDeparturesPrDestinationDisplay
+                                    stop,
+                                    startTimeSeconds,
+                                    timeRange,
+                                    omitNonBoarding,
+                                    numberOfDepartures,
+                                    numberOfDeparturesPrDestinationDisplay,
+                                    authorityIds,
+                                    lineIds
                             )
-                                .filter(tts -> isTripTimeShortAcceptable(tts, authorityIds, lineIds))
                                 .sorted(TripTimeShort.compareByDeparture())
                                 .distinct()
                                 .limit((long)numberOfDepartures)
@@ -4121,10 +4128,15 @@ public class TransmodelIndexGraphQLSchema {
             int timeRage,
             boolean omitNonBoarding,
             int numberOfDepartures,
-            Integer numberOfDeparturesPrDestinationDisplay
+            Integer numberOfDeparturesPrDestinationDisplay,
+            Set<String> authorityIdsWhiteListed,
+            Set<AgencyAndId> lineIdsWhiteListed
     ) {
 
-        boolean limitOnHeadSign = numberOfDeparturesPrDestinationDisplay != null && numberOfDeparturesPrDestinationDisplay > 0 && numberOfDeparturesPrDestinationDisplay < numberOfDepartures;
+        boolean limitOnHeadSign = numberOfDeparturesPrDestinationDisplay != null &&
+                numberOfDeparturesPrDestinationDisplay > 0 &&
+                numberOfDeparturesPrDestinationDisplay < numberOfDepartures;
+
         int numberOfDeparturesPrTripPattern = limitOnHeadSign ? numberOfDeparturesPrDestinationDisplay : numberOfDepartures;
 
         List<StopTimesInPattern> stopTimesInPatterns = index.stopTimesForStop(
@@ -4132,6 +4144,8 @@ public class TransmodelIndexGraphQLSchema {
         );
 
         Stream<TripTimeShort> tripTimesStream = stopTimesInPatterns.stream().flatMap(p -> p.times.stream());
+
+        tripTimesStream = whiteListAuthoritiesAndOrLines(tripTimesStream,  authorityIdsWhiteListed, lineIdsWhiteListed);
 
         if(!limitOnHeadSign) {
             return tripTimesStream;
@@ -4172,10 +4186,16 @@ public class TransmodelIndexGraphQLSchema {
         return enumType.getValues().stream().filter(e -> e.getValue().equals(otpVal)).findFirst().get().getName();
     }
 
-    private boolean isTripTimeShortAcceptable(TripTimeShort tts, Set<String> authorityIds, Set<AgencyAndId> lineIds) {
+
+    private Stream<TripTimeShort> whiteListAuthoritiesAndOrLines(Stream<TripTimeShort> stream, Set<String> authorityIds, Set<AgencyAndId> lineIds) {
         if (CollectionUtils.isEmpty(authorityIds) && CollectionUtils.isEmpty(lineIds)) {
-            return true;
+            return stream;
         }
+        return stream.filter(it -> isTripTimeShortAcceptable(it, authorityIds, lineIds));
+    }
+
+
+    private boolean isTripTimeShortAcceptable(TripTimeShort tts, Set<String> authorityIds, Set<AgencyAndId> lineIds) {
         Trip trip = index.tripForId.get(tts.tripId);
 
         if (trip == null || trip.getRoute() == null) {
