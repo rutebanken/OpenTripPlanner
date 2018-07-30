@@ -1268,8 +1268,8 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(5)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
-                                .name("numberOfDeparturesPrDestinationDisplay")
-                                .description("Limit the number of departures pr headsign. The parameter is only applied " +
+                                .name("numberOfDeparturesPerLineAndDestinationDisplay")
+                                .description("Limit the number of departures per line and destination display returned. The parameter is only applied " +
                                         "when the value is between 1 and 'numberOfDepartures'.")
                                 .type(Scalars.GraphQLInt)
                                 .build())
@@ -1287,7 +1287,7 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
-                            Integer numberOfDeparturesPrDestinationDisplay = environment.getArgument("numberOfDeparturesPrDestinationDisplay");
+                            Integer departuresPerLineAndDestinationDisplay = environment.getArgument("numberOfDeparturesPerLineAndDestinationDisplay");
                             int timeRage = environment.getArgument("timeRange");
 
                             Stop stop = environment.getSource();
@@ -1325,7 +1325,7 @@ public class TransmodelIndexGraphQLSchema {
                                                     timeRage,
                                                     omitNonBoarding,
                                                     numberOfDepartures,
-                                                    numberOfDeparturesPrDestinationDisplay,
+                                                    departuresPerLineAndDestinationDisplay,
                                                     authorityIds,
                                                     lineIds
                                             )
@@ -1429,8 +1429,8 @@ public class TransmodelIndexGraphQLSchema {
                                 .defaultValue(5)
                                 .build())
                         .argument(GraphQLArgument.newArgument()
-                                .name("numberOfDeparturesPrDestinationDisplay")
-                                .description("Limit the number of departures pr headsign. The parameter is only applied " +
+                                .name("numberOfDeparturesPerLineAndDestinationDisplay")
+                                .description("Limit the number of departures per line and destination display returned. The parameter is only applied " +
                                         "when the value is between 1 and 'numberOfDepartures'.")
                                 .type(Scalars.GraphQLInt)
                                 .build())
@@ -1448,7 +1448,7 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
-                            Integer numberOfDeparturesPrDestinationDisplay = environment.getArgument("numberOfDeparturesPrDestinationDisplay");
+                            Integer departuresPerLineAndDestinationDisplay = environment.getArgument("numberOfDeparturesPerLineAndDestinationDisplay");
                             int timeRange = environment.getArgument("timeRange");
                             Stop stop = environment.getSource();
 
@@ -1477,7 +1477,7 @@ public class TransmodelIndexGraphQLSchema {
                                     timeRange,
                                     omitNonBoarding,
                                     numberOfDepartures,
-                                    numberOfDeparturesPrDestinationDisplay,
+                                    departuresPerLineAndDestinationDisplay,
                                     authorityIds,
                                     lineIds
                             )
@@ -4128,39 +4128,44 @@ public class TransmodelIndexGraphQLSchema {
             int timeRage,
             boolean omitNonBoarding,
             int numberOfDepartures,
-            Integer numberOfDeparturesPrDestinationDisplay,
+            Integer departuresPerLineAndDestinationDisplay,
             Set<String> authorityIdsWhiteListed,
             Set<AgencyAndId> lineIdsWhiteListed
     ) {
 
-        boolean limitOnHeadSign = numberOfDeparturesPrDestinationDisplay != null &&
-                numberOfDeparturesPrDestinationDisplay > 0 &&
-                numberOfDeparturesPrDestinationDisplay < numberOfDepartures;
+        boolean limitOnDestinationDisplay = departuresPerLineAndDestinationDisplay != null &&
+                departuresPerLineAndDestinationDisplay > 0 &&
+                departuresPerLineAndDestinationDisplay < numberOfDepartures;
 
-        int numberOfDeparturesPrTripPattern = limitOnHeadSign ? numberOfDeparturesPrDestinationDisplay : numberOfDepartures;
+        int departuresPerTripPattern = limitOnDestinationDisplay ? departuresPerLineAndDestinationDisplay : numberOfDepartures;
 
         List<StopTimesInPattern> stopTimesInPatterns = index.stopTimesForStop(
-                stop, startTimeSeconds, timeRage, numberOfDeparturesPrTripPattern, omitNonBoarding
+                stop, startTimeSeconds, timeRage, departuresPerTripPattern, omitNonBoarding
         );
 
         Stream<TripTimeShort> tripTimesStream = stopTimesInPatterns.stream().flatMap(p -> p.times.stream());
 
         tripTimesStream = whiteListAuthoritiesAndOrLines(tripTimesStream,  authorityIdsWhiteListed, lineIdsWhiteListed);
 
-        if(!limitOnHeadSign) {
+        if(!limitOnDestinationDisplay) {
             return tripTimesStream;
         }
-        // Group by headsign, limit departures pr group and merge
+        // Group by line and destination display, limit departures per group and merge
         return tripTimesStream
-                .collect(Collectors.groupingBy(t -> t.headsign))
+                .collect(Collectors.groupingBy(this::destinationDisplayPerLine))
                 .values()
                 .stream()
                 .flatMap(tripTimes ->
                         tripTimes.stream()
                                 .sorted(TripTimeShort.compareByDeparture())
                                 .distinct()
-                                .limit(numberOfDeparturesPrDestinationDisplay)
+                                .limit(departuresPerLineAndDestinationDisplay)
                 );
+    }
+
+    private String destinationDisplayPerLine(TripTimeShort t) {
+        Trip trip = index.tripForId.get(t.tripId);
+        return trip == null ?  t.headsign :  trip.getRoute().getId() + "|" + t.headsign;
     }
 
     private <T> List<T> wrapInListUnlessNull(T element) {
