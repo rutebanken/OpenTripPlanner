@@ -146,9 +146,6 @@ public class TripPattern implements Cloneable, Serializable {
      */
     final ArrayList<Trip> trips = new ArrayList<Trip>();
 
-    /** Used by the MapBuilder (and should be exposed by the Index API). */
-    public LineString geometry = null;
-
     /**
      * An ordered list of PatternHop edges associated with this pattern. All trips in a pattern have
      * the same stops and a PatternHop apply to all those trips, so this array apply to every trip
@@ -585,6 +582,15 @@ public class TripPattern implements Cloneable, Serializable {
         }
     }
 
+    public LineString getGeometry() {
+        List<LineString> lineStrings = new ArrayList<>();
+        for (int i = 0; i < patternHops.length - 1; i++) {
+            lineStrings.add(patternHops[i].getGeometry());
+        }
+        return GeometryUtils.concatenateLineStrings(lineStrings);
+    }
+
+
     /**
      * A bit of a strange place to set service codes all at once when TripTimes are already added,
      * but we need a reference to the Graph or at least the codes map. This could also be
@@ -643,35 +649,6 @@ public class TripPattern implements Cloneable, Serializable {
     public String toString () {
         return String.format("<TripPattern %s>", this.code);
     }
-
-    /**
-     * Generates a geometry for the full pattern.
-     * This is done by concatenating the shapes of all the constituent hops.
-     * It could probably just come from the full shapes.txt entry for the trips in the route, but given all the details
-     * in how the individual hop geometries are constructed we just recombine them here.
-     */
-    public void makeGeometry() {
-        CoordinateArrayListSequence coordinates = new CoordinateArrayListSequence();
-        if (patternHops != null && patternHops.length > 0) {
-            for (int i = 0; i < patternHops.length; i++) {
-                LineString geometry = patternHops[i].getGeometry();
-                if (geometry != null) {
-                    if (coordinates.size() == 0) {
-                        coordinates.extend(geometry.getCoordinates());
-                    } else {
-                        coordinates.extend(geometry.getCoordinates(), 1); // Avoid duplicate coords at stops
-                    }
-                }
-            }
-            // The CoordinateArrayListSequence is easy to append to, but is not serializable.
-            // It might be possible to just mark it serializable, but it is not particularly compact either.
-            // So we convert it to a packed coordinate sequence, since that is serializable and smaller.
-            // FIXME It seems like we could simply accumulate the coordinates into an array instead of using the CoordinateArrayListSequence.
-            PackedCoordinateSequence packedCoords = new PackedCoordinateSequence.Double(coordinates.toCoordinateArray(), 2);
-            this.geometry = GeometryUtils.getGeometryFactory().createLineString(packedCoords);
-        }
-    }
-
 
 	public Trip getExemplar() {
 		if(this.trips.isEmpty()){

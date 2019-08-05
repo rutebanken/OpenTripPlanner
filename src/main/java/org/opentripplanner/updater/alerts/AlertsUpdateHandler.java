@@ -450,13 +450,36 @@ public class AlertsUpdateHandler {
                                 effectiveEndDate = serviceDate.next().getAsDate();
                             }
                             for (AgencyAndId tripId : tripIds) {
+
+                                // Calculate validity based on actual, planned departure/arrival for trip
+                                int tripDepartureTime = siriFuzzyTripMatcher.getTripDepartureTime(tripId);
+                                int tripArrivalTime = siriFuzzyTripMatcher.getTripArrivalTime(tripId);
+                                effectiveStartDate = new Date(effectiveStartDate.getTime() + tripDepartureTime*1000);
+
+                                // Appending 6 hours to end-validity in case of delays.
+                                effectiveEndDate = new Date(effectiveStartDate.getTime() + (tripArrivalTime-tripDepartureTime + 6*3600)*1000);
+
+                                // Verify that calculated validity does not exceed explicitly set validity
+                                if (effectiveStartDate.before(alert.effectiveStartDate)) {
+                                    effectiveStartDate = alert.effectiveStartDate;
+                                }
+                                if (effectiveEndDate.after(alert.effectiveEndDate)) {
+                                    effectiveEndDate = alert.effectiveEndDate;
+                                }
+
+                                if (effectiveStartDate.after(effectiveEndDate) | effectiveStartDate.equals(effectiveEndDate)) {
+                                    //Ignore this as situation is no longer valid
+                                    continue;
+                                }
+
                                 if (! affectedStops.isEmpty()) {
                                     for (AffectedStopPointStructure affectedStop : affectedStops) {
                                         AgencyAndId stop = siriFuzzyTripMatcher.getStop(affectedStop.getStopPointRef().getValue());
                                         if (stop == null) {
                                             continue;
                                         }
-                                        String id = paddedSituationNumber + tripId.getId() + "-" + stop.getId();
+                                        // Creating unique, deterministic id for the alert
+                                        String id = paddedSituationNumber + tripId.getId() + "-" + new ServiceDate(effectiveStartDate).getAsString() + "-" + stop.getId();
                                         if (expireSituation) {
                                             idsToExpire.add(id);
                                         } else {

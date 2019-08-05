@@ -35,6 +35,7 @@ import org.opentripplanner.routing.car_park.CarParkService;
 import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.graph.GraphIndex;
@@ -95,10 +96,14 @@ public class TransmodelIndexGraphQLSchema {
 
     private static GraphQLEnumType severityEnum = GraphQLEnumType.newEnum()
             .name("Severity") //SIRI - SeverityEnumeration
+            .value("unknown", "unknown", "Situation has unknown impact on trips.")
             .value("noImpact", "noImpact", "Situation has no impact on trips.")
-            .value("slight", "slight", "Situation has a small impact on trips.")
+            .value("verySlight", "verySlight", "Situation has a very slight impact on trips.")
+            .value("slight", "slight", "Situation has a slight impact on trips.")
             .value("normal", "normal", "Situation has an impact on trips (default).")
             .value("severe", "severe", "Situation has a severe impact on trips.")
+            .value("verySevere", "verySevere", "Situation has a very severe impact on trips.")
+            .value("undefined", "undefined", "Severity is undefined.")
             .build();
 
     private static GraphQLEnumType stopConditionEnum = GraphQLEnumType.newEnum()
@@ -169,6 +174,21 @@ public class TransmodelIndexGraphQLSchema {
             .value("tram", TraverseMode.TRAM)
             .value("coach", TraverseMode.COACH)
             .value("unknown", "unknown")
+            .build();
+
+    private static GraphQLEnumType getFlexibleLineTypeEnum = GraphQLEnumType.newEnum()
+            .name("FlexibleLineType")
+            .value("fixed", Route.FlexibleRouteTypeEnum.fixed)
+            .value("corridorService", Route.FlexibleRouteTypeEnum.corridorService)
+            .value("fixedStopAreaWide", Route.FlexibleRouteTypeEnum.fixedStopAreaWide)
+            .value("flexibleAreasOnly", Route.FlexibleRouteTypeEnum.flexibleAreasOnly)
+            .value("freeAreaAreaWide", Route.FlexibleRouteTypeEnum.freeAreaAreaWide)
+            .value("hailAndRideSections", Route.FlexibleRouteTypeEnum.hailAndRideSections)
+            .value("mainRouteWithFlexibleEnds", Route.FlexibleRouteTypeEnum.mainRouteWithFlexibleEnds)
+            .value("mainRouteWithFlexibleEnds", Route.FlexibleRouteTypeEnum.mainRouteWithFlexibleEnds)
+            .value("mixedFlexible", Route.FlexibleRouteTypeEnum.mixedFlexible)
+            .value("mixedFlexibleAndFixed", Route.FlexibleRouteTypeEnum.mixedFlexibleAndFixed)
+            .value("other", Route.FlexibleRouteTypeEnum.other)
             .build();
 
     private static GraphQLEnumType relativeDirectionEnum = GraphQLEnumType.newEnum()
@@ -429,13 +449,13 @@ public class TransmodelIndexGraphQLSchema {
                 .name("Interchange")
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("staySeated")
-                        .description("Time that the trip departs.")
+                        .description("The Line/Route/ServiceJourney changes, but the passenger can stay seated.")
                         .type(Scalars.GraphQLBoolean)
                         .dataFetcher(environment -> ((Transfer) environment.getSource()).isStaySeated())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("guaranteed")
-                        .description("Time that the trip departs.")
+                        .description("The interchange is guaranteed by the operator(s). Usually up to a maximum wait time.")
                         .type(Scalars.GraphQLBoolean)
                         .dataFetcher(environment -> ((Transfer) environment.getSource()).isGuaranteed())
                         .build())
@@ -1477,6 +1497,11 @@ public class TransmodelIndexGraphQLSchema {
                                 .description("Parameters for indicating the only authorities and/or lines or quays to list estimatedCalls for")
                                 .type(whiteListedInputType)
                                 .build())
+                        .argument(GraphQLArgument.newArgument()
+                                .name("whiteListedModes")
+                                .description("Only show estimated calls for selected modes.")
+                                .type(GraphQLList.list(modeEnum))
+                                .build())
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
@@ -1505,6 +1530,14 @@ public class TransmodelIndexGraphQLSchema {
                                 }
                             }
 
+                            Set<TraverseMode> modes = new HashSet<>();
+                            List<TraverseMode> modesList = environment.getArgument("whiteListedModes");
+                            if (modesList != null) {
+                                modes.addAll(modesList);
+                            } else {
+                                modes.addAll(TraverseModeSet.allModes().getModes());
+                            }
+
                             Long startTimeMs = environment.getArgument("startTime") == null ? 0l : environment.getArgument("startTime");
                             Long startTimeSeconds = startTimeMs / 1000;
 
@@ -1520,7 +1553,8 @@ public class TransmodelIndexGraphQLSchema {
                                                     numberOfDepartures,
                                                     departuresPerLineAndDestinationDisplay,
                                                     authorityIds,
-                                                    lineIds
+                                                    lineIds,
+                                                    modes
                                             )
                                     )
                                     .sorted(TripTimeShort.compareByDeparture())
@@ -1637,6 +1671,11 @@ public class TransmodelIndexGraphQLSchema {
                                 .description("Parameters for indicating the only authorities and/or lines or quays to list estimatedCalls for")
                                 .type(whiteListedInputType)
                                 .build())
+                        .argument(GraphQLArgument.newArgument()
+                                .name("whiteListedModes")
+                                .description("Only show estimated calls for selected modes.")
+                                .type(GraphQLList.list(modeEnum))
+                                .build())
                         .dataFetcher(environment -> {
                             boolean omitNonBoarding = environment.getArgument("omitNonBoarding");
                             int numberOfDepartures = environment.getArgument("numberOfDepartures");
@@ -1660,6 +1699,14 @@ public class TransmodelIndexGraphQLSchema {
                                 }
                             }
 
+                            Set<TraverseMode> modes = new HashSet<>();
+                            List<TraverseMode> modesList = environment.getArgument("whiteListedModes");
+                            if (modesList != null) {
+                                modes.addAll(modesList);
+                            } else {
+                                modes.addAll(TraverseModeSet.allModes().getModes());
+                            }
+
                             Long startTimeMs = environment.getArgument("startTime") == null ? 0l : environment.getArgument("startTime");
                             Long startTimeSeconds = startTimeMs / 1000;
 
@@ -1671,7 +1718,8 @@ public class TransmodelIndexGraphQLSchema {
                                     numberOfDepartures,
                                     departuresPerLineAndDestinationDisplay,
                                     authorityIds,
-                                    lineIds
+                                    lineIds,
+                                    modes
                             )
                                 .sorted(TripTimeShort.compareByDeparture())
                                 .distinct()
@@ -2120,7 +2168,7 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> {
                                     LineString geometry = index.patternForTrip
                                             .get(environment.getSource())
-                                            .geometry;
+                                            .getGeometry();
                                     if (geometry == null) {
                                         return null;
                                     }
@@ -2186,7 +2234,7 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("destinationDisplay")
                         .type(destinationDisplayType)
-                        .deprecate("Get destinationDisplay from estimatedCall or timetabledPassingTime instead. DestinationDisplay from JourneyPattern is not correct according to model, will give misleading results in some cases and will be removed!")
+                        .deprecate("Get destinationDisplay from estimatedCall or timetabledPassingTime instead. DestinationDisplay from JourneyPattern is not correct according to model, will give misleading results in some cases and will be removed! (This is because a DestinationDisplay can change in the middle of a JourneyPattern.)")
                         .dataFetcher(environment -> ((TripPattern) environment.getSource()).getDirection())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -2222,7 +2270,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("pointsOnLink")
                         .type(linkGeometryType)
                         .dataFetcher(environment -> {
-                            LineString geometry = ((TripPattern) environment.getSource()).geometry;
+                            LineString geometry = ((TripPattern) environment.getSource()).getGeometry();
                             if (geometry == null) {
                                 return null;
                             } else {
@@ -3166,6 +3214,10 @@ public class TransmodelIndexGraphQLSchema {
                                 .description("Set of ids of authorities to fetch lines for.")
                                 .type(new GraphQLList(Scalars.GraphQLString))
                                 .build())
+                        .argument(GraphQLArgument.newArgument()
+                                .name("flexibleLineTypes")
+                                .type(new GraphQLList(flexibleLineTypeEnum))
+                                .build())
                         .dataFetcher(environment -> {
                             if ((environment.getArgument("ids") instanceof List)) {
                                 if (environment.getArguments().entrySet()
@@ -3214,6 +3266,14 @@ public class TransmodelIndexGraphQLSchema {
                                         .filter(route ->
                                                 route.getAgency() != null && authorityIds.contains(route.getAgency().getId()));
                             }
+                            if ((environment.getArgument("flexibleLineTypes") instanceof Collection)) {
+                                Set<Route.FlexibleRouteTypeEnum> flexibleLineTypes = new HashSet<> ((List<Route.FlexibleRouteTypeEnum>)
+                                        environment.getArgument("flexibleLineTypes"));
+                                stream = stream
+                                        .filter(route ->
+                                                flexibleLineTypes.contains(route.getFlexibleRouteType()));
+                            }
+
                             return stream.collect(Collectors.toList());
                         })
                         .build())
@@ -3267,13 +3327,13 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bikeRentalStations")
-                        .description("Get a single bike rental station based on its id")
+                        .description("Get all bike rental stations")
                         .type(new GraphQLNonNull(new GraphQLList(bikeRentalStationType)))
                         .dataFetcher(dataFetchingEnvironment -> new ArrayList<>(index.graph.getService(BikeRentalStationService.class).getBikeRentalStations()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bikeRentalStation")
-                        .description("Get all bike rental stations")
+                        .description("Get a single bike rental station based on its id")
                         .type(bikeRentalStationType)
                         .argument(GraphQLArgument.newArgument()
                                 .name("id")
@@ -3449,6 +3509,7 @@ public class TransmodelIndexGraphQLSchema {
         Stop stop = index.stopForId.get(stopId);
         AgencyAndId parentStopId = stop.getParentStationAgencyAndId();
 
+
         Collection<AlertPatch> allAlerts = new HashSet<>();
 
         // Quay
@@ -3459,6 +3520,15 @@ public class TransmodelIndexGraphQLSchema {
         allAlerts.addAll(index.getAlertsForStopId(parentStopId));
         allAlerts.addAll(index.getAlertsForStopAndTrip(parentStopId, tripId));
         allAlerts.addAll(index.getAlertsForStopAndRoute(parentStopId, routeId));
+
+        if (stop.getMultiModalStation() != null) {
+            // MultimodalStopPlace
+            AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(), stop.getMultiModalStation());
+            allAlerts.addAll(index.getAlertsForStopId(multimodalStopId));
+            allAlerts.addAll(index.getAlertsForStopAndTrip(multimodalStopId, tripId));
+            allAlerts.addAll(index.getAlertsForStopAndRoute(multimodalStopId, routeId));
+        }
+
         // Trip
         allAlerts.addAll(index.getAlertsForTripId(tripId));
         // Route
@@ -4438,7 +4508,8 @@ public class TransmodelIndexGraphQLSchema {
             int numberOfDepartures,
             Integer departuresPerLineAndDestinationDisplay,
             Set<String> authorityIdsWhiteListed,
-            Set<AgencyAndId> lineIdsWhiteListed
+            Set<AgencyAndId> lineIdsWhiteListed,
+            Set<TraverseMode> modesWhiteListed
     ) {
 
         boolean limitOnDestinationDisplay = departuresPerLineAndDestinationDisplay != null &&
@@ -4453,7 +4524,12 @@ public class TransmodelIndexGraphQLSchema {
 
         Stream<TripTimeShort> tripTimesStream = stopTimesInPatterns.stream().flatMap(p -> p.times.stream());
 
-        tripTimesStream = whiteListAuthoritiesAndOrLines(tripTimesStream,  authorityIdsWhiteListed, lineIdsWhiteListed);
+        tripTimesStream = whiteListAuthoritiesAndOrLines(
+                tripTimesStream,
+                authorityIdsWhiteListed,
+                lineIdsWhiteListed);
+
+        tripTimesStream = filterModes(tripTimesStream, modesWhiteListed);
 
         if(!limitOnDestinationDisplay) {
             return tripTimesStream;
@@ -4500,15 +4576,32 @@ public class TransmodelIndexGraphQLSchema {
     }
 
 
-    private Stream<TripTimeShort> whiteListAuthoritiesAndOrLines(Stream<TripTimeShort> stream, Set<String> authorityIds, Set<AgencyAndId> lineIds) {
+    private Stream<TripTimeShort> whiteListAuthoritiesAndOrLines(
+            Stream<TripTimeShort> stream,
+            Set<String> authorityIds,
+            Set<AgencyAndId> lineIds)
+    {
         if (CollectionUtils.isEmpty(authorityIds) && CollectionUtils.isEmpty(lineIds)) {
             return stream;
         }
         return stream.filter(it -> isTripTimeShortAcceptable(it, authorityIds, lineIds));
     }
 
+    private Stream<TripTimeShort> filterModes(Stream<TripTimeShort> stream, Set<TraverseMode> modes) {
+        return  stream.filter(t -> filterByMode(t, modes));
+    }
 
-    private boolean isTripTimeShortAcceptable(TripTimeShort tts, Set<String> authorityIds, Set<AgencyAndId> lineIds) {
+    private boolean filterByMode(TripTimeShort tt, Set<TraverseMode> modes) {
+        Trip trip = index.tripForId.get(tt.tripId);
+        TripPattern tripPattern = index.patternForTrip.get(trip);
+        return modes.contains(tripPattern.mode);
+    }
+
+    private boolean isTripTimeShortAcceptable(
+            TripTimeShort tts,
+            Set<String> authorityIds,
+            Set<AgencyAndId> lineIds
+    ) {
         Trip trip = index.tripForId.get(tts.tripId);
 
         if (trip == null || trip.getRoute() == null) {

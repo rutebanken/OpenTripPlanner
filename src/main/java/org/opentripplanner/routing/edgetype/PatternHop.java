@@ -17,6 +17,7 @@ import java.util.Locale;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
+import org.opentripplanner.common.geometry.CompactLineString;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -29,6 +30,7 @@ import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.PatternStopVertex;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
+import org.opentripplanner.routing.vertextype.TransitStop;
 
 /**
  * A transit vehicle's journey between departure at one stop and arrival at the next.
@@ -50,7 +52,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
 
     public int stopIndex;
 
-    private LineString geometry = null;
+    private int[] compactGeometry = null;
 
     private double distance;
 
@@ -170,18 +172,28 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
     }
 
     public void setGeometry(LineString geometry) {
-        this.geometry = geometry;
+        LineString lineString = GeometryUtils
+                .addStartEndCoordinatesToLineString(
+                        new Coordinate(begin.getLon(), begin.getLat()),
+                        geometry,
+                        new Coordinate(end.getLon(), end.getLat()));
+
+        this.compactGeometry = CompactLineString
+                .compactLineString(begin.getLon(), begin.getLat(), end.getLon(),
+                       end.getLat(), lineString, false);
+
     }
 
     public LineString getGeometry() {
-        if (geometry == null) {
+        Coordinate c1 = new Coordinate(begin.getLon(), begin.getLat());
+        Coordinate c2 = new Coordinate(end.getLon(), end.getLat());
 
-            Coordinate c1 = new Coordinate(begin.getLon(), begin.getLat());
-            Coordinate c2 = new Coordinate(end.getLon(), end.getLat());
-
-            geometry = GeometryUtils.getGeometryFactory().createLineString(new Coordinate[] { c1, c2 });
+        if (compactGeometry == null) {
+            return GeometryUtils.getGeometryFactory().createLineString(new Coordinate[] { c1, c2 });
+        } else {
+            return CompactLineString.uncompactLineString(c1.x, c1.y, c2.x, c2.y,
+                    this.compactGeometry, false);
         }
-        return geometry;
     }
 
     @Override

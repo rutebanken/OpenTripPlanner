@@ -69,19 +69,17 @@ public class TripTimeShortHelper {
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
 
         List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
-        long startTimeSeconds = (leg.startTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
+
+        TripTimeShort tripTimeShort = tripTimes.get(leg.from.stopSequence);
 
         if (leg.isFlexible()) {
-            TripTimeShort tripTimeShort = tripTimes.get(leg.from.stopSequence);
+            long startTimeSeconds = (leg.startTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
+
             tripTimeShort.scheduledDeparture = (int) startTimeSeconds;
             tripTimeShort.realtimeDeparture = (int) startTimeSeconds;
-            return tripTimeShort;
         }
 
-        if (leg.realTime) {
-            return tripTimes.stream().filter(tripTime -> tripTime.realtimeDeparture == startTimeSeconds && matchesQuayOrSiblingQuay(leg.from.stopId, tripTime.stopId)).findFirst().orElse(null);
-        }
-        return tripTimes.stream().filter(tripTime -> tripTime.scheduledDeparture == startTimeSeconds && matchesQuayOrSiblingQuay(leg.from.stopId, tripTime.stopId)).findFirst().orElse(null);
+        return tripTimeShort;
     }
 
     /**
@@ -95,19 +93,17 @@ public class TripTimeShortHelper {
         ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
 
         List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
-        long endTimeSeconds = (leg.endTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
+
+        TripTimeShort tripTimeShort = tripTimes.get(leg.to.stopSequence);
 
         if (leg.isFlexible()) {
-            TripTimeShort tripTimeShort = tripTimes.get(leg.to.stopSequence);
+            long endTimeSeconds = (leg.endTime.toInstant().toEpochMilli() - serviceDate.getAsDate().getTime()) / 1000;
+
             tripTimeShort.scheduledArrival = (int) endTimeSeconds;
             tripTimeShort.realtimeArrival = (int) endTimeSeconds;
-            return tripTimeShort;
         }
 
-        if (leg.realTime) {
-            return tripTimes.stream().filter(tripTime -> tripTime.realtimeArrival == endTimeSeconds && matchesQuayOrSiblingQuay(leg.to.stopId, tripTime.stopId)).findFirst().orElse(null);
-        }
-        return tripTimes.stream().filter(tripTime -> tripTime.scheduledArrival == endTimeSeconds && matchesQuayOrSiblingQuay(leg.to.stopId, tripTime.stopId)).findFirst().orElse(null);
+        return tripTimeShort;
     }
 
 

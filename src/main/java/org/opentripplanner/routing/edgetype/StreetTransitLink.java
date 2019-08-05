@@ -87,6 +87,10 @@ public class StreetTransitLink extends Edge {
             return null;
         }
 
+        if (s0.backEdge instanceof StreetTransitLink) {
+            return null;
+        }
+
         // Do not get off at a real stop when on call-n-ride (force a transfer instead).
         if (s0.isLastBoardAlightDeviated() && !(transitStop.checkCallAndRideStreetLinkOk(s0))) {
             return null;

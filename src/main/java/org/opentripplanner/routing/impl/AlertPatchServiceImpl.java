@@ -55,16 +55,21 @@ public class AlertPatchServiceImpl implements AlertPatchService {
     public Collection<AlertPatch> getStopPatches(AgencyAndId stop) {
         Set<AlertPatch> result = patchesByStop.get(stop);
         if (result == null || result.isEmpty()) {
+            result = new HashSet<>();
             // Search for alerts on parent-stop
             if (graph != null && graph.index != null) {
                 Stop quay = graph.index.stopForId.get(stop);
-                if (quay != null && quay.getParentStation() != null) {
-                    result = patchesByStop.get(quay.getParentStationAgencyAndId());
+                if (quay != null) {
+                    if ( quay.getParentStation() != null) {
+                        // Add alerts for parent-station
+                        result.addAll(patchesByStop.getOrDefault(quay.getParentStationAgencyAndId(), Collections.emptySet()));
+                    }
+                    if (quay.getMultiModalStation() != null) {
+                        // Add alerts for multimodal-station
+                        result.addAll(patchesByStop.getOrDefault(new AgencyAndId(stop.getAgencyId(), quay.getMultiModalStation()), Collections.emptySet()));
+                    }
                 }
             }
-        }
-        if (result == null) {
-            result = Collections.emptySet();
         }
         return result;
     }

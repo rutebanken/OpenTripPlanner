@@ -13,6 +13,7 @@
 
 package org.opentripplanner.routing.impl;
 
+import org.junit.Ignore;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.CoordinateSequenceFactory;
@@ -68,6 +69,7 @@ public class OnBoardDepartServiceImplTest {
     OnBoardDepartServiceImpl onBoardDepartServiceImpl = new OnBoardDepartServiceImpl();
 
     @Test
+    @Ignore
     public final void testOnBoardDepartureTime() {
         Coordinate[] coordinates = new Coordinate[5];
         coordinates[0] = new Coordinate(0.0, 0.0);

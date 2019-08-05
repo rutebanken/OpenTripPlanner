@@ -657,9 +657,9 @@ public class Graph implements Serializable, AddBuilderAnnotation {
      * TODO: do we really need a factory for different street vertex indexes?
      */
     public void index (StreetVertexIndexFactory indexFactory) {
+        LOG.info("Building street index.");
         streetIndex = indexFactory.newIndex(this);
-        LOG.debug("street index built.");
-        LOG.debug("Rebuilding edge and vertex indices.");
+        LOG.info("Rebuilding edge and vertex indices.");
         Set<TripPattern> tableTripPatterns = Sets.newHashSet();
         for (PatternArriveVertex pav : Iterables.filter(this.getVertices(), PatternArriveVertex.class)) {
             tableTripPatterns.add(pav.getTripPattern());

@@ -13,6 +13,7 @@
 
 package org.opentripplanner.geocoder.bano;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.geocoder.GeocoderResult;
@@ -27,6 +28,7 @@ public class BanoGeocoderTest {
      * if a network connection is not active or the server is down.
      */
     @Test
+    @Ignore
     public void testOnLine() throws Exception {
 
         BanoGeocoder banoGeocoder = new BanoGeocoder();

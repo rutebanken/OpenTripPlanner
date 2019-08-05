@@ -335,4 +335,34 @@ public class SiriFuzzyTripMatcher {
 
         return matches;
     }
+
+    public int getTripDepartureTime(AgencyAndId tripId) {
+        Trip trip = index.tripForId.get(tripId);
+        {
+            TripPattern tripPattern = index.patternForTrip.get(trip);
+
+            if (tripPattern != null) {
+                TripTimes tripTimes = tripPattern.scheduledTimetable.getTripTimes(trip);
+                if (tripTimes != null) {
+                    return tripTimes.getArrivalTime(0);
+
+                }
+            }
+        }
+        return -1;
+    }
+    public int getTripArrivalTime(AgencyAndId tripId) {
+        Trip trip = index.tripForId.get(tripId);
+        {
+            TripPattern tripPattern = index.patternForTrip.get(trip);
+
+            if (tripPattern != null) {
+                TripTimes tripTimes = tripPattern.scheduledTimetable.getTripTimes(trip);
+                if (tripTimes != null) {
+                    return tripTimes.getArrivalTime(tripTimes.getNumStops()-1);
+                }
+            }
+        }
+        return -1;
+    }
 }

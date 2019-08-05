@@ -787,18 +787,26 @@ public abstract class GraphPathToTripPlanConverter {
             return new ArrayList<>();
         }
         Collection<AlertPatch> alertsForStopAndRoute = graph.index.getAlertsForStopAndRoute(stopId,routeId);
-        if (stop != null && checkParentStop && stop.getParentStation() != null) {
-            alertsForStopAndRoute = graph.index.getAlertsForStopAndRoute(stopId,routeId);
-            //No alerts found for quay - check parent
-            Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopAndRoute(stop.getParentStationAgencyAndId(), routeId);
-            if (parentStopAlerts != null) {
-                for (AlertPatch parentStopAlert : parentStopAlerts) {
-                    if (parentStopAlert != null) {
-                        alertsForStopAndRoute.add(parentStopAlert);
-                    }
+        if (checkParentStop) {
+            if (alertsForStopAndRoute == null) {
+                alertsForStopAndRoute = new HashSet<>();
+            }
+            if (stop.getParentStation() != null) {
+                //Also check parent
+                Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopAndRoute(stop.getParentStationAgencyAndId(), routeId);
+                if (parentStopAlerts != null) {
+                    alertsForStopAndRoute.addAll(parentStopAlerts);
                 }
             }
+            if (stop.getMultiModalStation() != null) {
+                //Also check multimodal parent
 
+                AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(), stop.getMultiModalStation());
+                Collection<AlertPatch> multimodalStopAlerts = graph.index.getAlertsForStopAndRoute(multimodalStopId, routeId);
+                if (multimodalStopAlerts != null) {
+                    alertsForStopAndRoute.addAll(multimodalStopAlerts);
+                }
+            }
         }
         return alertsForStopAndRoute;
     }
@@ -808,17 +816,30 @@ public abstract class GraphPathToTripPlanConverter {
     }
 
     private static Collection<AlertPatch> getAlertsForStopAndTrip(Graph graph, AgencyAndId stopId, AgencyAndId tripId, boolean checkParentStop) {
-        Collection<AlertPatch> alertsForStopAndTrip = new ArrayList<>();
+
         Stop stop = graph.index.stopForId.get(stopId);
-        if (stop != null && checkParentStop && stop.getParentStation() != null) {
-            alertsForStopAndTrip = graph.index.getAlertsForStopAndTrip(stopId, tripId);
-            //No alerts found for quay - check parent
-            Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopAndTrip(stop.getParentStationAgencyAndId(), tripId);
-            if (parentStopAlerts != null) {
-                for (AlertPatch parentStopAlert : parentStopAlerts) {
-                    if (parentStopAlert != null) {
-                        alertsForStopAndTrip.add(parentStopAlert);
-                    }
+        if (stop == null) {
+            return new ArrayList<>();
+        }
+
+        Collection<AlertPatch> alertsForStopAndTrip = graph.index.getAlertsForStopAndTrip(stopId, tripId);
+        if (checkParentStop) {
+            if (alertsForStopAndTrip == null) {
+                alertsForStopAndTrip = new HashSet<>();
+            }
+            if  (stop.getParentStation() != null) {
+                // Also check parent
+                Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopAndTrip(stop.getParentStationAgencyAndId(), tripId);
+                if (parentStopAlerts != null) {
+                    alertsForStopAndTrip.addAll(parentStopAlerts);
+                }
+            }
+            if (stop.getMultiModalStation() != null) {
+                //Also check multimodal parent
+                AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(), stop.getMultiModalStation());
+                Collection<AlertPatch> multimodalStopAlerts = graph.index.getAlertsForStopAndTrip(multimodalStopId, tripId);
+                if (multimodalStopAlerts != null) {
+                    alertsForStopAndTrip.addAll(multimodalStopAlerts);
                 }
             }
         }
@@ -830,17 +851,29 @@ public abstract class GraphPathToTripPlanConverter {
     }
 
     private static Collection<AlertPatch> getAlertsForStop(Graph graph, AgencyAndId stopId, boolean checkParentStop) {
-        Collection<AlertPatch> alertsForStop = new ArrayList<>();
         Stop stop = graph.index.stopForId.get(stopId);
-        if (stop != null && checkParentStop && stop.getParentStation() != null) {
-            alertsForStop = graph.index.getAlertsForStopId(stopId);
-            //No alerts found for quay - check parent
-            Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopId(stop.getParentStationAgencyAndId());
-            if (parentStopAlerts != null) {
-                for (AlertPatch parentStopAlert : parentStopAlerts) {
-                    if (parentStopAlert != null) {
-                        alertsForStop.add(parentStopAlert);
-                    }
+        if (stop == null) {
+            return new ArrayList<>();
+        }
+
+        Collection<AlertPatch> alertsForStop  = graph.index.getAlertsForStopId(stopId);
+        if (checkParentStop) {
+            if (alertsForStop == null) {
+                alertsForStop = new HashSet<>();
+            }
+            if  (stop.getParentStation() != null) {
+                // Also check parent
+                Collection<AlertPatch> parentStopAlerts = graph.index.getAlertsForStopId(stop.getParentStationAgencyAndId());
+                if (parentStopAlerts != null) {
+                    alertsForStop.addAll(parentStopAlerts);
+                }
+            }
+            if (stop.getMultiModalStation() != null) {
+                //Also check multimodal parent
+                AgencyAndId multimodalStopId = new AgencyAndId(stopId.getAgencyId(), stop.getMultiModalStation());
+                Collection<AlertPatch> multimodalStopAlerts = graph.index.getAlertsForStopId(multimodalStopId);
+                if (multimodalStopAlerts != null) {
+                    alertsForStop.addAll(multimodalStopAlerts);
                 }
             }
 

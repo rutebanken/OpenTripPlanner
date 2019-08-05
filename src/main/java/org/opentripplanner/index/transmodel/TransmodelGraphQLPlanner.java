@@ -29,6 +29,7 @@ import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.vertextype.TransitStation;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.standalone.Router;
+import org.opentripplanner.updater.bike_rental.GenericJsonBikeRentalDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -292,17 +293,17 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("ignoreInterchanges", (Boolean v) -> request.ignoreInterchanges = v);
 
         if (!request.modes.isTransit() && request.modes.getCar()) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.to, ((Router)environment.getContext()).graph.index);
         } else if (request.kissAndRide) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
         } else if (request.rideAndKiss) {
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.to, ((Router)environment.getContext()).graph.index);
         } else if (request.parkAndRide) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
         } else if (request.useFlexService) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
+            getLocationOfFirstQuay(request.to, ((Router)environment.getContext()).graph.index);
         }
 
         return request;
@@ -313,14 +314,14 @@ public class TransmodelGraphQLPlanner {
         return new HashMap<>(bannedTrips);
     }
 
-    private String getLocationOfFirstQuay(String vertexId, GraphIndex graphIndex) {
-        Vertex vertex = graphIndex.vertexForId.get(vertexId);
+    private void getLocationOfFirstQuay(GenericLocation location, GraphIndex graphIndex) {
+        Vertex vertex = graphIndex.vertexForId.get(location.vertexId);
         if (vertex instanceof TransitStation) {
-            AgencyAndId stopId = ((TransitStop)vertex.getOutgoing().stream()
-                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex()).getStopId();
-            return stopId.getAgencyId().concat(":").concat(stopId.getId());
-        } else {
-            return vertexId;
+            TransitStop stopVertex = ((TransitStop)vertex.getOutgoing().stream()
+                    .filter(t -> t instanceof StationStopEdge).findFirst().get().getToVertex());
+            location.vertexId = "";
+            location.lat = stopVertex.getLat();
+            location.lng = stopVertex.getLon();
         }
     }
 

@@ -127,20 +127,32 @@ public class AlertPatch implements Serializable {
             agency = this.agency != null ? agencies.get(this.agency) : null;
         }
         Route route = this.route != null ? graph.index.routeForId.get(this.route) : null;
-        Stop stop = this.stop != null ? graph.index.stopForId.get(this.stop) : null;
         Trip trip = this.trip != null ? graph.index.tripForId.get(this.trip) : null;
+
+        Stop stop;
+        if (this.stop != null) {
+            if (graph.index.stopForId.get(this.stop) != null) {
+                stop = graph.index.stopForId.get(this.stop);
+            } else {
+                stop = graph.index.stationForId.get(this.stop);
+            }
+        } else {
+            stop = null;
+        }
 
         if (route != null || trip != null || agency != null) {
             Collection<TripPattern> tripPatterns = null;
 
-            if (trip != null) {
+            if (trip != null && stop == null) {
+                // Add alert to entire trip
                 tripPatterns = new LinkedList<>();
                 TripPattern tripPattern = graph.index.patternForTrip.get(trip);
                 if (tripPattern != null) {
                     tripPatterns.add(tripPattern);
                 }
-            } else if (route != null) {
-		tripPatterns = graph.index.patternsForRoute.get(route).stream()
+            } else if (route != null && stop == null) {
+                // Add alert to entire route
+		        tripPatterns = graph.index.patternsForRoute.get(route).stream()
                   .filter(tripPattern -> {
                    if (direction != null && !direction.equals(tripPattern.getDirection())) {
                        return false;
@@ -175,18 +187,19 @@ public class AlertPatch implements Serializable {
             }
         } else if (stop != null) {
             TransitStop transitStop = graph.index.stopVertexForStop.get(stop);
-
-            for (Edge edge : transitStop.getOutgoing()) {
-                if (edge instanceof PreBoardEdge) {
-                    graph.addAlertPatch(edge, this);
-                    break;
+            if (transitStop != null) {
+                for (Edge edge : transitStop.getOutgoing()) {
+                    if (edge instanceof PreBoardEdge) {
+                        graph.addAlertPatch(edge, this);
+                        break;
+                    }
                 }
-            }
 
-            for (Edge edge : transitStop.getIncoming()) {
-                if (edge instanceof PreAlightEdge) {
-                    graph.addAlertPatch(edge, this);
-                    break;
+                for (Edge edge : transitStop.getIncoming()) {
+                    if (edge instanceof PreAlightEdge) {
+                        graph.addAlertPatch(edge, this);
+                        break;
+                    }
                 }
             }
             tripPatterns = emptyList();

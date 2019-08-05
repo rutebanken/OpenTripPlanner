@@ -13,7 +13,6 @@
 
 package org.opentripplanner.common.geometry;
 
-import org.locationtech.jts.algorithm.Centroid;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -27,6 +26,7 @@ import org.opentripplanner.common.model.P2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class GeometryUtils {
@@ -45,6 +45,31 @@ public class GeometryUtils {
             throw new RuntimeException("Could not create longitude-first WGS84 coordinate reference system.");
         }
     }
+
+    public static LineString makeLineString(Coordinate[] coordinates) {
+        GeometryFactory factory = getGeometryFactory();
+        return factory.createLineString(coordinates);
+    }
+
+    public static LineString concatenateLineStrings(List<LineString> lineStrings) {
+        GeometryFactory factory = getGeometryFactory();
+        return factory.createLineString(
+                lineStrings.stream()
+                        .flatMap(t -> Arrays.stream(t.getCoordinates()))
+                        .toArray(Coordinate[]::new));
+    }
+
+    public static LineString addStartEndCoordinatesToLineString(Coordinate startCoord, LineString lineString, Coordinate endCoord) {
+        Coordinate[] coordinates = new Coordinate[lineString.getCoordinates().length + 2];
+        coordinates[0] = startCoord;
+        for (int j = 0; j < lineString.getCoordinates().length; j++) {
+            coordinates[j + 1] = lineString.getCoordinates()[j];
+        }
+        coordinates[lineString.getCoordinates().length + 1] = endCoord;
+        return makeLineString(coordinates);
+    }
+
+
 
     public static LineString makeLineString(double... coords) {
         GeometryFactory factory = getGeometryFactory();

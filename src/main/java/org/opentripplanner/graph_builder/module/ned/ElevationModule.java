@@ -73,8 +73,9 @@ public class ElevationModule implements GraphBuilderModule {
 
     public ElevationModule() { /* This makes me a "bean" */ };
     
-    public ElevationModule(ElevationGridCoverageFactory factory) {
+    public ElevationModule(ElevationGridCoverageFactory factory, double distanceBetweenSamples) {
         this.setGridCoverageFactory(factory);
+        this.setDistanceBetweenSamplesM(distanceBetweenSamples);
     }
 
     public List<String> provides() {
