@@ -63,12 +63,13 @@ public class TransmodelIndexAPI {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getGraphQL(HashMap<String, Object> queryParameters, @HeaderParam("OTPTimeout") @DefaultValue("10000") int timeout, @HeaderParam("OTPMaxResolves") @DefaultValue("1000000") int maxResolves) {
         int finalTimeout = checkTimeout(timeout);
-        if (queryParameters==null || !queryParameters.containsKey("query")) {
+        Object queryParam = queryParameters.get("query");
+        if (queryParameters==null || !(queryParam instanceof String)) {
             LOG.debug("No query found in body");
             return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN_TYPE).entity("No query found in body").build();
         }
 
-        String query = (String) queryParameters.get("query");
+        String query = (String) queryParam;
         Object queryVariables = queryParameters.getOrDefault("variables", null);
         String operationName = (String) queryParameters.getOrDefault("operationName", null);
         Map<String, Object> variables;

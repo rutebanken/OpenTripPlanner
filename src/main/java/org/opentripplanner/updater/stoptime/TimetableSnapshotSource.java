@@ -1362,7 +1362,7 @@ public class TimetableSnapshotSource {
         final StopPattern stopPattern = new StopPattern(stopTimes);
 
         // Get cached trip pattern or create one if it doesn't exist yet
-        final TripPattern pattern = tripPatternCache.getOrCreateTripPattern(stopPattern, trip.getRoute(), graph, serviceDate);
+        final TripPattern pattern = tripPatternCache.getOrCreateTripPattern(stopPattern, trip, graph, serviceDate);
 
         // Add service code to bitset of pattern if needed (using copy on write)
         final int serviceCode = graph.serviceCodes.get(trip.getServiceId());
@@ -1412,7 +1412,7 @@ public class TimetableSnapshotSource {
         final StopPattern stopPattern = new StopPattern(stopTimes);
 
         // Get cached trip pattern or create one if it doesn't exist yet
-        final TripPattern pattern = tripPatternCache.getOrCreateTripPattern(stopPattern, trip.getRoute(), graph, serviceDate);
+        final TripPattern pattern = tripPatternCache.getOrCreateTripPattern(stopPattern, trip, graph, serviceDate);
 
         // Add service code to bitset of pattern if needed (using copy on write)
         final int serviceCode = graph.serviceCodes.get(trip.getServiceId());

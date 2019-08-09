@@ -901,11 +901,7 @@ public class Timetable implements Serializable {
         }
 
         if (!newTimes.timesIncreasing()) {
-            String vehicleRef = null;
-            if (journey.getVehicleRef() != null) {
-                vehicleRef = journey.getVehicleRef().getValue();
-            }
-            LOG.info("TripTimes are non-increasing after applying SIRI delay propagation - LineRef {}, VehicleRef {}.", journey.getLineRef().getValue(), vehicleRef);
+            LOG.info("TripTimes are non-increasing after applying SIRI delay propagation - LineRef {}, TripId {}.", journey.getLineRef().getValue(), tripId);
             return null;
         }
 

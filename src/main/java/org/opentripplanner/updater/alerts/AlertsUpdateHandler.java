@@ -430,6 +430,10 @@ public class AlertsUpdateHandler {
                             AgencyAndId tripIdFromVehicleJourney = siriFuzzyTripMatcher.getTripId(vehicleJourneyRef.getValue());
                             Date effectiveStartDate;
                             Date effectiveEndDate;
+
+                            // Need to know if validity is set explicitly or calculated based on ServiceDate
+                            boolean effectiveValiditySetExplicitly = false;
+
                             if (tripIdFromVehicleJourney != null) {
 
                                 tripIds.add(tripIdFromVehicleJourney);
@@ -437,6 +441,8 @@ public class AlertsUpdateHandler {
                                 // ServiceJourneyId matches - use provided validity
                                 effectiveStartDate = alert.effectiveStartDate;
                                 effectiveEndDate = alert.effectiveEndDate;
+
+                                effectiveValiditySetExplicitly = true;
 
                             } else {
                                 ZonedDateTime originAimedDepartureTime = (affectedVehicleJourney.getOriginAimedDepartureTime() != null ? affectedVehicleJourney.getOriginAimedDepartureTime():ZonedDateTime.now());
@@ -448,30 +454,35 @@ public class AlertsUpdateHandler {
                                 // ServiceJourneyId does NOT match - calculate validity based on originAimedDepartureTime
                                 effectiveStartDate = serviceDate.getAsDate();
                                 effectiveEndDate = serviceDate.next().getAsDate();
+
                             }
                             for (AgencyAndId tripId : tripIds) {
 
-                                // Calculate validity based on actual, planned departure/arrival for trip
-                                int tripDepartureTime = siriFuzzyTripMatcher.getTripDepartureTime(tripId);
-                                int tripArrivalTime = siriFuzzyTripMatcher.getTripArrivalTime(tripId);
-                                effectiveStartDate = new Date(effectiveStartDate.getTime() + tripDepartureTime*1000);
+                                if (!effectiveValiditySetExplicitly) {
+                                    // Effective validity is set based on ServiceDate - need to calculate correct validity based on departuretimes
 
-                                // Appending 6 hours to end-validity in case of delays.
-                                effectiveEndDate = new Date(effectiveStartDate.getTime() + (tripArrivalTime-tripDepartureTime + 6*3600)*1000);
+                                    // Calculate validity based on actual, planned departure/arrival for trip
+                                    int tripDepartureTime = siriFuzzyTripMatcher.getTripDepartureTime(tripId);
+                                    int tripArrivalTime = siriFuzzyTripMatcher.getTripArrivalTime(tripId);
 
-                                // Verify that calculated validity does not exceed explicitly set validity
-                                if (effectiveStartDate.before(alert.effectiveStartDate)) {
-                                    effectiveStartDate = alert.effectiveStartDate;
+                                    effectiveStartDate = new Date(effectiveStartDate.getTime() + tripDepartureTime * 1000);
+
+                                    // Appending 6 hours to end-validity in case of delays.
+                                    effectiveEndDate = new Date(effectiveStartDate.getTime() + (tripArrivalTime - tripDepartureTime + 6 * 3600) * 1000);
+
+                                    // Verify that calculated validity does not exceed explicitly set validity
+                                    if (effectiveStartDate.before(alert.effectiveStartDate)) {
+                                        effectiveStartDate = alert.effectiveStartDate;
+                                    }
+                                    if (effectiveEndDate.after(alert.effectiveEndDate)) {
+                                        effectiveEndDate = alert.effectiveEndDate;
+                                    }
+
+                                    if (effectiveStartDate.after(effectiveEndDate) | effectiveStartDate.equals(effectiveEndDate)) {
+                                        //Ignore this as situation is no longer valid
+                                        continue;
+                                    }
                                 }
-                                if (effectiveEndDate.after(alert.effectiveEndDate)) {
-                                    effectiveEndDate = alert.effectiveEndDate;
-                                }
-
-                                if (effectiveStartDate.after(effectiveEndDate) | effectiveStartDate.equals(effectiveEndDate)) {
-                                    //Ignore this as situation is no longer valid
-                                    continue;
-                                }
-
                                 if (! affectedStops.isEmpty()) {
                                     for (AffectedStopPointStructure affectedStop : affectedStops) {
                                         AgencyAndId stop = siriFuzzyTripMatcher.getStop(affectedStop.getStopPointRef().getValue());

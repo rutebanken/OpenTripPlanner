@@ -16,48 +16,49 @@ package org.opentripplanner.updater.stoptime;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.Route;
-import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.StopPattern;
+import org.opentripplanner.model.*;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.edgetype.TripPattern;
 import org.opentripplanner.routing.graph.Graph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A synchronized cache of trip patterns that are added to the graph due to GTFS-realtime messages.
  */
 public class TripPatternCache {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(TripPatternCache.class);
+
     private int counter = 0;
 
     private final Map<StopPatternServiceDateKey, TripPattern> cache = new HashMap<>();
 
     private final ListMultimap<Stop, TripPattern> patternsForStop = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
-    
+
+    private final Map<TripServiceDateKey, TripPattern> updatedTripPatternsForTripCache = new HashMap<>();
+
     /**
      * Get cached trip pattern or create one if it doesn't exist yet. If a trip pattern is created, vertices
      * and edges for this trip pattern are also created in the graph.
      * 
      * @param stopPattern stop pattern to retrieve/create trip pattern
-     * @param route route of new trip pattern in case a new trip pattern will be created
+     * @param trip Trip containing route of new trip pattern in case a new trip pattern will be created
      * @param graph graph to add vertices and edges in case a new trip pattern will be created
      * @param serviceDate
      * @return cached or newly created trip pattern
      */
     public synchronized TripPattern getOrCreateTripPattern(final StopPattern stopPattern,
-                                                           final Route route, final Graph graph, ServiceDate serviceDate) {
+                                                           final Trip trip, final Graph graph, ServiceDate serviceDate) {
         // Check cache for trip pattern
         StopPatternServiceDateKey key = new StopPatternServiceDateKey(stopPattern, serviceDate);
         TripPattern tripPattern = cache.get(key);
         
         // Create TripPattern if it doesn't exist yet
         if (tripPattern == null) {
-            tripPattern = new TripPattern(route, stopPattern, serviceDate);
+            tripPattern = new TripPattern(trip.getRoute(), stopPattern, serviceDate);
 
             // Generate unique code for trip pattern
             tripPattern.code = generateUniqueTripPatternCode(tripPattern);
@@ -77,14 +78,72 @@ public class TripPatternCache {
             // Add pattern to cache
             cache.put(key, tripPattern);
 
-            // To make these trip patterns visible for departureRow searches.
-            for (Stop stop: tripPattern.getStops()) {
-                if (!patternsForStop.containsEntry(stop, tripPattern)) {
-                    patternsForStop.put(stop, tripPattern);
-                }
+        }
+
+        /**
+         *
+         * When the StopPattern is first modified (e.g. change of platform), then updated (or vice versa), the stopPattern is altered, and
+         * the StopPattern-object for the different states will not be equal.
+         *
+         * This causes both tripPatterns to be added to all unchanged stops along the route, which again causes duplicate results
+         * in departureRow-searches (one departure for "updated", one for "modified").
+         *
+         * Full example:
+         *      Planned stops: Stop 1 - Platform 1, Stop 2 - Platform 1
+         *
+         *      StopPattern #rt1: "updated" stopPattern cached in 'patternsForStop':
+         *          - Stop 1, Platform 1
+         *          	- StopPattern #rt1
+         *          - Stop 2, Platform 1
+         *          	- StopPattern #rt1
+         *
+         *      "modified" stopPattern: Stop 1 - Platform 1, Stop 2 - Platform 2
+         *
+         *      StopPattern #rt2: "modified" stopPattern cached in 'patternsForStop' will then be:
+         *          - Stop 1, Platform 1
+         *          	- StopPattern #rt1, StopPattern #rt2
+         *          - Stop 2, Platform 1
+         *          	- StopPattern #rt1
+         *          - Stop 2, Platform 2
+         *          	- StopPattern #rt2
+         *
+         *
+         * Therefore, we must cleanup the duplicates by deleting the previously added (and thus outdated)
+         * tripPattern for all affected stops. In example above, "StopPattern #rt1" should be removed from all stops
+         *
+         */
+        TripServiceDateKey tripServiceDateKey = new TripServiceDateKey(trip, serviceDate);
+        if (updatedTripPatternsForTripCache.containsKey(tripServiceDateKey)) {
+            /**
+             * Remove previously added TripPatterns for the trip currently being updated - if the stopPattern does not match
+             */
+            TripPattern cachedTripPattern = updatedTripPatternsForTripCache.get(tripServiceDateKey);
+            if (cachedTripPattern != null && !tripPattern.stopPattern.equals(cachedTripPattern.stopPattern)) {
+                int sizeBefore = patternsForStop.values().size();
+                long t1 = System.currentTimeMillis();
+                patternsForStop.values().removeAll(Arrays.asList(cachedTripPattern));
+                int sizeAfter = patternsForStop.values().size();
+
+                log.info("Removed outdated TripPattern for {} stops in {} ms - tripId: {}", (sizeBefore-sizeAfter),  (System.currentTimeMillis()-t1), trip.getId());
+                /*
+                  TODO: Also remove previously updated - now outdated - TripPattern from cache ?
+                  cache.remove(new StopPatternServiceDateKey(cachedTripPattern.stopPattern, serviceDate));
+                */
             }
         }
-        
+
+        // To make these trip patterns visible for departureRow searches.
+        for (Stop stop: tripPattern.getStops()) {
+            if (!patternsForStop.containsEntry(stop, tripPattern)) {
+                patternsForStop.put(stop, tripPattern);
+            }
+        }
+
+        /**
+         * Cache the last added tripPattern that has been used to update a specific trip
+         */
+        updatedTripPatternsForTripCache.put(tripServiceDateKey, tripPattern);
+
         return tripPattern;
     }
 
@@ -139,5 +198,26 @@ class StopPatternServiceDateKey {
     @Override
     public int hashCode() {
         return stopPattern.hashCode()+serviceDate.hashCode();
+    }
+}
+class TripServiceDateKey {
+    Trip trip;
+    ServiceDate serviceDate;
+
+    public TripServiceDateKey(Trip trip, ServiceDate serviceDate) {
+        this.trip = trip;
+        this.serviceDate = serviceDate;
+    }
+
+    @Override
+    public boolean equals(Object thatObject) {
+        if (!(thatObject instanceof TripServiceDateKey)) return false;
+        TripServiceDateKey that = (TripServiceDateKey) thatObject;
+        return (this.trip.equals(that.trip) & this.serviceDate.equals(that.serviceDate));
+    }
+
+    @Override
+    public int hashCode() {
+        return trip.hashCode()+serviceDate.hashCode();
     }
 }
