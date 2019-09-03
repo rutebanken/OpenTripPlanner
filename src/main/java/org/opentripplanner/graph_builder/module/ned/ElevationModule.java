@@ -19,6 +19,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.Interpolator2D;
 import org.geotools.geometry.DirectPosition2D;
 import org.opengis.coverage.Coverage;
+import org.opentripplanner.common.geometry.CompactElevationProfile;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -65,12 +66,6 @@ public class ElevationModule implements GraphBuilderModule {
     private int nPointsEvaluated = 0;
     private int nPointsOutsideDEM = 0;
 
-    /**
-     * The distance between samples in meters. Defaults to 10m, the approximate resolution of 1/3
-     * arc-second NED data.
-     */
-    private double distanceBetweenSamplesM = 10;
-
     public ElevationModule() { /* This makes me a "bean" */ };
     
     public ElevationModule(ElevationGridCoverageFactory factory, double distanceBetweenSamples) {
@@ -91,7 +86,7 @@ public class ElevationModule implements GraphBuilderModule {
     }
 
     public void setDistanceBetweenSamplesM(double distance) {
-        distanceBetweenSamplesM = distance;
+        CompactElevationProfile.setDistanceBetweenSamplesM(distance);
     }
 
     @Override
@@ -355,6 +350,8 @@ public class ElevationModule implements GraphBuilderModule {
 
         // initial sample (x = 0)
         coordList.add(new Coordinate(0, getElevation(coords[0])));
+
+        double distanceBetweenSamplesM = CompactElevationProfile.getDistanceBetweenSamplesM();
 
         // loop for edge-internal samples
         for (double x = distanceBetweenSamplesM; x < edgeLenM; x += distanceBetweenSamplesM) {

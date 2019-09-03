@@ -69,7 +69,7 @@ public class StreetWithElevationEdge extends StreetEdge {
         boolean slopeLimit = getPermission().allows(StreetTraversalPermission.CAR);
         SlopeCosts costs = ElevationUtils.getSlopeCosts(elev, slopeLimit);
 
-        packedElevationProfile = CompactElevationProfile.compactElevationProfile(elev);
+        packedElevationProfile = CompactElevationProfile.compactElevationProfileWithRegularSamples(elev);
         slopeSpeedFactor = (float)costs.slopeSpeedFactor;
         slopeWorkFactor = (float)costs.slopeWorkFactor;
         maxSlope = (float)costs.maxSlope;
@@ -83,7 +83,9 @@ public class StreetWithElevationEdge extends StreetEdge {
 
     @Override
     public PackedCoordinateSequence getElevationProfile() {
-        return CompactElevationProfile.uncompactElevationProfile(packedElevationProfile);
+        return CompactElevationProfile.uncompactElevationProfileWithRegularSamples(
+                packedElevationProfile,
+                getDistance());
     }
 
     @Override

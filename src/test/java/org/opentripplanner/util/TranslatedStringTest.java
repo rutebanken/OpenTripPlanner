@@ -20,7 +20,7 @@ public class TranslatedStringTest extends TestCase {
         I18NString string2 = TranslatedString.getI18NString(translations);
         assertEquals("Test", string2.toString());
         assertEquals("Test", string2.toString(Locale.ENGLISH));
-        assertTrue(string2 instanceof NonLocalizedString);
+        assertTrue(string2 instanceof TranslatedString);
 
         translations.put("fi", "Testi");
         I18NString string3 = TranslatedString.getI18NString(translations);

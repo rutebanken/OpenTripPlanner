@@ -1,0 +1,11 @@
+minReplicas: 5
+maxReplicas: 4
+mardukBase: "gs://marduk-prod/"
+mardukKey:  "marduk-neon-storage-key"
+resources:
+  cpuLimit: "7"
+  memLimit: 16000Mi
+  cpuRequest: "2"
+  memRequest: 14000Mi
+  xmx: 11g
+  xms: 7g

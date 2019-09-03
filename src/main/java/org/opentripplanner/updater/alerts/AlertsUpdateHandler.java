@@ -434,6 +434,9 @@ public class AlertsUpdateHandler {
                             // Need to know if validity is set explicitly or calculated based on ServiceDate
                             boolean effectiveValiditySetExplicitly = false;
 
+                            ZonedDateTime originAimedDepartureTime = (affectedVehicleJourney.getOriginAimedDepartureTime() != null ? affectedVehicleJourney.getOriginAimedDepartureTime():ZonedDateTime.now());
+                            ServiceDate serviceDate = new ServiceDate(originAimedDepartureTime.getYear(), originAimedDepartureTime.getMonthValue(), originAimedDepartureTime.getDayOfMonth());
+
                             if (tripIdFromVehicleJourney != null) {
 
                                 tripIds.add(tripIdFromVehicleJourney);
@@ -445,9 +448,6 @@ public class AlertsUpdateHandler {
                                 effectiveValiditySetExplicitly = true;
 
                             } else {
-                                ZonedDateTime originAimedDepartureTime = (affectedVehicleJourney.getOriginAimedDepartureTime() != null ? affectedVehicleJourney.getOriginAimedDepartureTime():ZonedDateTime.now());
-                                ServiceDate serviceDate = new ServiceDate(originAimedDepartureTime.getYear(), originAimedDepartureTime.getMonthValue(), originAimedDepartureTime.getDayOfMonth());
-
                                 tripIds = siriFuzzyTripMatcher.getTripIdForTripShortNameServiceDateAndMode(vehicleJourneyRef.getValue(),
                                         serviceDate, TraverseMode.RAIL, TransmodelTransportSubmode.RAIL_REPLACEMENT_BUS);
 
@@ -465,7 +465,8 @@ public class AlertsUpdateHandler {
                                     int tripDepartureTime = siriFuzzyTripMatcher.getTripDepartureTime(tripId);
                                     int tripArrivalTime = siriFuzzyTripMatcher.getTripArrivalTime(tripId);
 
-                                    effectiveStartDate = new Date(effectiveStartDate.getTime() + tripDepartureTime * 1000);
+                                    // ServiceJourneyId does NOT match - calculate validity based on serviceDate (calculated from originalAimedDepartureTime)
+                                    effectiveStartDate = new Date(serviceDate.getAsDate().getTime() + tripDepartureTime * 1000);
 
                                     // Appending 6 hours to end-validity in case of delays.
                                     effectiveEndDate = new Date(effectiveStartDate.getTime() + (tripArrivalTime - tripDepartureTime + 6 * 3600) * 1000);

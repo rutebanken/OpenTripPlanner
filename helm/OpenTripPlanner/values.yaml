@@ -1,0 +1,26 @@
+minReplicas: 5
+maxReplicas: 5
+image: eu.gcr.io/entur-system-1287/otp
+imageTag: release-1.0.13
+imagePullPolicy: Always
+slack: talk-ror
+team: ror
+type: backend
+app: otp
+api: journey-planner-v2
+service:
+  name: otp
+  type: ClusterIP
+  externalPort: 8080
+  internalPort: 8080
+resources:
+  cpuLimit: "7"
+  memLimit: 1600Mi
+  cpuRequest: "2"
+  memRequest: 1400Mi
+  xmx: 12g
+  xms: 7g
+
+
+
+

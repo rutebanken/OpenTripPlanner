@@ -52,7 +52,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
 
     public int stopIndex;
 
-    private int[] compactGeometry = null;
+    private byte[] compactGeometry = null;
 
     private double distance;
 
@@ -172,15 +172,8 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
     }
 
     public void setGeometry(LineString geometry) {
-        LineString lineString = GeometryUtils
-                .addStartEndCoordinatesToLineString(
-                        new Coordinate(begin.getLon(), begin.getLat()),
-                        geometry,
-                        new Coordinate(end.getLon(), end.getLat()));
-
         this.compactGeometry = CompactLineString
-                .compactLineString(begin.getLon(), begin.getLat(), end.getLon(),
-                       end.getLat(), lineString, false);
+                .compackLineString(geometry, false);
 
     }
 
@@ -191,8 +184,7 @@ public class PatternHop extends TablePatternEdge implements OnboardEdge, HopEdge
         if (compactGeometry == null) {
             return GeometryUtils.getGeometryFactory().createLineString(new Coordinate[] { c1, c2 });
         } else {
-            return CompactLineString.uncompactLineString(c1.x, c1.y, c2.x, c2.y,
-                    this.compactGeometry, false);
+            return CompactLineString.uncompackLineString(this.compactGeometry, false);
         }
     }
 

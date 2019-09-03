@@ -76,11 +76,13 @@ public class NorwayWayPropertySetSource implements WayPropertySetSource {
         props.setProperties("sac_scale=demanding_alpine_hiking", StreetTraversalPermission.NONE);
         props.setProperties("sac_scale=difficult_alpine_hiking", StreetTraversalPermission.NONE);
 
+        /*
         props.setProperties("mtb:scale=2", StreetTraversalPermission.NONE);
         props.setProperties("mtb:scale=3", StreetTraversalPermission.NONE);
         props.setProperties("mtb:scale=4", StreetTraversalPermission.NONE);
         props.setProperties("mtb:scale=5", StreetTraversalPermission.NONE);
         props.setProperties("mtb:scale=6", StreetTraversalPermission.NONE);
+         */
 
         // Allow bikes on sidewalks
         props.setProperties("footway=sidewalk;highway=footway", StreetTraversalPermission.PEDESTRIAN_AND_BICYCLE);

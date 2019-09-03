@@ -69,7 +69,13 @@ public class GeometryUtils {
         return makeLineString(coordinates);
     }
 
-
+    public static LineString removeStartEndCoordinatesFromLineString(LineString lineString) {
+        Coordinate[] coordinates = new Coordinate[lineString.getCoordinates().length - 2];
+        for (int j = 1; j < lineString.getCoordinates().length - 1; j++) {
+            coordinates[j - 1] = lineString.getCoordinates()[j];
+        }
+        return makeLineString(coordinates);
+    }
 
     public static LineString makeLineString(double... coords) {
         GeometryFactory factory = getGeometryFactory();

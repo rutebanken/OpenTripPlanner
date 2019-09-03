@@ -137,6 +137,18 @@ public final class CompactLineString implements Serializable {
     }
 
     /**
+     * Wrapper for the above method in the case where there are no start/end coordinates provided.
+     * 0-coordinates are added in order for the delta encoding to work correctly.
+     */
+    public static byte[] compackLineString(LineString lineString, boolean reverse) {
+        lineString = GeometryUtils.addStartEndCoordinatesToLineString(
+                new Coordinate(0.0, 0.0),
+                lineString,
+                new Coordinate(0.0, 0.0));
+        return compackLineString(0.0, 0.0, 0.0, 0.0, lineString, reverse);
+    }
+
+    /**
      * Construct a LineString based on external end-points and compacted int version.
      * 
      * @param xa
@@ -188,4 +200,14 @@ public final class CompactLineString implements Serializable {
             byte[] packedCoords, boolean reverse) {
         return uncompactLineString(x0, y0, x1, y1, DlugoszVarLenIntPacker.unpack(packedCoords), reverse);
     }
+
+    /**
+     * Wrapper for the above method in the case where there are no start/end coordinates provided.
+     * 0-coordinates are added and then removed in order for the delta encoding to work correctly.
+     */
+    public static LineString uncompackLineString(byte[] packedCoords, boolean reverse) {
+        LineString lineString = uncompackLineString(0.0, 0.0, 0.0, 0.0, packedCoords, reverse);
+        return GeometryUtils.removeStartEndCoordinatesFromLineString(lineString);
+    }
+
 }
