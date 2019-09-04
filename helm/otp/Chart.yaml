@@ -1,13 +1,13 @@
 apiVersion: v1
 name: otp
-version: 'release-1.0.13'
-appVersion: 'release-1.0.13'
+version: 'release-1.0.14'
+appVersion: 'release-1.0.14'
 description: Open Trip Planner
 keywords:
 - otp
 sources:
 - https://github.com/entur/opentripplanner
 maintainers:
-- name: 'Team: ror'
+- name: 'team-ror'
   email: team.rutedata@entur.org
 engine: gotpl

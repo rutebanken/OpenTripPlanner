@@ -1,26 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: {{ template "otp.name" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common.labels" . | indent 4 }}
-  name: {{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
 spec:
-  progressDeadlineSeconds: 600
-  replicas: {{ .Values.minReplicas }}
-  revisionHistoryLimit: 2
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      name: {{ .Release.Name }}
+      {{- include "common.labels" . | indent 6 }}
   strategy:
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+      maxSurge: {{ .Values.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailable }}
     type: RollingUpdate
   template:
     metadata:
       labels:
-        name: {{ .Release.Name }}
+        {{- include "common.labels" . | indent 8 }}
     spec:
       affinity:
         podAntiAffinity:
@@ -28,10 +26,10 @@ spec:
             - podAffinityTerm:
                 labelSelector:
                   matchExpressions:
-                    - key: name
+                    - key: app
                       operator: In
                       values:
-                        - otp
+                        - {{ template "otp.name" . }}
                 topologyKey: kubernetes.io/hostname
               weight: 100
       containers:
@@ -60,11 +58,11 @@ spec:
             - name: TZ
               value: Europe/Oslo
             - name: MARDUK_GCP_BASE
-              value: {{ .Values.mardukBase }}
+              value: {{ .Values.environmentValues.mardukGcpBaseName }}
             - name: ROUTER_CONFIG
-              value: router-config.json
-          image: {{ .Values.image }}:{{ .Values.imageTag }}
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
+              value: {{ .Values.environmentValues.routerConfigName }}
+          image: {{ .Values.image.repo }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.imagePullPolicy }}
           lifecycle:
             preStop:
               exec:
@@ -81,10 +79,11 @@ spec:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 30
-          name: {{ .Release.Name }}
+          name: otp
           ports:
             - containerPort: {{ .Values.service.internalPort }}
               protocol: TCP
+              name: http
           readinessProbe:
             failureThreshold: 3
             httpGet:
@@ -105,24 +104,35 @@ spec:
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
-            - mountPath: /etc/marduk/
-              name: marduk-key
-            - mountPath: /code/otpdata/norway/router-config.json
-              name: config-volume
-              subPath: router-config.json
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath }}
+              readOnly: {{ .readOnly }}
+            {{- end }}
+            {{- range .Values.configmapMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath }}
+              readOnly: {{ .readOnly }}
+            {{- end }}
       dnsPolicy: ClusterFirst
+      {{- if .Values.image.imagePullSecrets.enabled  }}
       imagePullSecrets:
-        - name: rutebanken-registry-key
+        - name: {{ .Values.image.imagePullSecrets.name }}
+      {{- end }}
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
-      terminationGracePeriodSeconds: 31
+      terminationGracePeriodSeconds: 30
       volumes:
-        - name: marduk-key
+      {{- range .Values.secretMounts }}
+        - name: {{ .name }}
           secret:
-            defaultMode: 420
-            secretName: {{ .Values.mardukKey }}
-        - configMap:
-            defaultMode: 420
-            name: otp-router-config
-          name: config-volume
+            secretName: {{ .secretName }}
+      {{- end }}
+      {{- range .Values.configmapMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+      {{- end }}

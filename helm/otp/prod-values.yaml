@@ -1,0 +1,21 @@
+replicas: 4
+
+horizontalPodAutoscaler:
+  enabled: true
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+rollingUpdate:
+  maxSurge: 3
+  maxUnavailable: 1
+
+resources:
+  cpuLimit: "7"
+  memLimit: 18000Mi
+  cpuRequest: "2"
+  memRequest: 14000Mi
+  xmx: 12g
+  xms: 7g
+
+environmentValues:
+  mardukGcpBaseName: "gs://marduk-prod/"

@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     {{- include "common.labels" . | indent 4 }}
-  name: {{ .Release.Name }}
+  name: {{ template "otp.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
@@ -12,7 +12,7 @@ spec:
       protocol: TCP
       targetPort: {{ .Values.service.internalPort }}
   selector:
-    name: {{ .Release.Name }}
+    app: {{ template "otp.name" . }}
   sessionAffinity: None
-  type: ClusterIP
+  type: {{ .Values.service.type }}
 

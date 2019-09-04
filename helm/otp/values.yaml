@@ -1,0 +1,57 @@
+replicas: 4
+
+horizontalPodAutoscaler:
+  enabled: true
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+rollingUpdate:
+  maxSurge: 2
+  maxUnavailable: 1
+
+resources:
+  cpuLimit: "7"
+  memLimit: 18000Mi
+  cpuRequest: "2"
+  memRequest: 14000Mi
+  xmx: 12g
+  xms: 7g
+
+environmentValues:
+  mardukGcpBaseName: "gs://marduk/"
+  routerConfigName: router-config.json
+
+secretMounts: []
+  # - name: marduk-key
+  #   mountPath: /code/otpdata/norway/router-config.json
+  #   subPath: ""
+  #   secretName: marduk-carbon-storage-key
+  #   readOnly: true
+
+configmapMounts:
+  - name: config-volume
+    mountPath: /code/otpdata/norway/router-config.json
+    subPath: router-config.json
+    configMap: otp-router-config
+    readOnly: false
+
+image:
+  repo: eu.gcr.io/entur-system-1287/otp
+  imagePullPolicy: Always
+  imagePullSecrets:
+    enabled: true
+    name: rutebanken-registry-key
+
+service:
+  name: otp
+  type: ClusterIP
+  externalPort: 8080
+  internalPort: 8080
+
+
+
+
+
+
+
+
