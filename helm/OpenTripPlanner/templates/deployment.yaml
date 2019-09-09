@@ -73,7 +73,7 @@ spec:
             failureThreshold: 3
             httpGet:
               path: /otp/routers/ready
-              port: {{ .Values.service.internalPort }}
+              port: {{ .Values.service.otp.internalPort }}
               scheme: HTTP
             initialDelaySeconds: 900
             periodSeconds: 10
@@ -81,14 +81,14 @@ spec:
             timeoutSeconds: 30
           name: otp
           ports:
-            - containerPort: {{ .Values.service.internalPort }}
+            - containerPort: {{ .Values.service.otp.internalPort }}
               protocol: TCP
               name: http
           readinessProbe:
             failureThreshold: 3
             httpGet:
               path: /otp/routers/ready
-              port: {{ .Values.service.internalPort }}
+              port: {{ .Values.service.otp.internalPort }}
               scheme: HTTP
             initialDelaySeconds: 120
             periodSeconds: 10

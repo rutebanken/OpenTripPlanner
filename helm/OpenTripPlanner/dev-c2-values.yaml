@@ -1,3 +1,5 @@
+env: dev-c2
+
 replicas: 4
 
 horizontalPodAutoscaler:
@@ -8,14 +10,6 @@ horizontalPodAutoscaler:
 rollingUpdate:
   maxSurge: 3
   maxUnavailable: 1
-
-resources:
-  cpuLimit: "7"
-  memLimit: 18000Mi
-  cpuRequest: "2"
-  memRequest: 14000Mi
-  xmx: 12g
-  xms: 7g
 
 environmentValues:
   mardukGcpBaseName: "gs://marduk/"

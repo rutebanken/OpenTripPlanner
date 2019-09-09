@@ -1,0 +1,30 @@
+{{- if .Values.ingress.c2.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    {{- include "common.labels" . | indent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    {{- if eq .Values.env "production-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.productionIp }}
+    {{ else if eq .Values.env "staging-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.staginIp }}
+    {{ else if eq .Values.env "dev-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.devIp }}
+    {{- end}}
+  name: otpdebug
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  {{- if eq .Values.env "production-c2"}}
+  - host: otpdebug-c2.entur.io.entur.io
+  {{ else }}
+  - host: otpdebug-c2.{{ .Release.Namespace }}.entur.io
+  {{- end}}
+    http:
+      paths:
+      - backend:
+          serviceName: otp
+          servicePort: 8080
+{{- end }}
