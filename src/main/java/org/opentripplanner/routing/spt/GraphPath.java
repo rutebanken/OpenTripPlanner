@@ -235,4 +235,55 @@ public class GraphPath {
         return duration;
     }
 
+
+    /**
+     * THIS IS A *ENTUR* SPECIFIC HACK TO REMOVE FOOT PATHS INSIDE A STATION OR AT A MULTIMODAL STOP PLACE.
+     * <p/>
+     * This method chop off N State/Edges from the beginning of the path, adjusting `walkDistance` and `weight`.
+     * <p/>
+     * The method is typically used to remove an undesired walking leg in the BEGINNING of the Trip.
+     *
+     * @param numberOfElementsToRemove the number of elements to remove from the tail of the state and edges.
+     * @throws IllegalArgumentException if `numberOfElementsToRemove` is less than 0 or greater the the number of edges.
+     */
+    public void chopOffHead(int numberOfElementsToRemove) {
+        if(numberOfElementsToRemove == 0) return;
+        if(numberOfElementsToRemove < 0) {
+            throw new IllegalArgumentException("Negative number not allowed: " + numberOfElementsToRemove);
+        }
+
+        // Do edges first to trigger exception if `numberOfElementsToRemove` to big
+        this.edges = new LinkedList<>(edges.subList(numberOfElementsToRemove, edges.size()));
+        this.states = new LinkedList<>(states.subList(numberOfElementsToRemove, states.size()));
+
+        double deltaWalkDistance = states.get(0).walkDistance;
+        double deltaWeight = states.get(0).weight;
+        for (State state : states) {
+            state.walkDistance -= deltaWalkDistance;
+            state.weight -= deltaWeight;
+        }
+        this.walkDistance -= deltaWalkDistance;
+    }
+
+    /**
+     * THIS IS A *ENTUR* SPECIFIC HACK TO REMOVE FOOT PATHS INSIDE A STATION OR AT A MULTIMODAL STOP PLACE.
+     * <p/>
+     * This method chop off N State/Edges from the end of the path, adjusting `walkDistance`.
+     * No need to adjust `weight`.
+     * <p/>
+     * The method is typically used to remove an undesired walking leg in the END of the Trip.
+     *
+     * @param numberOfElementsToRemove the number of elements to remove from the tail of the state and edges.
+     * @throws IllegalArgumentException if `numberOfElementsToRemove` is less than 0 or greater the the number of edges.
+     */
+    public void chopOffTail(int numberOfElementsToRemove) {
+        if(numberOfElementsToRemove == 0) return;
+        if(numberOfElementsToRemove < 0) {
+            throw new IllegalArgumentException("Negative number not allowed: " + numberOfElementsToRemove);
+        }
+        // Do edges first to trigger exception if `numberOfElementsToRemove` to big
+        this.edges = new LinkedList<>(edges.subList(0, edges.size() - numberOfElementsToRemove));
+        this.states = new LinkedList<>(states.subList(0, states.size() - numberOfElementsToRemove));
+        this.walkDistance = states.getLast().walkDistance;
+    }
 }

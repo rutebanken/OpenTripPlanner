@@ -2,6 +2,7 @@ package org.opentripplanner.index.transmodel.mapping;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.opentripplanner.common.model.GenericLocation;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.index.transmodel.model.TransmodelPlaceType;
@@ -35,12 +36,19 @@ public class TransmodelMappingUtil {
         this.timeZone = timeZone;
     }
 
-
     public String toIdString(AgencyAndId agencyAndId) {
         if (fixedAgencyId != null) {
             return agencyAndId.getId();
         }
         return GtfsLibrary.convertIdToString(agencyAndId);
+    }
+
+    /**
+     * Create a new {@link AgencyAndId} for the given String input {@code id}. If
+     * the {@code id} is {@code null}, an empty string or blank string then {@code null} is returned.
+     */
+    public AgencyAndId fromIdStringOrBlank(@Nullable String id) {
+        return (id == null || id.isBlank()) ? null : fromIdString(id);
     }
 
     public AgencyAndId fromIdString(String id) {

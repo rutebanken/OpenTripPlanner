@@ -1,0 +1,43 @@
+query tripplan {
+    trip (
+        useFlex:true
+        from: {
+            place: "RB:NSR:StopPlace:4355"
+        }
+        to: {
+            place: "RB:NSR:Quay:11839"
+        }
+
+    ) {
+        dateTime
+        fromPlace {
+            name
+            latitude
+            longitude
+        }
+        toPlace {
+            name
+            latitude
+            longitude
+        }
+        tripPatterns {
+            startTime
+            endTime
+            walkTime
+            walkDistance
+            weight
+            legs {
+                mode
+                line {
+                    publicCode
+                }
+                fromPlace { name }
+                toPlace { name }
+            }
+
+        }
+    }
+}
+
+
+

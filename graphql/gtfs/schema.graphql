@@ -1,0 +1,1211 @@
+# source: http://localhost:8080/otp/routers/default/index/graphql
+# timestamp: Thu Sep 26 2019 16:11:01 GMT+0200 (Central European Summer Time)
+
+schema {
+  query: QueryType
+}
+
+"""This directive allows results to be deferred during execution"""
+directive @defer on FIELD
+
+"""In GTFS Agency or NeTEx Authority"""
+type Agency implements Node {
+  id: ID!
+
+  """Agency id"""
+  gtfsId: String!
+  name: String!
+  url: String
+  timezone: String!
+  lang: String
+  phone: String
+  fareUrl: String
+  routes: [Route]
+
+  """Get all alerts active for the agency"""
+  alerts: [Alert]
+}
+
+"""Simple alert"""
+type Alert implements Node {
+  id: ID!
+  agency: Agency
+  route: Route
+  trip: Trip
+  stop: Stop
+
+  """Get all patterns for this alert"""
+  patterns: [Pattern]
+
+  """Header of alert if it exists"""
+  alertHeaderText: String
+
+  """Headers of alert in all different translations available notnull"""
+  alertHeaderTextTranslations: [TranslatedString!]!
+
+  """Long description of alert notnull"""
+  alertDescriptionText: String!
+
+  """
+  Long descriptions of alert in all different translations available notnull
+  """
+  alertDescriptionTextTranslations: [TranslatedString!]!
+
+  """Additional details of alert"""
+  alertDetailText: String! @deprecated(reason: "Not allowed according to profile. Use ´alertAdviceText´ instead.")
+
+  """Advice of alert"""
+  alertAdviceText: String!
+
+  """
+  Additional details of alert in all different translations available notnull
+  """
+  alertDetailTextTranslations: [TranslatedString!]! @deprecated(reason: "Not allowed according to profile. Use ´alertAdviceTextTranslations´ instead.")
+
+  """Advice of alert in all different translations available notnull"""
+  alertAdviceTextTranslations: [TranslatedString!]!
+
+  """Url with more information"""
+  alertUrl: String
+
+  """When this alert comes into effect"""
+  effectiveStartDate: Long
+
+  """When this alert is not in effect anymore"""
+  effectiveEndDate: Long
+
+  """Type of alert"""
+  alertType: AlertType
+}
+
+enum AlertType {
+  """Indicates a general info-message that should not affect trip."""
+  general
+
+  """Indicates an incident that may affect trip."""
+  incident
+}
+
+type BikePark implements Node & PlaceInterface {
+  id: ID!
+  bikeParkId: String
+  name: String!
+  spacesAvailable: Int
+  realtime: Boolean
+  lon: Float
+  lat: Float
+}
+
+type BikeRentalStation implements Node & PlaceInterface {
+  id: ID!
+  stationId: String
+  name: String!
+  bikesAvailable: Int
+  spacesAvailable: Int
+  realtime: Boolean
+  allowDropoff: Boolean
+  networks: [String]
+  lon: Float
+  lat: Float
+}
+
+enum BikesAllowed {
+  """There is no bike information for the trip."""
+  NO_INFORMATION
+
+  """
+  The vehicle being used on this particular trip can accommodate at least one bicycle.
+  """
+  ALLOWED
+
+  """No bicycles are allowed on this trip."""
+  NOT_ALLOWED
+}
+
+type CarPark implements Node & PlaceInterface {
+  id: ID!
+  carParkId: String
+  name: String!
+  maxCapacity: Int
+  spacesAvailable: Int
+  realtime: Boolean
+  lon: Float
+  lat: Float
+}
+
+type Coordinates {
+  lat: Float
+  lon: Float
+}
+
+type debugOutput {
+  totalTime: Long
+}
+
+type DepartureRow implements Node & PlaceInterface {
+  id: ID!
+  stop: Stop
+  lat: Float
+  lon: Float
+  pattern: Pattern
+  stoptimes(
+    """
+    What is the start time for the times. Default is to use current time. (0)
+    """
+    startTime: Long = 0
+
+    """How many seconds ahead to search for departures. Default is one day."""
+    timeRange: Int = 86400
+
+    """Maximum number of departures to return."""
+    numberOfDepartures: Int = 1
+    omitNonPickups: Boolean = false
+  ): [Stoptime]
+}
+
+type fare {
+  type: String
+  currency: String
+  cents: Int
+  components: [fareComponent]
+}
+
+type fareComponent {
+  fareId: String
+  currency: String
+  cents: Int
+  routes: [Route]
+}
+
+enum FilterPlaceType {
+  """Stops"""
+  STOP
+
+  """Departure rows"""
+  DEPARTURE_ROW
+
+  """Bicycle rent stations"""
+  BICYCLE_RENT
+
+  """Bike parks"""
+  BIKE_PARK
+
+  """Car parks"""
+  CAR_PARK
+}
+
+input InputBanned {
+  """
+  Do not use certain named routes Example: routes:"RB__FLT:Line:1"
+  """
+  routes: String
+
+  """
+  Do not use certain named agencies Example: agencies:"NSB:Authority:NSB---"
+  """
+  agencies: String
+
+  """Do not use certain named trips"""
+  trips: String
+
+  """
+  Do not use certain stops. See for more information the bannedStops property in the RoutingResource class.
+  """
+  stops: String
+
+  """
+  Do not use certain stops. See for more information the bannedStopsHard property in the RoutingResource class.
+  """
+  stopsHard: String
+}
+
+input InputCoordinates {
+  """The latitude of the place."""
+  lat: Float!
+
+  """The longitude of the place."""
+  lon: Float!
+
+  """The name of the place."""
+  address: String
+}
+
+input InputFilters {
+  """Stops to include by GTFS id."""
+  stops: [String]
+
+  """Routes to include by GTFS id."""
+  routes: [String]
+
+  """Bike rentals to include by id."""
+  bikeRentalStations: [String]
+
+  """Bike parks to include by id."""
+  bikeParks: [String]
+
+  """Car parks to include by id."""
+  carParks: [String]
+}
+
+input InputPreferred {
+  """Set of preferred agencies by user."""
+  routes: String
+
+  """Set of preferred agencies by user."""
+  agencies: String
+
+  """
+  Penalty added for using every route that is not preferred if user set any
+  route as preferred. We return number of seconds that we are willing to wait
+  for preferred route.
+  """
+  otherThanPreferredRoutesPenalty: Int
+}
+
+input InputTriangle {
+  """For the bike triangle, how important safety is"""
+  safetyFactor: Float
+
+  """For the bike triangle, how important slope is"""
+  slopeFactor: Float
+
+  """For the bike triangle, how important time is"""
+  timeFactor: Float
+}
+
+input InputUnpreferred {
+  """Set of unpreferred routes for given user."""
+  routes: String
+
+  """Set of unpreferred agencies for given user."""
+  agencies: String
+}
+
+input InputWhitelisted {
+  """
+  Only use certain named routes. Example: routes:"RB__FLT:Line:1"
+  """
+  routes: String
+
+  """
+  Only use certain named agencies. Example: agencies:"NSB:Authority:NSB---"
+  """
+  agencies: String
+}
+
+type Itinerary {
+  """Time that the trip departs."""
+  startTime: Long
+
+  """Time that the trip arrives."""
+  endTime: Long
+
+  """Duration of the trip on this itinerary, in seconds."""
+  duration: Long
+
+  """How much time is spent waiting for transit to arrive, in seconds."""
+  waitingTime: Long
+
+  """How much time is spent walking, in seconds."""
+  walkTime: Long
+
+  """How far the user has to walk, in meters."""
+  walkDistance: Float
+
+  """
+  A list of Legs. Each Leg is either a walking (cycling, car) portion of the
+  trip, or a transit trip on a particular vehicle. So a trip where the use walks
+  to the Q train, transfers to the 6, then walks to their destination, has four legs.
+  """
+  legs: [Leg]!
+
+  """Information about the fares for this itinerary"""
+  fares: [fare]
+
+  """Weight of the itinerary. Used for debugging."""
+  weight: Float
+}
+
+type Leg {
+  """The date and time this leg begins."""
+  startTime: Long
+
+  """The date and time this leg ends."""
+  endTime: Long
+  scheduledStartTime: Long
+  realtimeStartTime: Long
+  scheduledEndTime: Long
+  realtimeEndTime: Long
+
+  """The mode (e.g., Walk) used when traversing this leg."""
+  mode: Mode
+
+  """The leg's duration in seconds"""
+  duration: Float
+
+  """The leg's geometry."""
+  legGeometry: LegGeometry
+
+  """
+  For transit legs, the transit agency that operates the service used for this leg. For non-transit legs, null.
+  """
+  agency: Agency
+
+  """Whether there is real-time data about this Leg"""
+  realTime: Boolean
+
+  """Arrivaldelay - in seconds - for this Leg"""
+  arrivalDelay: Int
+
+  """Departuredelay - in seconds - for this Leg"""
+  departureDelay: Int
+
+  """The distance traveled while traversing the leg in meters."""
+  distance: Float
+
+  """Whether this leg is a transit leg or not."""
+  transitLeg: Boolean
+
+  """Whether this leg is with a rented bike."""
+  rentedBike: Boolean
+
+  """The Place where the leg originates."""
+  from: Place!
+
+  """The Place where the leg ends."""
+  to: Place!
+
+  """For transit legs, the route. For non-transit legs, null."""
+  route: Route
+
+  """For transit legs, the trip. For non-transit legs, null."""
+  trip: Trip
+
+  """
+  For transit legs, intermediate stops between the Place where the leg
+  originates and the Place where the leg ends. For non-transit legs, null.
+  """
+  intermediateStops: [Stop]
+
+  """
+  For transit legs, stop time for intermediate stops between the Place where the
+  leg originates and the Place where the leg ends. For non-transit legs, null.
+  """
+  intermediateStoptimes: [Stoptime]
+
+  """Do we continue from a specified intermediate place"""
+  intermediatePlace: Boolean
+
+  """All relevant alerts for this leg"""
+  alerts: [Alert]
+}
+
+type LegGeometry {
+  """The number of points in the string"""
+  length: Int
+
+  """The encoded points of the polyline."""
+  points: String
+}
+
+enum Locale {
+  no
+  us
+}
+
+"""Identifies whether this stop represents a stop or station."""
+enum LocationType {
+  """A location where passengers board or disembark from a transit vehicle."""
+  STOP
+
+  """A physical structure or area that contains one or more stop."""
+  STATION
+  ENTRANCE
+}
+
+"""Long type"""
+scalar Long
+
+enum Mode {
+  """AIRPLANE"""
+  AIRPLANE
+
+  """BICYCLE"""
+  BICYCLE
+
+  """BUS"""
+  BUS
+
+  """CABLE_CAR"""
+  CABLE_CAR
+
+  """CAR"""
+  CAR
+
+  """FERRY"""
+  FERRY
+
+  """FUNICULAR"""
+  FUNICULAR
+
+  """GONDOLA"""
+  GONDOLA
+
+  """LEG_SWITCH"""
+  LEG_SWITCH
+
+  """RAIL"""
+  RAIL
+
+  """SUBWAY"""
+  SUBWAY
+
+  """TRAM"""
+  TRAM
+
+  """TRANSIT"""
+  TRANSIT
+
+  """WALK"""
+  WALK
+}
+
+"""An object with an ID"""
+interface Node {
+  """The ID of an object"""
+  id: ID!
+}
+
+type Notice {
+  id: String
+  text: String
+  publicCode: String
+}
+
+"""NeTEx Operator, not available for data imported by GTFS"""
+type Operator implements Node {
+  id: ID!
+
+  """Operator id"""
+  gtfsId: String!
+  name: String!
+  url: String
+  phone: String
+  fareUrl: String
+  routes: [Route]
+  trips: [Trip]
+}
+
+enum OptimizeType {
+  """QUICK"""
+  QUICK
+
+  """SAFE"""
+  SAFE
+
+  """FLAT"""
+  FLAT
+
+  """GREENWAYS"""
+  GREENWAYS
+
+  """TRIANGLE"""
+  TRIANGLE
+
+  """TRANSFERS"""
+  TRANSFERS
+}
+
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+type Pattern implements Node {
+  id: ID!
+  route: Route!
+  directionId: Int
+  name: String
+  code: String!
+  headsign: String
+  trips: [Trip!]
+  tripsForDate(serviceDay: String): [Trip!]
+  stops: [Stop!]
+  geometry: [Coordinates]
+  semanticHash: String
+
+  """Get all alerts active for the pattern"""
+  alerts: [Alert]
+  notices: [Notice]
+}
+
+enum PickupDropoffType {
+  """Regularly scheduled pickup / drop off."""
+  SCHEDULED
+
+  """No pickup / drop off available."""
+  NONE
+
+  """Must phone agency to arrange pickup / drop off."""
+  CALL_AGENCY
+
+  """Must coordinate with driver to arrange pickup / drop off."""
+  COORDINATE_WITH_DRIVER
+}
+
+type Place {
+  """
+  For transit stops, the name of the stop. For points of interest, the name of the POI.
+  """
+  name: String
+
+  """
+  Type of vertex. (Normal, Bike sharing station, Bike P+R, Transit stop) Mostly
+  used for better localization of bike sharing and P+R station names
+  """
+  vertexType: VertexType
+
+  """The latitude of the place."""
+  lat: Float!
+
+  """The longitude of the place."""
+  lon: Float!
+
+  """The stop related to the place."""
+  stop: Stop
+
+  """The bike rental station related to the place"""
+  bikeRentalStation: BikeRentalStation
+
+  """The bike parking related to the place"""
+  bikePark: BikePark
+
+  """The car parking related to the place"""
+  carPark: CarPark
+}
+
+type placeAtDistance implements Node {
+  id: ID! @deprecated(reason: "Id is not referable or meaningful and will be removed")
+  place: PlaceInterface
+  distance: Int
+}
+
+"""A connection to a list of items."""
+type placeAtDistanceConnection {
+  """a list of edges"""
+  edges: [placeAtDistanceEdge]
+
+  """details about this specific page"""
+  pageInfo: PageInfo!
+}
+
+"""An edge in a connection"""
+type placeAtDistanceEdge {
+  """The item at the end of the edge"""
+  node: placeAtDistance
+
+  """cursor marks a unique position or index into the connection"""
+  cursor: String!
+}
+
+"""Interface for places, i.e. stops, stations, parks"""
+interface PlaceInterface {
+  id: ID!
+  lat: Float
+  lon: Float
+}
+
+type Plan {
+  """The time and date of travel"""
+  date: Long
+
+  """The origin"""
+  from: Place!
+
+  """The destination"""
+  to: Place!
+
+  """A list of possible itineraries"""
+  itineraries: [Itinerary]!
+
+  """A list of possible error messages as enum"""
+  messageEnums: [String]!
+
+  """A list of possible error messages in cleartext"""
+  messageStrings: [String]!
+
+  """Information about the timings for the plan generation"""
+  debugOutput: debugOutput!
+}
+
+type QueryType {
+  """Fetches an object given its ID"""
+  node(
+    """The ID of an object"""
+    id: ID!
+  ): Node
+
+  """Get all agencies for the specified graph"""
+  agencies: [Agency]
+
+  """Get a single agency based on agency ID"""
+  agency(id: String!): Agency
+
+  """Get all operators for the specified graph"""
+  operators: [Operator]
+
+  """Get a single operator based on operator ID"""
+  operator(id: String!): Operator
+  notices: [Notice]
+
+  """Get all stops for the specified graph"""
+  stops(ids: [String], name: String): [Stop]
+
+  """Get all stops within the specified bounding box"""
+  stopsByBbox(minLat: Float, minLon: Float, maxLat: Float, maxLon: Float, agency: String): [Stop]
+
+  """
+  Get all stops within the specified radius from a location. The returned type has two fields stop and distance
+  """
+  stopsByRadius(
+    """Latitude of the location"""
+    lat: Float
+
+    """Longitude of the location"""
+    lon: Float
+
+    """Radius (in meters) to search for from the specified location"""
+    radius: Int
+    agency: String
+
+    """fetching only nodes before this node (exclusive)"""
+    before: String
+
+    """fetching only nodes after this node (exclusive)"""
+    after: String
+
+    """fetching only the first certain number of nodes"""
+    first: Int
+
+    """fetching only the last certain number of nodes"""
+    last: Int
+  ): stopAtDistanceConnection
+
+  """
+  Get all places (stops, stations, etc. with coordinates) within the specified
+  radius from a location. The returned type has two fields place and distance.
+  The search is done by walking so the distance is according to the network of walkables.
+  """
+  nearest(
+    """Latitude of the location"""
+    lat: Float
+
+    """Longitude of the location"""
+    lon: Float
+
+    """
+    Maximum distance (in meters) to search for from the specified location. Default is 2000m.
+    """
+    maxDistance: Int = 2000
+
+    """
+    Maximum number of results. Search is stopped when this limit is reached. Default is 20.
+    """
+    maxResults: Int = 20
+
+    """
+    Only include places that imply this type. i.e. mode for stops, station etc. Also BICYCLE_RENT for bike rental stations.
+    """
+    filterByPlaceTypes: [FilterPlaceType]
+
+    """
+    Only include places that include this mode. Only checked for places with mode i.e. stops, departure rows.
+    """
+    filterByModes: [Mode]
+
+    """Only include places that match one of the given GTFS ids."""
+    filterByIds: InputFilters
+
+    """fetching only nodes before this node (exclusive)"""
+    before: String
+
+    """fetching only nodes after this node (exclusive)"""
+    after: String
+
+    """fetching only the first certain number of nodes"""
+    first: Int
+
+    """fetching only the last certain number of nodes"""
+    last: Int
+  ): placeAtDistanceConnection
+
+  """
+  Get a single departure row based on its id (format is Agency:StopId:PatternId)
+  """
+  departureRow(id: String!): DepartureRow
+
+  """Get a single stop based on its id (format is Agency:StopId)"""
+  stop(id: String!): Stop
+
+  """
+  Get a single station (stop with location_type = 1) based on its id (format is Agency:StopId)
+  """
+  station(id: String!): Stop
+
+  """Get all stations (stop with location_type = 1)"""
+  stations(ids: [String]): [Stop]
+
+  """Get all routes for the specified graph"""
+  routes(ids: [String], name: String, modes: String): [Route]
+
+  """Get a single route based on its id (format is Agency:RouteId)"""
+  route(id: String!): Route
+
+  """Get all trips for the specified graph"""
+  trips: [Trip]
+
+  """Get a single trip based on its id (format is Agency:TripId)"""
+  trip(id: String!): Trip
+  fuzzyTrip(route: String, direction: Int, date: String, time: Int): Trip
+
+  """Get all patterns for the specified graph"""
+  patterns: [Pattern]
+
+  """Get a single pattern based on its id"""
+  pattern(id: String!): Pattern
+
+  """Get all alerts active in the graph"""
+  alerts: [Alert]
+
+  """
+  Get start and end time for publict transit services present in the graph
+  """
+  serviceTimeRange: serviceTimeRange
+  bikeRentalStations: [BikeRentalStation]
+  bikeRentalStation(id: String!): BikeRentalStation
+  bikeParks: [BikePark]
+  bikePark(id: String!): BikePark
+  carParks(ids: [String]): [CarPark]
+  carPark(id: String!): CarPark
+
+  """Needed until https://github.com/facebook/relay/issues/112 is resolved"""
+  viewer: QueryType
+
+  """Gets plan of a route"""
+  plan(
+    date: String
+    time: String
+
+    """The start location"""
+    from: InputCoordinates
+
+    """The end location"""
+    to: InputCoordinates
+    fromPlace: String
+    toPlace: String
+
+    """Whether the trip must be wheelchair accessible."""
+    wheelchair: Boolean
+
+    """The maximum number of itineraries to return."""
+    numItineraries: Int = 3
+
+    """
+    The maximum distance (in meters) the user is willing to walk. Defaults to unlimited.
+    """
+    maxWalkDistance: Float
+
+    """
+    The maximum time (in seconds) of pre-transit travel when using
+    drive-to-transit (park and ride or kiss and ride). Defaults to unlimited.
+    """
+    maxPreTransitTime: Int
+
+    """
+    A multiplier for how bad walking is, compared to being in transit for equal
+    lengths of time. Defaults to 2. Empirically, values between 10 and 20 seem
+    to correspond well to the concept of not wanting to walk too much without
+    asking for totally ridiculous itineraries, but this observation should in no
+    way be taken as scientific or definitive. Your mileage may vary.
+    """
+    walkReluctance: Float
+
+    """
+    How much more reluctant is the user to walk on streets with car traffic allowed
+    """
+    walkOnStreetReluctance: Float
+
+    """
+    How much worse is waiting for a transit vehicle than being on a transit
+    vehicle, as a multiplier. The default value treats wait and on-vehicle time
+    as the same. It may be tempting to set this higher than walkReluctance (as
+    studies often find this kind of preferences among riders) but the planner
+    will take this literally and walk down a transit line to avoid waiting at a
+    stop. This used to be set less than 1 (0.95) which would make waiting
+    offboard preferable to waiting onboard in an interlined trip. That is also
+    undesirable. If we only tried the shortest possible transfer at each stop to
+    neighboring stop patterns, this problem could disappear.
+    """
+    waitReluctance: Float
+
+    """
+    How much less bad is waiting at the beginning of the trip (replaces waitReluctance on the first boarding)
+    """
+    waitAtBeginningFactor: Float
+
+    """max walk speed along streets, in meters per second"""
+    walkSpeed: Float
+
+    """max bike speed along streets, in meters per second"""
+    bikeSpeed: Float
+
+    """Time to get on and off your own bike"""
+    bikeSwitchTime: Int
+
+    """Cost of getting on and off your own bike"""
+    bikeSwitchCost: Int
+
+    """
+    The set of characteristics that the user wants to optimize for -- defaults to QUICK, or optimize for transit time.
+    """
+    optimize: OptimizeType
+
+    """
+    Triangle optimization parameters. triangleTimeFactor+triangleSlopeFactor+triangleSafetyFactor == 1
+    """
+    triangle: InputTriangle
+
+    """
+    Whether the trip should depart at dateTime (false, the default), or arrive at dateTime.
+    """
+    arriveBy: Boolean
+
+    """An ordered list of intermediate locations to be visited."""
+    intermediatePlaces: [InputCoordinates]
+
+    """Preferred"""
+    preferred: InputPreferred
+
+    """Unpreferred"""
+    unpreferred: InputUnpreferred
+
+    """
+    This prevents unnecessary transfers by adding a cost for boarding a vehicle.
+    """
+    walkBoardCost: Int
+
+    """
+    Separate cost for boarding a vehicle with a bicycle, which is more difficult than on foot.
+    """
+    bikeBoardCost: Int
+
+    """Banned"""
+    banned: InputBanned
+
+    """Whitelisted"""
+    whiteListed: InputWhitelisted
+
+    """
+    An extra penalty added on transfers (i.e. all boardings except the first
+    one). Not to be confused with bikeBoardCost and walkBoardCost, which are the
+    cost of boarding a vehicle with and without a bicycle. The boardCosts are
+    used to model the 'usual' perceived cost of using a transit vehicle, and the
+    transferPenalty is used when a user requests even less transfers. In the
+    latter case, we don't actually optimize for fewest transfers, as this can
+    lead to absurd results. Consider a trip in New York from Grand Army Plaza
+    (the one in Brooklyn) to Kalustyan's at noon. The true lowest transfers
+    route is to wait until midnight, when the 4 train runs local the whole way.
+    The actual fastest route is the 2/3 to the 4/5 at Nevins to the 6 at Union
+    Square, which takes half an hour. Even someone optimizing for fewest
+    transfers doesn't want to wait until midnight. Maybe they would be willing
+    to walk to 7th Ave and take the Q to Union Square, then transfer to the 6.
+    If this takes less than optimize_transfer_penalty seconds, then that's what we'll return.
+    """
+    transferPenalty: Int
+
+    """
+    when true, do not use goal direction or stop at the target, build a full SPT
+    """
+    batch: Boolean
+
+    """
+    The set of TraverseModes that a user is willing to use. Defaults to WALK | TRANSIT.
+    """
+    modes: String
+
+    """Is bike rental allowed?"""
+    allowBikeRental: Boolean
+
+    """Invariant: boardSlack + alightSlack <= transferSlack."""
+    boardSlack: Int
+
+    """Invariant: boardSlack + alightSlack <= transferSlack."""
+    alightSlack: Int
+
+    """
+    A global minimum transfer time (in seconds) that specifies the minimum
+    amount of time that must pass between exiting one transit vehicle and
+    boarding another. This time is in addition to time it might take to walk
+    between transit stops. This time should also be overridden by specific
+    transfer timing information in transfers.txt
+    """
+    minTransferTime: Int
+
+    """Penalty for using a non-preferred transfer"""
+    nonpreferredTransferPenalty: Int
+
+    """Maximum number of transfers"""
+    maxTransfers: Int
+
+    """A transit stop that this trip must start from"""
+    startTransitStopId: String
+
+    """A trip where this trip must start from (depart-onboard routing)"""
+    startTransitTripId: String
+
+    """
+    The maximum wait time in seconds the user is willing to delay trip start. Only effective in Analyst.
+    """
+    claimInitialWait: Long
+
+    """
+    When true, reverse optimize this search on the fly whenever needed, rather
+    than reverse-optimizing the entire path when it's done.
+    """
+    reverseOptimizeOnTheFly: Boolean
+
+    """When true, realtime updates are ignored during this search."""
+    ignoreRealtimeUpdates: Boolean
+
+    """
+    If true, the remaining weight heuristic is disabled. Currently only implemented for the long distance path service.
+    """
+    disableRemainingWeightHeuristic: Boolean
+    locale: Locale = no
+
+    """Tuning parameter for the search algorithm."""
+    heuristicStepsPerMainStep: Int
+  ): Plan
+}
+
+enum RealtimeState {
+  """
+  The trip information comes from the GTFS feed, i.e. no real-time update has been applied.
+  """
+  SCHEDULED
+
+  """
+  The trip information has been updated, but the trip pattern stayed the same as the trip pattern of the scheduled trip.
+  """
+  UPDATED
+
+  """The trip has been canceled by a real-time update."""
+  CANCELED
+
+  """
+  The trip has been added using a real-time update, i.e. the trip was not present in the GTFS feed.
+  """
+  ADDED
+
+  """
+  The trip information has been updated and resulted in a different trip pattern
+  compared to the trip pattern of the scheduled trip.
+  """
+  MODIFIED
+}
+
+type Route implements Node {
+  id: ID!
+  gtfsId: String!
+  agency: Agency
+  operator: Operator
+  shortName: String
+  longName: String
+  mode: String
+
+  """The raw type integer form the GTFS source."""
+  type: Int
+  desc: String
+  url: String
+  color: String
+  textColor: String
+  bikesAllowed: BikesAllowed
+  patterns: [Pattern]
+  stops: [Stop]
+  trips: [Trip]
+  notices: [Notice]
+
+  """Get all alerts active for the route"""
+  alerts: [Alert]
+}
+
+"""Time range covered by the routing graph"""
+type serviceTimeRange {
+  """Beginning of service time range"""
+  start: Long
+
+  """End of service time range"""
+  end: Long
+}
+
+type Stop implements Node & PlaceInterface {
+  id: ID!
+  stopTimesForPattern(id: String, startTime: Long = 0, timeRange: Int = 86400, numberOfDepartures: Int = 2, omitNonPickups: Boolean = false): [Stoptime]
+  gtfsId: String!
+  name: String!
+  lat: Float
+  lon: Float
+  code: String
+  desc: String
+  zoneId: String
+  url: String
+  locationType: LocationType
+  parentStation: Stop
+  wheelchairBoarding: WheelchairBoarding
+  direction: String
+  timezone: String
+  vehicleType: Int
+  platformCode: String
+
+  """
+  Returns all stops that are childen of this station (Only applicable for locationType = 1)
+  """
+  stops: [Stop]
+  routes: [Route!]
+  patterns: [Pattern]
+  transfers: [stopAtDistance]
+  stoptimesForServiceDate(date: String, omitNonPickups: Boolean = false): [StoptimesInPattern]
+  stoptimesForPatterns(startTime: Long = 0, timeRange: Int = 86400, numberOfDepartures: Int = 5, omitNonPickups: Boolean = false): [StoptimesInPattern]
+  stoptimesWithoutPatterns(startTime: Long = 0, timeRange: Int = 86400, numberOfDepartures: Int = 5, omitNonPickups: Boolean = false): [Stoptime]
+
+  """Get all alerts active for the stop"""
+  alerts: [Alert]
+}
+
+type stopAtDistance implements Node {
+  id: ID!
+  stop: Stop
+  distance: Int
+}
+
+"""A connection to a list of items."""
+type stopAtDistanceConnection {
+  """a list of edges"""
+  edges: [stopAtDistanceEdge]
+
+  """details about this specific page"""
+  pageInfo: PageInfo!
+}
+
+"""An edge in a connection"""
+type stopAtDistanceEdge {
+  """The item at the end of the edge"""
+  node: stopAtDistance
+
+  """cursor marks a unique position or index into the connection"""
+  cursor: String!
+}
+
+type Stoptime {
+  stop: Stop
+  scheduledArrival: Int
+  realtimeArrival: Int
+  arrivalDelay: Int
+  scheduledDeparture: Int
+  realtimeDeparture: Int
+  departureDelay: Int
+  timepoint: Boolean
+  realtime: Boolean
+  realtimeState: RealtimeState
+  pickupType: PickupDropoffType
+  dropoffType: PickupDropoffType
+  serviceDay: Long
+  trip: Trip
+  stopHeadsign: String @deprecated(reason: "Use headsign instead, will be removed in the future")
+  headsign: String
+  notices: [Notice]
+}
+
+type StoptimesInPattern {
+  pattern: Pattern
+  stoptimes: [Stoptime]
+}
+
+"""Text with language"""
+type TranslatedString {
+  text: String
+  language: String
+}
+
+type Trip implements Node {
+  id: ID!
+  gtfsId: String!
+  route: Route!
+  operator: Operator
+  serviceId: String
+  activeDates: [String]
+  tripShortName: String
+  tripHeadsign: String
+  routeShortName: String
+  directionId: String
+  blockId: String
+  shapeId: String
+  wheelchairAccessible: WheelchairBoarding
+  bikesAllowed: BikesAllowed
+  pattern: Pattern
+  stops: [Stop!]!
+  semanticHash: [Stop!]!
+
+  """
+  Returns scheduled stoptimes only - without realtime-updates, for realtime-data use 'stoptimesForDate'
+  """
+  stoptimes: [Stoptime]
+
+  """Returns scheduled stoptimes updated with realtime-updates"""
+  stoptimesForDate(serviceDay: String): [Stoptime]
+  notices: [Notice]
+  geometry: [[Float]]
+
+  """Get all alerts active for the trip"""
+  alerts: [Alert]
+}
+
+enum VertexType {
+  """NORMAL"""
+  NORMAL
+
+  """TRANSIT"""
+  TRANSIT
+
+  """BIKEPARK"""
+  BIKEPARK
+
+  """BIKESHARE"""
+  BIKESHARE
+
+  """PARKANDRIDE"""
+  PARKANDRIDE
+}
+
+enum WheelchairBoarding {
+  """There is no accessibility information for the stop."""
+  NO_INFORMATION
+
+  """
+  At least some vehicles at this stop can be boarded by a rider in a wheelchair.
+  """
+  POSSIBLE
+
+  """Wheelchair boarding is not possible at this stop."""
+  NOT_POSSIBLE
+}

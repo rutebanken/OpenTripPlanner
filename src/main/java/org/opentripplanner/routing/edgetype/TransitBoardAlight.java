@@ -192,14 +192,14 @@ public class TransitBoardAlight extends TablePatternEdge implements OnboardEdge 
             s1.setLastPattern(this.getPattern());
             s1.setIsLastBoardAlightDeviated(isDeviated());
             if (boarding) {
-                int boardingTime = options.getBoardTime(this.getPattern().mode);
+                int boardingTime = options.getBoardTime(this.getPattern().route.getTransportSubmode());
                 if (boardingTime != 0) {
                     // When traveling backwards the time travels also backwards
                     s1.incrementTimeInSeconds(boardingTime);
                     s1.incrementWeight(boardingTime * options.waitReluctance);
                 }
             } else {
-                int alightTime = options.getAlightTime(this.getPattern().mode);
+                int alightTime = options.getAlightTime(this.getPattern().route.getTransportSubmode());
                 if (alightTime != 0) {
                     s1.incrementTimeInSeconds(alightTime);
                     s1.incrementWeight(alightTime * options.waitReluctance);

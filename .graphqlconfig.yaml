@@ -1,0 +1,11 @@
+projects:
+  transmodel:
+    schemaPath: graphql/transmodel/schema.graphql
+    extensions:
+      endpoints:
+        Transmodel: 'http://localhost:8080/otp/routers/default/transmodel/index/graphql'
+  gtfs:
+    schemaPath: graphql/gtfs/schema.graphql
+    extensions:
+      endpoints:
+        Gtfs: 'http://localhost:8080/otp/routers/default/index/graphql'

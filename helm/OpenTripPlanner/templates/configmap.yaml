@@ -1,0 +1,169 @@
+apiVersion: v1
+data:
+  router-config.json: |+
+    {
+      "routingDefaults": {
+    	"walkSpeed": 1.3,
+    	"bikeSpeed": 5,
+    	"carSpeed": 40,
+    	"maxWalkDistance": 5000,
+        "maxTransferWalkDistance": 2000,
+    	"maxPreTransitTime": 600,
+    	"wheelchairAccessible": false,
+    	"numItineraries": 3,
+    	"maxSlope": 0.0833333333333,
+    	"showIntermediateStops": false,
+    	"transferPenalty": 0,
+    	"walkReluctance": 4.0,
+    	"stairsReluctance": 1.65,
+    	"turnReluctance": 1.0,
+    	"walkOnStreetReluctance": 1.0,
+    	"elevatorBoardTime": 90,
+    	"elevatorBoardCost": 90,
+    	"elevatorHopTime": 20,
+    	"elevatorHopCost": 20,
+    	"bikeRentalPickupCost": 120,
+    	"bikeRentalDropoffTime": 30,
+    	"bikeRentalDropoffCost": 30,
+    	"bikeParkTime": 60,
+    	"bikeParkCost": 120,
+    	"carDropoffTime": 120,
+    	"waitReluctance": 0.8,
+    	"waitAtBeginningFactor": 0.4,
+    	"walkBoardCost": 600,
+    	"bikeBoardCost": 600,
+    	"otherThanPreferredRoutesPenalty": 300,
+    	"transferSlack": 120,
+    	"boardSlack": 0,
+    	"alightSlack": 0,
+    	"maxTransfers": 10,
+    	"reverseOptimizeOnTheFly": false,
+    	"compactLegsByReversedSearch": true,
+    	"carDecelerationSpeed": 2.9,
+    	"carAccelerationSpeed": 2.9,
+    	"ignoreRealtimeUpdates": false,
+    	"disableRemainingWeightHeuristic": false,
+    	"softWalkLimiting": true,
+    	"softPreTransitLimiting": true,
+    	"softWalkPenalty": 60.0,
+    	"softWalkOverageRate": 5.0,
+    	"preTransitPenalty": 300.0,
+    	"preTransitOverageRate": 10.0,
+    	"allowBikeRental": false,
+    	"bikeParkAndRide": false,
+    	"parkAndRide": false,
+    	"kissAndRide": false,
+    	"useTraffic": true,
+    	"onlyTransitTrips": false,
+    	"disableAlertFiltering": false,
+    	"geoidElevation": false,
+    	"preferredInterchangePenalty": 0,
+    	"recommendedInterchangePenalty": 60,
+    	"interchangeAllowedPenalty": 150,
+    	"noInterchangePenalty": 3000,
+    	"callAndRideReluctance": 1.0
+      },
+      "stopClusterMode": "parentStation",
+     "useFlexService": {{ .Values.configuration.useFlexService }},
+    	"timeouts": [9, 6, 3, 2, 1, 1, 1, 1],
+
+    	"totalTimeout": 15,
+
+      "boardTimes": {
+        "INTERNATIONAL_FLIGHT": 5400,
+        "DOMESTIC_FLIGHT": 2100
+      },
+      "alightTimes": {
+        "INTERNATIONAL_FLIGHT": 1800,
+        "DOMESTIC_FLIGHT": 900
+      },
+      "kartverketTokenUrl": {
+        "url": "https://stoppested.entur.org/token"
+      },
+
+      "updaters": [
+          {
+    		//Bysykkel Bergen
+    		network: "Bergen bysykkel",
+    		type: "bike-rental",
+    		sourceType: "gbfs",
+    		url: "https://gbfs.urbansharing.com/bergenbysykkel.no/",
+    		frequencySec: 15
+          },
+    	  {
+             //Bysykkel Trondheim
+    		 network: "Trondheim bysykkel",
+              type: "bike-rental",
+              sourceType: "gbfs",
+              url: "https://gbfs.urbansharing.com/trondheimbysykkel.no/",
+              frequencySec: 15
+          },
+          {
+             //Bysykkel Oslo
+    		 network: "Oslo bysykkel",
+              type: "bike-rental",
+              sourceType: "gbfs",
+     url: "https://gbfs.urbansharing.com/oslobysykkel.no/",
+              frequencySec: 15
+     },
+       {
+             //Bysykkel Lillestrøm
+    		 network: "Lillestrøm bysykkel",
+              type: "bike-rental",
+              sourceType: "jcdecaux",
+      url: "https://api.jcdecaux.com/vls/v1/stations?contract=lillestrom&apiKey=${LILLESTROM_BYSYKKEL_API_KEY}",
+              frequencySec: 15
+     },
+     {
+             //Bysykkel Drammen
+    		 network: "Drammen bysykkel",
+              type: "bike-rental",
+              sourceType: "smartbike",
+      url: "https://drammen.pub.api.smartbike.com/api/en/v3/",
+     accessTokenUrl: "https://drammen.pub.api.smartbike.com/oauth/v2/token",
+     publicId: "${DRAMMEN_BYSYKKEL_PUBLIC_ID}",
+     secret: "${DRAMMEN_BYSYKKEL_SECRET}",
+              frequencySec: 15
+     },
+         // SIRI SX service alerts
+            {
+              "type": "siri-sx-updater",
+              "frequencySec": 60,
+              "url": "{{ .Values.configuration.siriSXUpdater }}",
+              "feedId": "siri-sx",
+              "blockReadinessUntilInitialized": true
+            },
+            // SIRI ET updater
+            {
+              "type": "siri-et-updater",
+              "frequencySec": 20,
+       "previewIntervalMinutes": 180,
+            "url": "{{ .Values.configuration.siriETUpdater }}",
+              "feedId": "siri-et",
+              "blockReadinessUntilInitialized": true
+            },
+            // SIRI VM updater
+            {
+              "type": "siri-vm-updater",
+              "frequencySec": 60,
+              "url": "{{ .Values.configuration.siriVMUpdater }}",
+              "feedId": "siri-vm",
+              "blockReadinessUntilInitialized": true
+            },
+
+    	// Car park-updater
+            {
+              "type": "car-park",
+              "sourceType": "siemens-parkandride",
+              "frequencySec": 60,
+              "url": "https://us-central1-carbon-1287.cloudfunctions.net/parking"
+
+            }
+      ]
+    }
+kind: ConfigMap
+metadata:
+  name: {{ template "otp.name" . }}-router-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels" . | indent 4 }}

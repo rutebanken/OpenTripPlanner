@@ -1,0 +1,76 @@
+{{- if .Values.cronjobRedeployOtp.enabled }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  labels:
+    {{- include "conrjobOtpRedeploy.labels" . | indent 4 }}
+  name: cronjob-redeploy-{{ template "otp.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  concurrencyPolicy: {{ .Values.cronjobRedeployOtp.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.cronjobRedeployOtp.failedJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+          - command:
+            - ./redeploy_otp.sh
+            env:
+            - name: TZ
+              value: Europe/Oslo
+            - name: CLOUDSDK_CORE_PROJECT
+              value: {{ .Values.cronjobRedeployOtp.environmentValues.cloudsdkCoreProject }}
+            - name: CURRENT_FILE_PATH
+              value: {{ .Values.environmentValues.mardukGcpBaseName }}graphs/current
+            - name: LAST_FILE_PATH
+              value: {{ .Values.environmentValues.mardukGcpBaseName }}otp-redeploy-cronjob/last
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  key: {{ .Values.cronjobRedeployOtp.environmentValues.otpRedeploySlack }}
+                  name: otp-redeploy-slack
+            image: {{ .Values.cronjobRedeployOtp.image.repo }}
+            imagePullPolicy: IfNotPresent
+            name: redeploy-otp-job
+            resources:
+              limits:
+                cpu: {{ .Values.cronjobRedeployOtp.resources.cpuLimit }}
+                memory: {{ .Values.cronjobRedeployOtp.resources.memLimit }}
+              requests:
+                cpu: {{ .Values.cronjobRedeployOtp.resources.cpuRequest }}
+                memory: {{ .Values.cronjobRedeployOtp.resources.memRequest }}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              subPath: {{ .subPath }}
+              readOnly: {{ .readOnly }}
+            {{- end }}
+          dnsPolicy: ClusterFirst
+          {{- if .Values.image.imagePullSecrets.enabled  }}
+          imagePullSecrets:
+            - name: {{ .Values.image.imagePullSecrets.name }}
+          {{- end }}
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: cronjob-redeploy-{{ template "otp.name" . }}
+          serviceAccountName: cronjob-redeploy-{{ template "otp.name" . }}
+          terminationGracePeriodSeconds: 30
+          volumes:
+          {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              secret:
+                secretName: {{ .secretName }}
+          {{- end }}
+  schedule: '*/1 * * * *'
+  successfulJobsHistoryLimit: {{ .Values.cronjobRedeployOtp.successfulJobsHistoryLimit }}
+  suspend: false
+{{- end }}

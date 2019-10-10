@@ -1422,8 +1422,8 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * @return The time it actually takes to board a vehicle. Could be significant eg. on airplanes and ferries
      */
-    public int getBoardTime(TraverseMode transitMode) {
-        Integer i = this.rctx.graph.boardTimes.get(transitMode);
+    public int getBoardTime(TransmodelTransportSubmode transportSubmode) {
+        Integer i = this.rctx.graph.boardTimes.get(transportSubmode);
         return i == null ? 0 : i;
     }
 
@@ -1439,8 +1439,8 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * @return The time it actually takes to alight a vehicle. Could be significant eg. on airplanes and ferries
      */
-    public int getAlightTime(TraverseMode transitMode) {
-        Integer i = this.rctx.graph.alightTimes.get(transitMode);
+    public int getAlightTime(TransmodelTransportSubmode transportSubmode) {
+        Integer i = this.rctx.graph.alightTimes.get(transportSubmode);
         return i == null ? 0 : i;
     }
 

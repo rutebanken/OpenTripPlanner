@@ -1,0 +1,32 @@
+env: production-c2
+
+replicas: 20
+
+horizontalPodAutoscaler:
+  enabled: true
+  maxReplicas: 65
+  targetCPUUtilizationPercentage: 90
+
+rollingUpdate:
+  maxSurge: 5
+  maxUnavailable: 1
+
+environmentValues:
+  mardukGcpBaseName: "gs://marduk-production/"
+
+cronjobRedeployOtp:
+  environmentValues:
+    cloudsdkCoreProject: neon-1287
+
+secretMounts:
+  - name: marduk-key
+    mountPath: /etc/marduk/marduk-blobstore-credentials.json
+    subPath: marduk-blobstore-credentials.json
+    secretName: marduk-neon-storage-key
+    readOnly: true
+
+configuration:
+  siriVMUpdater: https://api.entur.io/realtime/v1/services
+  siriETUpdater: https://api.entur.io/realtime/v1/services
+  siriSXUpdater: https://api.entur.io/realtime/v1/services?maxSize=50
+  useFlexService: true

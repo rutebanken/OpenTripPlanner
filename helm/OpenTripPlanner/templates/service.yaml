@@ -3,16 +3,16 @@ kind: Service
 metadata:
   labels:
     {{- include "common.labels" . | indent 4 }}
-  name: {{ .Release.Name }}
+  name: {{ template "otp.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-    - name: http
-      port: {{ .Values.service.externalPort }}
+    - name: otp
+      port: {{ .Values.service.otp.externalPort }}
       protocol: TCP
-      targetPort: {{ .Values.service.internalPort }}
+      targetPort: {{ .Values.service.otp.nternalPort }}
   selector:
-    name: {{ .Release.Name }}
+    app: {{ template "otp.name" . }}
   sessionAffinity: None
   type: ClusterIP
 

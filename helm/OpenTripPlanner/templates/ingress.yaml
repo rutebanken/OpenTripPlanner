@@ -1,0 +1,67 @@
+{{- if .Values.ingress.c2.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    {{- include "common.labels" . | indent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    {{- if eq .Values.env "production-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.productionIpOrg }}
+    {{ else if eq .Values.env "staging-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.stagingIpOrg }}
+    {{ else if eq .Values.env "dev-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.devIpOrg }}
+    {{- end}}
+  name: otpdebug
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  {{- if eq .Values.env "production-c2"}}
+  - host: otpdebug.entur.org
+  {{ else }}
+  - host: otpdebug.{{ .Release.Namespace }}.entur.org
+  {{- end}}
+    http:
+      paths:
+      - backend:
+          serviceName: otp
+          servicePort: 8080
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    {{- include "common.labels" . | indent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    {{- if eq .Values.env "production-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.productionIpOrg }}
+    {{ else if eq .Values.env "staging-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.stagingIpOrg }}
+    {{ else if eq .Values.env "dev-c2"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.c2.devIpOrg }}
+    {{- end}}
+    traefik.ingress.kubernetes.io/rate-limit: |
+      extractorfunc: client.ip
+      rateset:
+        api-rateset:
+          period: 60s
+          average: 20
+          burst: 20
+  name: otpdebug-graphql
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  {{- if eq .Values.env "production-c2"}}
+  - host: otpdebug.entur.org
+  {{ else }}
+  - host: otpdebug.{{ .Release.Namespace }}.entur.org
+  {{- end}}
+    http:
+      paths:
+      - backend:
+          serviceName: otp
+          servicePort: 8080
+        path: /otp/routers/default/transmodel/index/graphql
+{{- end }}

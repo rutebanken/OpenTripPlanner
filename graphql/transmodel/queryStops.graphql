@@ -1,0 +1,43 @@
+query stops {
+    stopPlaces(ids : ["RB:NSR:StopPlace:6017", "RB:NSR:StopPlace:6014"]) {
+        id
+        name
+        transportMode
+        transportSubmode
+        adjacentSites
+        parent {
+            id
+            name
+            transportMode
+            transportSubmode
+            parent {
+                id
+                name
+                transportMode
+            }
+        }
+    }
+}
+
+
+query stopByBox {
+    stopPlacesByBbox(
+        minimumLatitude:  59.925
+        maximumLatitude:  59.929
+        minimumLongitude:  10.757
+        maximumLongitude: 10.763
+        multiModalMode:   all
+    ) {
+        id
+        name
+        latitude
+        longitude
+        transportMode
+        transportSubmode
+        parent {
+            id
+            name
+            transportMode
+        }
+    }
+}

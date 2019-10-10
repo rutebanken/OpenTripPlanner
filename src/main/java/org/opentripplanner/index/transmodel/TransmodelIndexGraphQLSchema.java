@@ -3241,15 +3241,19 @@ public class TransmodelIndexGraphQLSchema {
                                         );
                             }
                             if (environment.getArgument("publicCode") != null) {
+                                String publicCode = ((String)environment.getArgument("publicCode")).toLowerCase();
                                 stream = stream
                                         .filter(route -> route.getShortName() != null)
-                                        .filter(route -> route.getShortName().equals(environment.getArgument("publicCode")));
+                                        .filter(route -> route.getShortName().toLowerCase().equals(publicCode));
                             }
                             if (environment.getArgument("publicCodes") instanceof List) {
-                                Set<String> publicCodes = new HashSet<>((List)environment.getArgument("publicCodes"));
+                                // The 'publicCodes' are nullable, so we must filter away null elements
+                                Set<String> publicCodes = ((List<String>) environment.getArgument("publicCodes"))
+                                        .stream().filter(Objects::nonNull).map(String::toLowerCase).collect(Collectors.toSet());
+
                                 stream = stream
                                                  .filter(route -> route.getShortName() != null)
-                                                 .filter(route -> publicCodes.contains(route.getShortName()));
+                                                 .filter(route -> publicCodes.contains(route.getShortName().toLowerCase()));
                             }
                             if (environment.getArgument("transportModes") != null) {
 
@@ -4620,7 +4624,12 @@ public class TransmodelIndexGraphQLSchema {
         if (parentId == null) {
             return Optional.empty();
         }
-        return Optional.of(index.stationForId.get(mappingUtil.fromIdString(parentId)));
+        Stop parent = index.stationForId.get(mappingUtil.fromIdString(parentId));
+        if(parent == null) {
+            LOG.warn("Multi-modal stop place {} not found for {}.", parentId, stopPlace);
+            return Optional.empty();
+        }
+        return Optional.of(parent);
     }
 
 

@@ -8,6 +8,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.opentripplanner.inspector.TileRendererManager;
+import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.reflect.ReflectiveInitializer;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -128,8 +129,8 @@ public class Router {
 
         JsonNode boardTimes = config.get("boardTimes");
         if (boardTimes != null && boardTimes.isObject()) {
-            graph.boardTimes = new EnumMap<>(TraverseMode.class);
-            for (TraverseMode mode : TraverseMode.values()) {
+            graph.boardTimes = new EnumMap<>(TransmodelTransportSubmode.class);
+            for (TransmodelTransportSubmode mode : TransmodelTransportSubmode.values()) {
                 if (boardTimes.has(mode.name())) {
                     graph.boardTimes.put(mode, boardTimes.get(mode.name()).asInt(0));
                 }
@@ -148,8 +149,8 @@ public class Router {
 
         JsonNode alightTimes = config.get("alightTimes");
         if (alightTimes != null && alightTimes.isObject()) {
-            graph.alightTimes = new EnumMap<>(TraverseMode.class);
-            for (TraverseMode mode : TraverseMode.values()) {
+            graph.alightTimes = new EnumMap<>(TransmodelTransportSubmode.class);
+            for (TransmodelTransportSubmode mode : TransmodelTransportSubmode.values()) {
                 if (alightTimes.has(mode.name())) {
                     graph.alightTimes.put(mode, alightTimes.get(mode.name()).asInt(0));
                 }

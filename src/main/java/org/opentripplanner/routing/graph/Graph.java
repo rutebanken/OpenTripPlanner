@@ -44,6 +44,7 @@ import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.FeedInfo;
+import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.CalendarService;
@@ -225,13 +226,13 @@ public class Graph implements Serializable, AddBuilderAnnotation {
     public boolean hasScheduledService = false;
 
     /** Has information how much time boarding a vehicle takes. Can be significant eg in airplanes or ferries. */
-    public Map<TraverseMode, Integer> boardTimes = Collections.EMPTY_MAP;
+    public Map<TransmodelTransportSubmode, Integer> boardTimes = Collections.EMPTY_MAP;
 
     /** Has information how different transport modes are weighted. By default a weight of 1 is assigned. higher weight means higher cost. */
     public Map<TraverseMode, Double> modeWeights = Collections.EMPTY_MAP;
 
     /** Has information how much time alighting a vehicle takes. Can be significant eg in airplanes or ferries. */
-    public Map<TraverseMode, Integer> alightTimes = Collections.EMPTY_MAP;
+    public Map<TransmodelTransportSubmode, Integer> alightTimes = Collections.EMPTY_MAP;
 
     /** A speed source for traffic data */
     public transient StreetSpeedSnapshotSource streetSpeedSource;

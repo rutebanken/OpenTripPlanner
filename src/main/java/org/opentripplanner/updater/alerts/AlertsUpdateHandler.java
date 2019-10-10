@@ -484,6 +484,9 @@ public class AlertsUpdateHandler {
                                         continue;
                                     }
                                 }
+                                if (effectiveEndDate == null) {
+                                    effectiveEndDate = new Date(Long.MAX_VALUE);
+                                }
                                 if (! affectedStops.isEmpty()) {
                                     for (AffectedStopPointStructure affectedStop : affectedStops) {
                                         AgencyAndId stop = siriFuzzyTripMatcher.getStop(affectedStop.getStopPointRef().getValue());

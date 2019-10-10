@@ -1,26 +1,79 @@
-minReplicas: 5
-maxReplicas: 5
-image: eu.gcr.io/entur-system-1287/otp
-imageTag: release-1.0.13
-imagePullPolicy: Always
-slack: talk-ror
-team: ror
-type: backend
-app: otp
-api: journey-planner-v2
-service:
-  name: otp
-  type: ClusterIP
-  externalPort: 8080
-  internalPort: 8080
+env: dev-c2
+
+replicas: 4
+
+horizontalPodAutoscaler:
+  enabled: true
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+rollingUpdate:
+  maxSurge: 2
+  maxUnavailable: 1
+
 resources:
   cpuLimit: "7"
-  memLimit: 1600Mi
-  cpuRequest: "2"
-  memRequest: 1400Mi
-  xmx: 12g
-  xms: 7g
+  memLimit: 16000Mi
+  cpuRequest: "4"
+  memRequest: 10000Mi
+  xmx: 11g
+  xms: 9g
 
+environmentValues:
+  mardukGcpBaseName: "gs://marduk/"
+  routerConfigName: router-config.json
 
+secretMounts: []
+  # - name: marduk-key
+  #   mountPath: /etc/marduk/marduk-blobstore-credentials.json
+  #   subPath: marduk-blobstore-credentials.json
+  #   secretName: marduk-carbon-storage-key
+  #   readOnly: true
 
+configmapMounts:
+  - name: config-volume
+    mountPath: /code/otpdata/norway/router-config.json
+    subPath: router-config.json
+    configMap: otp-router-config
+    readOnly: true
 
+image:
+  repo: eu.gcr.io/entur-system-1287/otp
+  imagePullPolicy: Always
+  imagePullSecrets:
+    enabled: true
+    name: rutebanken-registry-key
+
+service:
+  otp:
+    externalPort: 8080
+    internalPort: 8080
+
+ingress:
+  c2: 
+    enabled: true
+    devIpOrg: 34.90.8.202
+    stagingIpOrg: 34.90.167.146
+    productionIpOrg: 35.204.106.27
+
+cronjobRedeployOtp:
+  enabled: true
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Allow
+  resources:
+    cpuLimit: 900m
+    memLimit: 2550Mi
+    cpuRequest: 100m
+    memRequest: 1000Mi
+  image:
+    repo: eu.gcr.io/carbon-1287/gcloud-sdk:258.0.0
+  environmentValues:
+    otpRedeploySlack: slack-url
+    cloudsdkCoreProject: carbon-1287
+
+configuration:
+  siriVMUpdater: https://api.dev.entur.io/realtime/v1/services
+  siriETUpdater: https://api.dev.entur.io/realtime/v1/services
+  siriSXUpdater: https://api.dev.entur.io/realtime/v1/services?maxSize=50
+  useFlexService: true

@@ -307,6 +307,14 @@ public class SiriFuzzyTripMatcher {
         if (trip != null) {
             return trip.getId();
         }
+        //Fallback to handle extrajourneys
+        for (String feedId : index.agenciesForFeedId.keySet()) {
+            trip = index.tripForId.get(new AgencyAndId(feedId, vehicleJourney));
+            if (trip != null) {
+                vehicleJourneyTripCache.put(vehicleJourney, trip);
+                return trip.getId();
+            }
+        }
         return null;
     }
 

@@ -35,13 +35,15 @@ public class CalendarMapper {
     private static final Logger LOG = LoggerFactory.getLogger(CalendarMapper.class);
 
     public static Collection<ServiceCalendarDate> mapToCalendarDates(AgencyAndId serviceId, NetexDao netexDao) {
-        Collection<ServiceCalendarDate> serviceCalendarDates = new ArrayList<>();
-        Collection<ServiceCalendarDate> serviceCalendarDatesRemove = new HashSet<>();
+
         String[] dayTypeIds = serviceId.getId().split("\\+");
 
-        for(String dayTypeId : dayTypeIds) {
-            Collection<DayTypeAssignment> dayTypeAssignmentList = netexDao.dayTypeAssignmentByDayTypeId.lookup(dayTypeId);
+        Collection<ServiceCalendarDate> allServiceCalendarDates = new HashSet<>();
 
+        for(String dayTypeId : dayTypeIds) {
+            Collection<ServiceCalendarDate> serviceCalendarDatesForDayType = new HashSet<>();
+            Collection<ServiceCalendarDate> serviceCalendarDatesRemoveForDayType = new HashSet<>();
+            Collection<DayTypeAssignment> dayTypeAssignmentList = netexDao.dayTypeAssignmentByDayTypeId.lookup(dayTypeId);
 
             for (DayTypeAssignment dayTypeAssignment : dayTypeAssignmentList) {
                 Boolean isAvailable = netexDao.dayTypeAvailable.lookup(dayTypeAssignment.getId());
@@ -51,9 +53,9 @@ public class CalendarMapper {
                     LocalDateTime date = dayTypeAssignment.getDate();
                     ServiceCalendarDate serviceCalendarDate = mapServiceCalendarDate(date, serviceId, 1);
                     if (isAvailable) {
-                        serviceCalendarDates.add(serviceCalendarDate);
+                        serviceCalendarDatesForDayType.add(serviceCalendarDate);
                     } else {
-                        serviceCalendarDatesRemove.add(serviceCalendarDate);
+                        serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                     }
                 }
                 // Add or remove periods
@@ -77,69 +79,69 @@ public class CalendarMapper {
                         ServiceCalendarDate serviceCalendarDate = mapServiceCalendarDate(date, serviceId, 1);
 
                         if (daysOfWeek.contains(DayOfWeekEnumeration.EVERYDAY)) {
-                            serviceCalendarDates.add(serviceCalendarDate);
+                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                         } else {
                             switch (date.getDayOfWeek()) {
                                 case MONDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.MONDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case TUESDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.TUESDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case WEDNESDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.WEDNESDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case THURSDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.THURSDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case FRIDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKDAYS) || daysOfWeek.contains(DayOfWeekEnumeration.FRIDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case SATURDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKEND) || daysOfWeek.contains(DayOfWeekEnumeration.SATURDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
                                 case SUNDAY:
                                     if (daysOfWeek.contains(DayOfWeekEnumeration.WEEKEND) || daysOfWeek.contains(DayOfWeekEnumeration.SUNDAY)) {
                                         if (isAvailable) {
-                                            serviceCalendarDates.add(serviceCalendarDate);
+                                            serviceCalendarDatesForDayType.add(serviceCalendarDate);
                                         } else {
-                                            serviceCalendarDatesRemove.add(serviceCalendarDate);
+                                            serviceCalendarDatesRemoveForDayType.add(serviceCalendarDate);
                                         }
                                     }
                                     break;
@@ -149,17 +151,17 @@ public class CalendarMapper {
                     }
                 }
             }
+            serviceCalendarDatesForDayType.removeAll(serviceCalendarDatesRemoveForDayType);
+            allServiceCalendarDates.addAll(serviceCalendarDatesForDayType);
         }
 
-        serviceCalendarDates.removeAll(serviceCalendarDatesRemove);
-
-        if (serviceCalendarDates.isEmpty()) {
+        if (allServiceCalendarDates.isEmpty()) {
             LOG.warn("ServiceCode " + serviceId + " does not contain any serviceDates");
             // Add one date exception when list is empty to ensure serviceId is not lost
-            serviceCalendarDates.add(mapServiceCalendarDate(LocalDate.now().atStartOfDay(), serviceId, 2));
+            allServiceCalendarDates.add(mapServiceCalendarDate(LocalDate.now().atStartOfDay(), serviceId, 2));
         }
 
-        return serviceCalendarDates;
+        return allServiceCalendarDates;
     }
 
     private static ServiceCalendarDate mapServiceCalendarDate(LocalDateTime date, AgencyAndId serviceId, Integer exceptionType) {

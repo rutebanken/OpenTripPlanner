@@ -160,9 +160,9 @@ public class Timetable implements Serializable {
         // NOTE the time is sometimes negative here. That is fine, we search for the first trip of the day.
         // Adjust for possible boarding time TODO: This should be included in the trip and based on GTFS
         if (boarding) {
-            time += s0.getOptions().getBoardTime(this.pattern.mode);
+            time += s0.getOptions().getBoardTime(this.pattern.route.getTransportSubmode());
         } else {
-            time -= s0.getOptions().getAlightTime(this.pattern.mode);
+            time -= s0.getOptions().getAlightTime(this.pattern.route.getTransportSubmode());
         }
         TripTimes bestTrip = null;
         Stop currentStop = pattern.getStop(stopIndex);
@@ -259,9 +259,9 @@ public class Timetable implements Serializable {
         // NOTE the time is sometimes negative here. That is fine, we search for the first trip of the day.
         // Adjust for possible boarding time TODO: This should be included in the trip and based on GTFS
         if (boarding) {
-            time += s0.getOptions().getBoardTime(this.pattern.mode);
+            time += s0.getOptions().getBoardTime(this.pattern.route.getTransportSubmode());
         } else {
-            time -= s0.getOptions().getAlightTime(this.pattern.mode);
+            time -= s0.getOptions().getAlightTime(this.pattern.route.getTransportSubmode());
         }
         TripTimes bestTrip = null;
         Stop currentStop = pattern.getStop(stopIndex);
@@ -728,6 +728,13 @@ public class Timetable implements Serializable {
                         departureDate = recordedCall.getAimedDepartureTime();
                         if (departureDate == null) {
                             departureDate = recordedCall.getAimedArrivalTime();
+                        }
+                        if (oldTimes.getDepartureTime(0) > 86400) {
+                            // The "departure-date" for this trip is set to "yesterday" (or before) even though it actually departs "today"
+
+                            int dayOffsetCount = oldTimes.getDepartureTime(0)/86400; // calculate number of offset-days
+
+                            departureDate = departureDate.minusDays(dayOffsetCount);
                         }
                     }
 

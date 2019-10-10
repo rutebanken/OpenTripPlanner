@@ -29,7 +29,6 @@ import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.vertextype.TransitStation;
 import org.opentripplanner.routing.vertextype.TransitStop;
 import org.opentripplanner.standalone.Router;
-import org.opentripplanner.updater.bike_rental.GenericJsonBikeRentalDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +46,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.opentripplanner.index.transmodel.RemoveAccessEgressFootPathsStationFilter.removeAccessAndEgressFootPathsAtStation;
+
 public class TransmodelGraphQLPlanner {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransmodelGraphQLPlanner.class);
@@ -63,14 +64,16 @@ public class TransmodelGraphQLPlanner {
         GraphPathFinder gpFinder = new GraphPathFinder(router);
 
         TripPlan plan = new TripPlan(
-                                            new Place(request.from.lng, request.from.lat, request.getFromPlace().name),
-                                            new Place(request.to.lng, request.to.lat, request.getToPlace().name),
-                                            request.getDateTime());
+                new Place(request.from.lng, request.from.lat, request.getFromPlace().name),
+                new Place(request.to.lng, request.to.lat, request.getToPlace().name),
+                request.getDateTime()
+        );
         List<Message> messages = new ArrayList<>();
         DebugOutput debugOutput = new DebugOutput();
 
         try {
             List<GraphPath> paths = gpFinder.graphPathFinderEntryPoint(request);
+            removeAccessAndEgressFootPathsAtStation(paths, sourceStopId(request.from), sourceStopId(request.to));
             plan = GraphPathToTripPlanConverter.generatePlan(paths, request);
         } catch (Exception e) {
             PlannerError error = new PlannerError(e);
@@ -78,12 +81,10 @@ public class TransmodelGraphQLPlanner {
                 LOG.warn("Error while planning path: ", e);
             messages.add(error.message);
         } finally {
-            if (request != null) {
-                if (request.rctx != null) {
-                    debugOutput = request.rctx.debugOutput;
-                }
-                request.cleanup(); // TODO verify that this cleanup step is being done on Analyst web services
+            if (request.rctx != null) {
+                debugOutput = request.rctx.debugOutput;
             }
+            request.cleanup(); // TODO verify that this cleanup step is being done on Analyst web services
         }
 
         return ImmutableMap.<String, Object>builder()
@@ -108,6 +109,19 @@ public class TransmodelGraphQLPlanner {
         }
     }
 
+    private AgencyAndId sourceStopId(GenericLocation location) {
+        try {
+            if (location.hasVertexId() && !location.vertexId.isBlank()) {
+                return mappingUtil.fromIdString(location.vertexId);
+            }
+            return mappingUtil.fromIdStringOrBlank(location.place);
+        }
+        catch (Exception e) {
+            LOG.warn("Unable to map location to an Stop id. Location: {}", location);
+            return null;
+        }
+    }
+
     private static <T> void call(DataFetchingEnvironment environment, String name, Consumer<T> consumer) {
         if (!name.contains(".")) {
             if (hasArgument(environment, name)) {
@@ -116,7 +130,7 @@ public class TransmodelGraphQLPlanner {
         } else {
             String[] parts = name.split("\\.");
             if (hasArgument(environment, parts[0])) {
-                Map<String, T> nm = (Map<String, T>) environment.getArgument(parts[0]);
+                Map<String, T> nm = environment.getArgument(parts[0]);
                 call(nm, String.join(".", Arrays.copyOfRange(parts, 1, parts.length)), consumer);
             }
         }
@@ -171,11 +185,11 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("maximumWalkDistance", request::setMaxWalkDistance);
         callWith.argument("maxTransferWalkDistance", request::setMaxTransferWalkDistance);
         callWith.argument("maxPreTransitTime", request::setMaxPreTransitTime);
-        callWith.argument("preTransitReluctance", (Double v) ->  request.setPreTransitReluctance(v));
-        callWith.argument("maxPreTransitWalkDistance", (Double v) ->  request.setMaxPreTransitWalkDistance(v));
+        callWith.argument("preTransitReluctance", request::setPreTransitReluctance);
+        callWith.argument("maxPreTransitWalkDistance", request::setMaxPreTransitWalkDistance);
         callWith.argument("walkBoardCost", request::setWalkBoardCost);
-        callWith.argument("walkReluctance", (Double v) ->  request.setWalkReluctance(v));
-        callWith.argument("waitReluctance", (Double v) ->  request.setWaitReluctance(v));
+        callWith.argument("walkReluctance", request::setWalkReluctance);
+        callWith.argument("waitReluctance", request::setWaitReluctance);
         callWith.argument("walkBoardCost", request::setWalkBoardCost);
         callWith.argument("walkOnStreetReluctance", request::setWalkOnStreetReluctance);
         callWith.argument("waitReluctance", request::setWaitReluctance);
@@ -315,6 +329,7 @@ public class TransmodelGraphQLPlanner {
     }
 
     private void getLocationOfFirstQuay(GenericLocation location, GraphIndex graphIndex) {
+        // TODO - This is a hack, the request object is changed!!! What if the original info is needed?
         Vertex vertex = graphIndex.vertexForId.get(location.vertexId);
         if (vertex instanceof TransitStation) {
             TransitStop stopVertex = ((TransitStop)vertex.getOutgoing().stream()
@@ -325,11 +340,11 @@ public class TransmodelGraphQLPlanner {
         }
     }
 
-    public static boolean hasArgument(DataFetchingEnvironment environment, String name) {
+    private static boolean hasArgument(DataFetchingEnvironment environment, String name) {
         return environment.containsArgument(name) && environment.getArgument(name) != null;
     }
 
-    public static <T> boolean hasArgument(Map<String, T> m, String name) {
+    private static <T> boolean hasArgument(Map<String, T> m, String name) {
         return m.containsKey(name) && m.get(name) != null;
     }
 
