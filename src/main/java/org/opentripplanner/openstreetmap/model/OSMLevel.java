@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.opentripplanner.graph_builder.annotation.FloorNumberUnknownAssumedGroundLevel;
+import org.opentripplanner.graph_builder.annotation.FloorNumberUnknownGuessedFromAltitude;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +63,7 @@ public class OSMLevel implements Comparable<OSMLevel> {
      * makes an OSMLevel from one of the semicolon-separated fields in an OSM
      * level map relation's levels= tag.
      */
-    public static OSMLevel fromString (String spec, Source source, boolean incrementNonNegative) {
+    public static OSMLevel fromString (String spec, Source source, boolean incrementNonNegative, AddBuilderAnnotation addBuilderAnnotation) {
 
         /*  extract any altitude information after the @ character */
         Double altitude = null;
@@ -122,7 +125,7 @@ public class OSMLevel implements Comparable<OSMLevel> {
         /* fall back on altitude when necessary */
         if (floorNumber == null && altitude != null) {
             floorNumber = (int)(altitude / METERS_PER_FLOOR);
-            LOG.warn("Could not determine floor number for layer {}. Guessed {} (0-based) from altitude.", spec, floorNumber);
+            addBuilderAnnotation.addBuilderAnnotation(new FloorNumberUnknownGuessedFromAltitude(spec, floorNumber));
             reliable = false;
         }
 
@@ -133,8 +136,7 @@ public class OSMLevel implements Comparable<OSMLevel> {
         /* signal failure to extract any useful level information */
         if (floorNumber == null) {
             floorNumber = 0;
-            LOG.warn("Could not determine floor number for layer {}, assumed to be ground-level.", 
-                 spec, floorNumber);
+            addBuilderAnnotation.addBuilderAnnotation(new FloorNumberUnknownAssumedGroundLevel(spec, floorNumber));
             reliable = false;
         }
         return new OSMLevel(floorNumber, altitude, shortName, longName, source, reliable);

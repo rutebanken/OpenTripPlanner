@@ -36,6 +36,7 @@ import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.ServiceDay;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.trippattern.FrequencyEntry;
@@ -403,7 +404,7 @@ public class TripPattern implements Cloneable, Serializable {
      * combination will create unique names). from, to, via, express. Then concatenate all necessary
      * fields. Express should really be determined from number of stops and/or run time of trips.
      */
-    public static void generateUniqueNames (Collection<TripPattern> tableTripPatterns, Graph graph) {
+    public static void generateUniqueNames (Collection<TripPattern> tableTripPatterns, AddBuilderAnnotation addBuilderAnnotation) {
         LOG.info("Generating unique names for stop patterns on each route.");
         Set<String> usedRouteNames = Sets.newHashSet();
         Map<Route, String> uniqueRouteNames = Maps.newHashMap();
@@ -422,7 +423,7 @@ public class TripPattern implements Cloneable, Serializable {
                 String generatedRouteName;
                 do generatedRouteName = routeName + " " + (i++);
                 while (usedRouteNames.contains(generatedRouteName));
-                graph.addBuilderAnnotation(new NonUniqueRouteName(generatedRouteName));
+                addBuilderAnnotation.addBuilderAnnotation(new NonUniqueRouteName(generatedRouteName));
                 routeName = generatedRouteName;
             }
             usedRouteNames.add(routeName);

@@ -2,10 +2,14 @@ package org.opentripplanner.netex.mapping;
 
 import org.locationtech.jts.geom.Geometry;
 import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.graph_builder.annotation.NoPassengerStopAssignment;
+import org.opentripplanner.graph_builder.annotation.NoQuayOrFlexibleStopPlaceForTimetabledPassingTimes;
+import org.opentripplanner.graph_builder.annotation.TimeMissingForTrip;
 import org.opentripplanner.model.*;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.routing.edgetype.TripPattern;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.rutebanken.netex.model.*;
@@ -28,7 +32,12 @@ public class TripPatternMapper {
     private static final int DAY_IN_SECONDS = 3600 * 24;
 
     private BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
+    private final AddBuilderAnnotation addBuilderAnnotation;
     private String currentHeadsign;
+
+    public TripPatternMapper(AddBuilderAnnotation addBuilderAnnotation) {
+        this.addBuilderAnnotation = addBuilderAnnotation;
+    }
 
     public void mapTripPattern(JourneyPattern journeyPattern, OtpTransitBuilder transitBuilder, NetexDao netexDao, String defaultFlexMaxTravelTime) {
         TripMapper tripMapper = new TripMapper();
@@ -202,7 +211,7 @@ public class TripPatternMapper {
                 stopTimes.add(new StopTimeWithBookingArrangement(stopTime, bookingArrangement));
                 ++stopSequence;
             } else {
-                LOG.warn("No quay or flexible stop place found for timetabledPassingTimes: " + passingTime.getId());
+                addBuilderAnnotation.addBuilderAnnotation(new NoQuayOrFlexibleStopPlaceForTimetabledPassingTimes(passingTime.getId()));
             }
         }
         return stopTimes;
@@ -272,7 +281,7 @@ public class TripPatternMapper {
         }
 
         if (passingTime.getArrivalTime() == null && passingTime.getDepartureTime() == null) {
-            LOG.warn("Time missing for trip " + trip.getId());
+            addBuilderAnnotation.addBuilderAnnotation(new TimeMissingForTrip(trip.getId()));
         }
 
         if (stopPoint.getDestinationDisplayRef() != null) {
@@ -304,8 +313,9 @@ public class TripPatternMapper {
                             .getScheduledStopPointRef();
                     String stopId = netexDao.quayIdByStopPointRef.lookup(scheduledStopPointRef.getValue().getRef());
                     if (stopId == null) {
-                        LOG.warn("No passengerStopAssignment found for " + scheduledStopPointRef
-                                .getValue().getRef());
+                        addBuilderAnnotation.addBuilderAnnotation(new NoPassengerStopAssignment(scheduledStopPointRef
+                                .getValue().getRef()));
+
                     } else {
                         Stop quay = transitBuilder.getStops()
                                 .get(AgencyAndIdFactory.createAgencyAndId(stopId));
@@ -337,8 +347,8 @@ public class TripPatternMapper {
                             .getScheduledStopPointRef();
                     String stopId = netexDao.flexibleStopPlaceIdByStopPointRef.lookup(scheduledStopPointRef.getValue().getRef());
                     if (stopId == null) {
-                        LOG.warn("No passengerStopAssignment found for " + scheduledStopPointRef
-                                .getValue().getRef());
+                        addBuilderAnnotation.addBuilderAnnotation(new NoPassengerStopAssignment(scheduledStopPointRef
+                                .getValue().getRef()));
                     } else {
                         FlexibleQuayWithArea flexibleQuayWithArea = transitBuilder.getFlexibleQuayWithArea()
                                 .get(AgencyAndIdFactory.createAgencyAndId(getFlexibleQuayRefFromStopPlaceRef(stopId)));
@@ -352,7 +362,6 @@ public class TripPatternMapper {
             }
         }
 
-        LOG.warn("Flexible quay with area not found");
         return null;
     }
 
