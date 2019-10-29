@@ -618,7 +618,7 @@ public class PatternHopFactory {
                 LineString geometry = createSimpleGeometry(st0.getStop(), st1.getStop());
                 geoms[i] = geometry;
                 //this warning is not strictly correct, but will do
-                LOG.warn(graph.addBuilderAnnotation(new BogusShapeGeometryCaught(shapeId, st0, st1)));
+                graph.addBuilderAnnotation(new BogusShapeGeometryCaught(shapeId, st0, st1));
             }
             return geoms;
         }
@@ -837,7 +837,7 @@ public class PatternHopFactory {
         double[] distances = getDistanceForShapeId(shapeId);
 
         if (distances == null) {
-            LOG.warn(graph.addBuilderAnnotation(new BogusShapeGeometry(shapeId)));
+            graph.addBuilderAnnotation(new BogusShapeGeometry(shapeId));
             return null;
         } else {
             LinearLocation startIndex = getSegmentFraction(distances, startDistance);
@@ -920,7 +920,7 @@ public class PatternHopFactory {
             geometry = _geometryFactory.createLineString(sequence);
 
             if (!isValid(geometry, st0.getStop(), st1.getStop())) {
-                LOG.warn(graph.addBuilderAnnotation(new BogusShapeGeometryCaught(shapeId, st0, st1)));
+                graph.addBuilderAnnotation(new BogusShapeGeometryCaught(shapeId, st0, st1));
                 //fall back to trivial geometry
                 geometry = createSimpleGeometry(st0.getStop(), st1.getStop());
             }
@@ -1099,7 +1099,7 @@ public class PatternHopFactory {
                     new StationStopEdge(parentStopVertex, stopVertex);
                     new StationStopEdge(stopVertex, parentStopVertex);
                 } else {
-                    LOG.warn(graph.addBuilderAnnotation(new NonStationParentStation(stopVertex)));
+                    graph.addBuilderAnnotation(new NonStationParentStation(stopVertex));
                 }
             }
         }

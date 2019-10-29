@@ -319,7 +319,7 @@ public class ElevationModule implements GraphBuilderModule {
                     PackedCoordinateSequence profile = new PackedCoordinateSequence.Double(coords);
 
                     if (edge.setElevationProfile(profile, true)) {
-                        log.trace(graph.addBuilderAnnotation(new ElevationFlattened(edge)));
+                        graph.addBuilderAnnotation(new ElevationFlattened(edge));
                     }
                 }
             }
@@ -373,7 +373,7 @@ public class ElevationModule implements GraphBuilderModule {
                 coordList.toArray(coordArr));
 
         if(ee.setElevationProfile(elevPCS, false)) {
-            log.trace(graph.addBuilderAnnotation(new ElevationFlattened(ee)));
+            graph.addBuilderAnnotation(new ElevationFlattened(ee));
         }
     }
 

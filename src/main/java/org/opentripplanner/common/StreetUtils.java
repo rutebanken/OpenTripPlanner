@@ -292,7 +292,7 @@ public class StreetUtils {
                 }
             }
         }
-        LOG.debug(graph.addBuilderAnnotation(new GraphConnectivity(island.getRepresentativeVertex(), island.streetSize())));
+        graph.addBuilderAnnotation(new GraphConnectivity(island.getRepresentativeVertex(), island.streetSize()));
     }
 
     private static Subgraph computeConnectedSubgraph(

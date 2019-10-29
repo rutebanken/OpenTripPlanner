@@ -158,11 +158,11 @@ public class SimpleStreetSplitter {
 
                 if (!link(v)) {
                     if (v instanceof TransitStop)
-                        LOG.warn(graph.addBuilderAnnotation(new StopUnlinked((TransitStop) v)));
+                        graph.addBuilderAnnotation(new StopUnlinked((TransitStop) v));
                     else if (v instanceof BikeRentalStationVertex)
-                        LOG.warn(graph.addBuilderAnnotation(new BikeRentalStationUnlinked((BikeRentalStationVertex) v)));
+                        graph.addBuilderAnnotation(new BikeRentalStationUnlinked((BikeRentalStationVertex) v));
                     else if (v instanceof BikeParkVertex)
-                        LOG.warn(graph.addBuilderAnnotation(new BikeParkUnlinked((BikeParkVertex) v)));
+                        graph.addBuilderAnnotation(new BikeParkUnlinked((BikeParkVertex) v));
                 };
             }
         }
@@ -234,7 +234,7 @@ public class SimpleStreetSplitter {
         if (!candidateEdges.isEmpty() && vertex instanceof TransitStop) {
             int distance = (int)SphericalDistanceLibrary.degreesToMeters(distances.get(candidateEdges.get(0)));
             if (distance > MIN_SNAP_DISTANCE_WARNING) {
-                LOG.info(String.format(graph.addBuilderAnnotation(new StopLinkedTooFar((TransitStop)vertex, distance))));
+                graph.addBuilderAnnotation(new StopLinkedTooFar((TransitStop)vertex, distance));
             }
         }
 
