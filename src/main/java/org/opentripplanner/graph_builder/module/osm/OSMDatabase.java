@@ -40,6 +40,8 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
 
     private static Logger LOG = LoggerFactory.getLogger(OSMDatabase.class);
 
+    private static final Logger GRAPH_BUILDER_ANNOTATION_LOG = LoggerFactory.getLogger("GRAPH_BUILDER_ANNOTATION_LOG");
+
     /* Map of all nodes used in ways/areas keyed by their OSM ID */
     private Map<Long, OSMNode> nodesById = new HashMap<Long, OSMNode>();
 
@@ -575,7 +577,7 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
                 level = OSMLevel.fromString(levelName, OSMLevel.Source.LAYER_TAG, noZeroLevels);
             }
             if (level == null || (!level.reliable)) {
-                LOG.warn(addBuilderAnnotation(new LevelAmbiguous(levelName, way.getId())));
+                addBuilderAnnotation(new LevelAmbiguous(levelName, way.getId()));
                 level = OSMLevel.DEFAULT;
             }
             wayLevels.put(way, level);
@@ -752,8 +754,8 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
             }
         }
         if (from == -1 || to == -1 || via == -1) {
-            LOG.warn(addBuilderAnnotation(new TurnRestrictionBad(relation.getId(),
-                "One of from|via|to edges are empty in relation")));
+            addBuilderAnnotation(new TurnRestrictionBad(relation.getId(),
+                "One of from|via|to edges are empty in relation"));
             return;
         }
 
@@ -765,7 +767,7 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
                     modes.setCar(false);
                 } else if (m.equals("bicycle")) {
                     modes.setBicycle(false);
-                    LOG.debug(addBuilderAnnotation(new TurnRestrictionException(via, from)));
+                    addBuilderAnnotation(new TurnRestrictionException(via, from));
                 }
             }
         }
@@ -796,7 +798,7 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
             tag = new TurnRestrictionTag(via, TurnRestrictionType.ONLY_TURN, Direction.U,
                 relation.getId());
         } else {
-            LOG.warn(addBuilderAnnotation(new TurnRestrictionUnknown(relation.getId(), relation.getTag("restriction"))));
+            addBuilderAnnotation(new TurnRestrictionUnknown(relation.getId(), relation.getTag("restriction")));
             return;
         }
         tag.modes = modes.clone();
@@ -902,13 +904,13 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
                 if (platformArea == null)
                     platformArea = areaWaysById.get(member.getRef());
                 else
-                    LOG.warn("Too many areas in relation " + relation.getId());
+                    addBuilderAnnotation(new TooManyAreasInRelation(relation.getId()));
             } else if ("relation".equals(member.getType()) && "platform".equals(member.getRole())
                     && relationsById.containsKey(member.getRef())) {
                 if (platformArea == null)
                     platformArea = relationsById.get(member.getRef());
                 else
-                    LOG.warn("Too many areas in relation " + relation.getId());
+                    addBuilderAnnotation(new TooManyAreasInRelation(relation.getId()));
             } else if ("node".equals(member.getType()) && nodesById.containsKey(member.getRef())) {
                 platformsNodes.add(nodesById.get(member.getRef()));
             }
@@ -916,7 +918,7 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
         if (platformArea != null && !platformsNodes.isEmpty())
             stopsInAreas.put(platformArea, platformsNodes);
         else
-            LOG.warn("Unable to process public transportation relation " + relation.getId());
+            addBuilderAnnotation(new UnableToProcessPublicTransportationRelation(relation.getId()));
     }
 
     private String addUniqueName(String routes, String name) {
@@ -929,9 +931,11 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
         return routes + ", " + name;
     }
 
-    private String addBuilderAnnotation(GraphBuilderAnnotation annotation) {
-        annotations.add(annotation);
-        return annotation.getMessage();
+    private void addBuilderAnnotation(GraphBuilderAnnotation gba) {
+        GRAPH_BUILDER_ANNOTATION_LOG.info(gba.getMessage());
+        if (this.annotations != null) {
+            this.annotations.add(gba);
+        }
     }
     
     /**

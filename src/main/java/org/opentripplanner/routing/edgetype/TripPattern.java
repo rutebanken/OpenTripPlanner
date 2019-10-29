@@ -24,6 +24,7 @@ import com.google.common.io.BaseEncoding;
 import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.graph_builder.annotation.NonUniqueRouteName;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Route;
@@ -402,7 +403,7 @@ public class TripPattern implements Cloneable, Serializable {
      * combination will create unique names). from, to, via, express. Then concatenate all necessary
      * fields. Express should really be determined from number of stops and/or run time of trips.
      */
-    public static void generateUniqueNames (Collection<TripPattern> tableTripPatterns) {
+    public static void generateUniqueNames (Collection<TripPattern> tableTripPatterns, Graph graph) {
         LOG.info("Generating unique names for stop patterns on each route.");
         Set<String> usedRouteNames = Sets.newHashSet();
         Map<Route, String> uniqueRouteNames = Maps.newHashMap();
@@ -421,7 +422,7 @@ public class TripPattern implements Cloneable, Serializable {
                 String generatedRouteName;
                 do generatedRouteName = routeName + " " + (i++);
                 while (usedRouteNames.contains(generatedRouteName));
-                LOG.warn("Route had non-unique name. Generated one to ensure uniqueness of TripPattern names: {}", generatedRouteName);
+                graph.addBuilderAnnotation(new NonUniqueRouteName(generatedRouteName));
                 routeName = generatedRouteName;
             }
             usedRouteNames.add(routeName);
@@ -735,4 +736,5 @@ public class TripPattern implements Cloneable, Serializable {
     public boolean hasFlexService() {
         return Arrays.stream(patternHops).anyMatch(PatternHop::hasFlexService);
     }
+
 }
