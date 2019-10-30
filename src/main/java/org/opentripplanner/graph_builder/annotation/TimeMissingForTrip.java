@@ -6,7 +6,7 @@ public class TimeMissingForTrip extends GraphBuilderAnnotation {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "Time missing for trip {}";
+    public static final String FMT = "Time missing for trip %s";
 
     final AgencyAndId tripId;
 

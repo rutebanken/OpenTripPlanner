@@ -19,7 +19,7 @@ public class ElevationPropagationLimit extends GraphBuilderAnnotation {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String FMT = "While propagating elevations, hit 2km distance limit at {} ";
+    private static final String FMT = "While propagating elevations, hit 2km distance limit at %s ";
 
     final Vertex vertex;
 

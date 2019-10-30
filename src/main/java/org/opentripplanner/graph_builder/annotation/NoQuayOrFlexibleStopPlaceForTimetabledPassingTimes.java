@@ -4,7 +4,7 @@ public class NoQuayOrFlexibleStopPlaceForTimetabledPassingTimes extends GraphBui
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "No quay or flexible stop place found for timetabledPassingTimes: {}";
+    public static final String FMT = "No quay or flexible stop place found for timetabledPassingTimes: %s";
 
     final String timetabledPassingTimesId;
 

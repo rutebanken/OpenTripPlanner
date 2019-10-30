@@ -7,7 +7,7 @@ public class AreaNotEpsilonValid extends GraphBuilderAnnotation {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "Area {} is not epsilon-valid (epsilon = " + WalkableAreaBuilder.VISIBILITY_EPSILON + ")";
+    public static final String FMT = "Area %s is not epsilon-valid (epsilon = " + WalkableAreaBuilder.VISIBILITY_EPSILON + ")";
 
     final OSMWithTags area;
 

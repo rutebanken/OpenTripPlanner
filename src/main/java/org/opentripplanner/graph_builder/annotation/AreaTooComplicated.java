@@ -7,7 +7,7 @@ public class AreaTooComplicated extends GraphBuilderAnnotation {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "Area {} is too complicated ({} > " + WalkableAreaBuilder.MAX_AREA_NODES + ")";
+    public static final String FMT = "Area %s is too complicated (%s > " + WalkableAreaBuilder.MAX_AREA_NODES + ")";
 
     final OSMWithTags area;
     final int nbNodes;

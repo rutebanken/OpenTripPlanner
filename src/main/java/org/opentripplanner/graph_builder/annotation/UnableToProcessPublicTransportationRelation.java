@@ -4,7 +4,7 @@ public class UnableToProcessPublicTransportationRelation extends GraphBuilderAnn
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "Unable to process public transportation relation {}";
+    public static final String FMT = "Unable to process public transportation relation %s";
 
     final long relationId;
 

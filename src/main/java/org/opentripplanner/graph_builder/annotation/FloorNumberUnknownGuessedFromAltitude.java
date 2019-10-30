@@ -4,7 +4,7 @@ public class FloorNumberUnknownGuessedFromAltitude extends GraphBuilderAnnotatio
 
     private static final long serialVersionUID = 1L;
 
-    public static final String FMT = "Could not determine floor number for layer {}. Guessed {} (0-based) from altitude.";
+    public static final String FMT = "Could not determine floor number for layer %s. Guessed %s (0-based) from altitude.";
 
     final String layer;
     final Integer floorNumber;
