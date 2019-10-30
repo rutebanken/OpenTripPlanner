@@ -1,13 +1,13 @@
 package org.opentripplanner.routing.trippattern;
 
-import static org.opentripplanner.routing.trippattern.TripTimes.formatSeconds;
-
-import org.opentripplanner.model.Frequency;
 import org.opentripplanner.common.MavenVersion;
+import org.opentripplanner.model.Frequency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+
+import static org.opentripplanner.routing.trippattern.TripTimes.formatSeconds;
 
 /**
  * Uses a TripTimes to represent multiple trips following the same template at regular intervals.
@@ -100,7 +100,7 @@ public class FrequencyEntry implements Serializable {
      * This delegation is a sign that maybe FrequencyEntry should subclass TripTimes.
      */
     public TripTimes materialize (int stop, int time, boolean depart) {
-        return tripTimes.timeShift(stop, time, depart);
+        return tripTimes.timeShiftClone(stop, time, depart);
     }
 
     /** @return the maximum number of trips this frequency entry could represent, given its headway. */

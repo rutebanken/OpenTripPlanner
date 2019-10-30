@@ -130,8 +130,8 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
 
     /**
      * Keep track of stop time ids to enable notices to point to a specific stop time.
+     * Can be null if no ids exist.
      */
-
     AgencyAndId[] stopTimeIds;
 
     /**
@@ -281,6 +281,43 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
     }
 
     /**
+     * This constructor will create a time-shifted new version of this class. Note this should only be used for
+     * a scheduled trip, not a real-time version.
+     * <p/>
+     * A typical use case is to copy an existing trip during import, to create a new trip that visit the same
+     * stops and have the same schedule, but depart relative to the original.
+     */
+    public TripTimes(Trip newTrip, int relativeTimeshift,  TripTimes source) {
+        this.trip = newTrip;
+        this.serviceCode = source.serviceCode;
+        this.timeShift = source.timeShift + relativeTimeshift;
+        this.headsigns = source.headsigns;
+        this.scheduledDepartureTimes = source.scheduledDepartureTimes;
+        this.scheduledArrivalTimes = source.scheduledArrivalTimes;
+        this.stopTimeIds = null;
+        this.stopSequences = source.stopSequences;
+        this.timepoints = source.timepoints;
+        this.pickups = source.pickups;
+        this.dropoffs = source.dropoffs;
+        this.continuousPickup = source.continuousPickup;
+        this.continuousDropOff = source.continuousDropOff;
+        this.serviceAreaRadius = source.serviceAreaRadius;
+        this.serviceArea = source.serviceArea;
+        this.maxTravelTime = source.maxTravelTime;
+        this.avgTravelTime = source.avgTravelTime;
+        this.advanceBookMin = source.advanceBookMin;
+        this.realTimeState = source.realTimeState;
+
+        // Skip setting these, related to real time or not the same as the source
+        this.stopTimeIds = null;
+        this.arrivalTimes = null;
+        this.departureTimes = null;
+        this.isRecordedStop = null;
+        this.isCancelledStop = null;
+        this.isPredictionInaccurate = null;
+    }
+
+    /**
      * @return either an array of headsigns (one for each stop on this trip) or null if the
      * headsign is the same at all stops (including null) and can be found in the Trip object.
      */
@@ -352,7 +389,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
     }
 
     public AgencyAndId getStopTimeIdByIndex(int i) {
-        return stopTimeIds[i];
+        return stopTimeIds == null ? null : stopTimeIds[i];
     }
 
     /** @return the amount of time in seconds that the vehicle waits at the stop. */
@@ -591,7 +628,9 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
             return false;
         }
 
-        if (!options.includePlannedCancellations && Trip.ServiceAlteration.cancellation.equals(trip.getServiceAlteration())){
+        if (!options.includePlannedCancellations &&
+                (Trip.ServiceAlteration.cancellation.equals(trip.getServiceAlteration()) ||
+                        Trip.ServiceAlteration.replaced.equals(trip.getServiceAlteration()))) {
             return false;
         }
 
@@ -686,13 +725,20 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         return ret;
     }
 
+    /**
+     * Time-shift Trip times by the given delta duration time.
+     */
+    public void timeShiftThis(int deltaDurationInSeconds) {
+        this.timeShift += deltaDurationInSeconds;
+    }
+
    /**
     * Returns a time-shifted copy of this TripTimes in which the vehicle passes the given stop
     * index (not stop sequence number) at the given time. We only have a mechanism to shift the
     * scheduled stoptimes, not the real-time stoptimes. Therefore, this only works on trips
     * without updates for now (frequency trips don't have updates).
     */
-    public TripTimes timeShift (final int stop, final int time, final boolean depart) {
+    public TripTimes timeShiftClone(final int stop, final int time, final boolean depart) {
         if (arrivalTimes != null || departureTimes != null) return null;
         final TripTimes shifted = this.clone();
         // Adjust 0-based times to match desired stoptime.

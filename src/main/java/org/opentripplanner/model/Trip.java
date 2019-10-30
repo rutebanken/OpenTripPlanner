@@ -19,7 +19,7 @@ import java.util.List;
 
 public final class Trip extends IdentityBean<AgencyAndId> {
 
-    public enum ServiceAlteration {cancellation, planned, extraJourney};
+    public enum ServiceAlteration {cancellation, planned, extraJourney, replaced}
 
     private static final long serialVersionUID = 1L;
 

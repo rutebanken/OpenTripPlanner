@@ -1,10 +1,11 @@
 env: staging-c2
 
-replicas: 5
+replicas: 3
 
 horizontalPodAutoscaler:
   enabled: true
   maxReplicas: 40
+  minReplicas: 2
   targetCPUUtilizationPercentage: 90
 
 rollingUpdate:

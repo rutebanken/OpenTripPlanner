@@ -1,10 +1,11 @@
 env: dev-c2
 
-replicas: 4
+replicas: 2
 
 horizontalPodAutoscaler:
   enabled: true
   maxReplicas: 10
+  minReplicas: 2
   targetCPUUtilizationPercentage: 90
 
 rollingUpdate:

@@ -10,7 +10,6 @@ import org.locationtech.jts.linearref.LinearLocation;
 import org.locationtech.jts.linearref.LocationIndexedLine;
 import gnu.trove.map.TObjectDoubleMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.HashGridSpatialIndex;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
@@ -159,11 +158,11 @@ public class SimpleStreetSplitter {
 
                 if (!link(v)) {
                     if (v instanceof TransitStop)
-                        LOG.warn(graph.addBuilderAnnotation(new StopUnlinked((TransitStop) v)));
+                        graph.addBuilderAnnotation(new StopUnlinked((TransitStop) v));
                     else if (v instanceof BikeRentalStationVertex)
-                        LOG.warn(graph.addBuilderAnnotation(new BikeRentalStationUnlinked((BikeRentalStationVertex) v)));
+                        graph.addBuilderAnnotation(new BikeRentalStationUnlinked((BikeRentalStationVertex) v));
                     else if (v instanceof BikeParkVertex)
-                        LOG.warn(graph.addBuilderAnnotation(new BikeParkUnlinked((BikeParkVertex) v)));
+                        graph.addBuilderAnnotation(new BikeParkUnlinked((BikeParkVertex) v));
                 };
             }
         }
@@ -235,7 +234,7 @@ public class SimpleStreetSplitter {
         if (!candidateEdges.isEmpty() && vertex instanceof TransitStop) {
             int distance = (int)SphericalDistanceLibrary.degreesToMeters(distances.get(candidateEdges.get(0)));
             if (distance > MIN_SNAP_DISTANCE_WARNING) {
-                LOG.info(String.format(graph.addBuilderAnnotation(new StopLinkedTooFar((TransitStop)vertex, distance))));
+                graph.addBuilderAnnotation(new StopLinkedTooFar((TransitStop)vertex, distance));
             }
         }
 
@@ -271,7 +270,7 @@ public class SimpleStreetSplitter {
                 LOG.debug("Stops aren't close either!");
                 return false;
             } else {
-                List<TransitStop> bestStops = Lists.newArrayList();
+                List<TransitStop> bestStops = new ArrayList<>();
                 // Add stops until there is a break of epsilon meters.
                 // we do this to enforce determinism. if there are a lot of stops that are all extremely close to each other,
                 // we want to be sure that we deterministically link to the same ones every time. Any hard cutoff means things can
@@ -292,7 +291,7 @@ public class SimpleStreetSplitter {
         } else {
 
             // find the best edges
-            List<StreetEdge> bestEdges = Lists.newArrayList();
+            List<StreetEdge> bestEdges = new ArrayList<>();
 
             // add edges until there is a break of epsilon meters.
             // we do this to enforce determinism. if there are a lot of edges that are all extremely close to each other,

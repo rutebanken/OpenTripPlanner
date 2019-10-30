@@ -124,7 +124,8 @@ public class TripPatternMapper {
                 TripTimes tripTimes = new TripTimes(trip,
                         transitBuilder.getStopTimesSortedByTrip().get(trip), deduplicator);
 
-                if (Trip.ServiceAlteration.cancellation.equals(trip.getServiceAlteration())) {
+                if (Trip.ServiceAlteration.cancellation.equals(trip.getServiceAlteration()) ||
+                    Trip.ServiceAlteration.replaced.equals(trip.getServiceAlteration())) {
                     // Trip is cancelled in plan data
                     tripTimes.cancelAllStops();
                 }

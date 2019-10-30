@@ -315,9 +315,6 @@ public class TransmodelGraphQLPlanner {
             getLocationOfFirstQuay(request.to, ((Router)environment.getContext()).graph.index);
         } else if (request.parkAndRide) {
             getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
-        } else if (request.useFlexService) {
-            getLocationOfFirstQuay(request.from, ((Router)environment.getContext()).graph.index);
-            getLocationOfFirstQuay(request.to, ((Router)environment.getContext()).graph.index);
         }
 
         return request;

@@ -22,17 +22,15 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import org.locationtech.jts.geom.LineString;
+import org.opentripplanner.common.MavenVersion;
+import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
-import org.opentripplanner.api.resource.CoordinateArrayListSequence;
-import org.opentripplanner.common.MavenVersion;
-import org.opentripplanner.common.geometry.GeometryUtils;
-import org.opentripplanner.common.geometry.PackedCoordinateSequence;
-import org.opentripplanner.gtfs.GtfsLibrary;
-import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.ServiceDay;
 import org.opentripplanner.routing.core.State;
@@ -41,7 +39,12 @@ import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.trippattern.FrequencyEntry;
 import org.opentripplanner.routing.trippattern.TripTimes;
-import org.opentripplanner.routing.vertextype.*;
+import org.opentripplanner.routing.vertextype.PatternArriveVertex;
+import org.opentripplanner.routing.vertextype.PatternDepartVertex;
+import org.opentripplanner.routing.vertextype.TransitStationStop;
+import org.opentripplanner.routing.vertextype.TransitStop;
+import org.opentripplanner.routing.vertextype.TransitStopArrive;
+import org.opentripplanner.routing.vertextype.TransitStopDepart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +53,13 @@ import javax.xml.bind.annotation.XmlTransient;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a group of trips on a route, with the same direction id that all call at the same
@@ -585,7 +593,9 @@ public class TripPattern implements Cloneable, Serializable {
     public LineString getGeometry() {
         List<LineString> lineStrings = new ArrayList<>();
         for (int i = 0; i < patternHops.length - 1; i++) {
-            lineStrings.add(patternHops[i].getGeometry());
+            if (patternHops[i] != null) { // TODO SIRI: Added trips have no PatternHops
+                lineStrings.add(patternHops[i].getGeometry());
+            }
         }
         return GeometryUtils.concatenateLineStrings(lineStrings);
     }

@@ -3,7 +3,6 @@ package org.opentripplanner.standalone;
 import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.opentripplanner.routing.services.GraphService;
 
 import java.io.File;
@@ -162,7 +161,7 @@ public class CommandLineParameters implements Cloneable {
         }
 
         if (this.routerIds != null) {
-            ret.routerIds = Lists.newArrayList();
+            ret.routerIds = new ArrayList<>();
             ret.routerIds.addAll(this.routerIds);
         }
         

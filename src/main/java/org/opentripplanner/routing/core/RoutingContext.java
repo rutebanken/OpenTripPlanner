@@ -404,5 +404,8 @@ public class RoutingContext implements Cloneable {
     public void destroy() {
         TemporaryVertex.dispose(fromVertex);
         TemporaryVertex.dispose(toVertex);
+        for (TemporaryEdge edge : this.temporaryEdges) {
+            edge.dispose();
+        }
     }
 }

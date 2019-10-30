@@ -35,13 +35,29 @@ import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.ArrivalBoardingActivityEnumeration;
+import uk.org.siri.siri20.CallStatusEnumeration;
+import uk.org.siri.siri20.DepartureBoardingActivityEnumeration;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.MonitoredCallStructure;
+import uk.org.siri.siri20.MonitoredVehicleJourneyStructure;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.VehicleActivityStructure;
 
 import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.opentripplanner.model.StopPattern.PICKDROP_NONE;
@@ -243,7 +259,7 @@ public class Timetable implements Serializable {
         if (bestFreq != null) {
             // A FrequencyEntry beat all the TripTimes.
             // Materialize that FrequencyEntry entry at the given time.
-            bestTrip = bestFreq.tripTimes.timeShift(stopIndex, bestTime, boarding);
+            bestTrip = bestFreq.tripTimes.timeShiftClone(stopIndex, bestTime, boarding);
         }
         return bestTrip;
     }

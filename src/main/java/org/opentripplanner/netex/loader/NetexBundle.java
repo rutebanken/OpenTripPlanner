@@ -98,4 +98,7 @@ public class NetexBundle {
         return MAX_STOP_TO_SHAPE_SNAP_DISTANCE;
     }
 
+    public File fileDir() {
+        return file.getParentFile();
+    }
 }

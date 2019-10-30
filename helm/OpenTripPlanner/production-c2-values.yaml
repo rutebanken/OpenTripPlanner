@@ -5,6 +5,7 @@ replicas: 20
 horizontalPodAutoscaler:
   enabled: true
   maxReplicas: 65
+  minReplicas: 10
   targetCPUUtilizationPercentage: 90
 
 rollingUpdate:

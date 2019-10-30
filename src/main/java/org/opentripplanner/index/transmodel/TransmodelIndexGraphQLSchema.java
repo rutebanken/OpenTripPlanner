@@ -1,27 +1,63 @@
 package org.opentripplanner.index.transmodel;
 
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
-import org.locationtech.jts.geom.LineString;
 import graphql.Scalars;
 import graphql.relay.DefaultConnection;
 import graphql.relay.DefaultPageInfo;
 import graphql.relay.Relay;
 import graphql.relay.SimpleListConnection;
-import graphql.schema.*;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNonNull;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLTypeReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.api.common.Message;
-import org.opentripplanner.api.model.*;
+import org.opentripplanner.api.model.AbsoluteDirection;
+import org.opentripplanner.api.model.Itinerary;
+import org.opentripplanner.api.model.Leg;
+import org.opentripplanner.api.model.Place;
+import org.opentripplanner.api.model.RelativeDirection;
+import org.opentripplanner.api.model.TripPlan;
+import org.opentripplanner.api.model.VertexType;
+import org.opentripplanner.api.model.WalkStep;
 import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.index.model.StopTimesInPattern;
 import org.opentripplanner.index.model.TripTimeShort;
 import org.opentripplanner.index.transmodel.mapping.TransmodelMappingUtil;
 import org.opentripplanner.index.transmodel.model.TransmodelPlaceType;
-import org.opentripplanner.index.transmodel.model.scalars.*;
+import org.opentripplanner.index.transmodel.model.scalars.DateScalarFactory;
+import org.opentripplanner.index.transmodel.model.scalars.DateTimeScalarFactory;
+import org.opentripplanner.index.transmodel.model.scalars.GeoJSONCoordinatesScalar;
+import org.opentripplanner.index.transmodel.model.scalars.LocalTimeScalarFactory;
+import org.opentripplanner.index.transmodel.model.scalars.TimeScalarFactory;
 import org.opentripplanner.index.util.TripTimeShortHelper;
-import org.opentripplanner.model.*;
+import org.opentripplanner.model.Agency;
+import org.opentripplanner.model.AgencyAndId;
+import org.opentripplanner.model.BookingArrangement;
+import org.opentripplanner.model.Branding;
+import org.opentripplanner.model.KeyValue;
+import org.opentripplanner.model.Notice;
+import org.opentripplanner.model.Operator;
+import org.opentripplanner.model.Route;
+import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.TariffZone;
+import org.opentripplanner.model.Transfer;
+import org.opentripplanner.model.TransmodelTransportSubmode;
+import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
@@ -49,7 +85,20 @@ import org.opentripplanner.util.model.EncodedPolylineBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -138,6 +187,7 @@ public class TransmodelIndexGraphQLSchema {
             .value("planned", Trip.ServiceAlteration.planned)
             .value("cancellation", Trip.ServiceAlteration.cancellation)
             .value("extraJourney", Trip.ServiceAlteration.extraJourney)
+            .value("replaced", Trip.ServiceAlteration.replaced)
             .build();
 
     private static GraphQLEnumType modeEnum = GraphQLEnumType.newEnum()
@@ -2045,6 +2095,13 @@ public class TransmodelIndexGraphQLSchema {
                                 "times are not scheduled but estimated within specified operating hours.")
                         .dataFetcher(environment -> ((TripTimeShort) environment.getSource()).isFlexible())
                         .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("hostname")
+                        .type(Scalars.GraphQLString)
+                        .deprecate("For debugging only")
+                        .description("Server name - for debugging only!")
+                        .dataFetcher(environment -> System.getenv("HOSTNAME"))
+                        .build())
                 .build();
 
         serviceJourneyType = GraphQLObjectType.newObject()
@@ -3330,10 +3387,21 @@ public class TransmodelIndexGraphQLSchema {
                         })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
-                        .name("bikeRentalStations")
-                        .description("Get all bike rental stations")
-                        .type(new GraphQLNonNull(new GraphQLList(bikeRentalStationType)))
-                        .dataFetcher(dataFetchingEnvironment -> new ArrayList<>(index.graph.getService(BikeRentalStationService.class).getBikeRentalStations()))
+                               .name("bikeRentalStations")
+                               .description("Get all bike rental stations")
+                               .argument(GraphQLArgument.newArgument()
+                                                 .name("ids")
+                                                 .type(new GraphQLList(Scalars.GraphQLString))
+                                                 .build())
+                               .type(new GraphQLNonNull(new GraphQLList(bikeRentalStationType)))
+                               .dataFetcher(environment -> {
+                                   Collection<BikeRentalStation> all = new ArrayList<>(index.graph.getService(BikeRentalStationService.class).getBikeRentalStations());
+                                   List<String> filterByIds = environment.getArgument("ids");
+                                   if (all != null && !CollectionUtils.isEmpty(filterByIds)) {
+                                       return all.stream().filter(station -> filterByIds.contains(station.id)).collect(Collectors.toList());
+                                   }
+                                   return all;
+                               })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("bikeRentalStation")

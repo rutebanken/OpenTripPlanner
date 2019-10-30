@@ -113,12 +113,14 @@ public class OTPMain {
                     graph.index(new DefaultStreetVertexIndexFactory());
                     // FIXME set true router IDs
                     graphService.registerGraph("", new MemoryGraphSource("", graph));
+
                 }
             } else {
                 LOG.error("An error occurred while building the graph. Exiting.");
                 System.exit(-1);
             }
         }
+
 
         /* Scan for graphs to load from disk if requested */
         // FIXME eventually router IDs will be present even when just building a graph.

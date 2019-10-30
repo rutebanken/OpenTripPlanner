@@ -7,6 +7,8 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.graph_builder.module.map.StreetMatcher;
+import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.edgetype.PatternHop;
 import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.edgetype.TemporaryPartialStreetEdge;
@@ -111,7 +113,8 @@ public class FlexIndex {
         }
         Map<Double, List<StreetEdge>> edgeDistanceMap = new TreeMap<>();
         for(Edge edge : edges){
-            if(edge instanceof StreetEdge){
+            if(edge instanceof StreetEdge
+                    && ((StreetEdge)edge).canTraverse(new TraverseModeSet(TraverseMode.CAR))){
                 LineString line = edge.getGeometry();
                 double dist = SphericalDistanceLibrary.fastDistance(pointLocation, line);
                 double roundOff = (double) Math.round(dist * 100) / 100;

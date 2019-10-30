@@ -47,8 +47,8 @@ public class TripTimeShort {
      * This is stop-specific, so the index i is a stop index, not a hop index.
      */
     public TripTimeShort(TripTimes tt, int i, Stop stop) {
-        stopId = stop.getId();
-        stopTimeId = tt.getStopTimeIdByIndex(i);
+        stopId             = stop.getId();
+        stopTimeId         = tt.getStopTimeIdByIndex(i);
         stopIndex          = i;
         stopCount          = tt.getNumStops();
         scheduledArrival   = tt.getScheduledArrivalTime(i);

@@ -762,7 +762,9 @@ public class GraphIndex {
                             continue;
 
                         // Check if trip has been cancelled via planned data
-                        if(omitNonPickups && triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.cancellation) continue;
+                        if(omitNonPickups && (triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.cancellation ||
+                                triptimes.trip.getServiceAlteration() == Trip.ServiceAlteration.replaced))
+                            continue;
 
                         // Check if pickup has been cancelled via realtime-data
                         if(omitNonPickups && triptimes.getPickupType(stopIndex) == pattern.stopPattern.PICKDROP_NONE) continue;

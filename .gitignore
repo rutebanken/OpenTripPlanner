@@ -15,6 +15,7 @@ otp-openlayers-client/src/main/webapp/js/otp-min.js
 .pydevproject
 .settings
 .gradle
+.DS_Store
 *.ipr
 *.iml
 *.iws

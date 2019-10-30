@@ -99,7 +99,7 @@ aliases:
       git add helm/$CIRCLE_PROJECT_REPONAME/Chart.yaml
       git add helm/$CIRCLE_PROJECT_REPONAME/values.yaml
       git add pom.xml
-      git commit -m "Helm Update [ci skip]"
+      git commit -m "Helm Update App Version $APP_VERSION [ci skip]"
       git push --tags --set-upstream origin $CIRCLE_BRANCH
 
   - &team-ror-circleci-slackhook
