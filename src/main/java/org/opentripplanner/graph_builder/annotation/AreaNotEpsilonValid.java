@@ -5,18 +5,16 @@ import org.opentripplanner.openstreetmap.model.OSMWithTags;
 
 public class AreaNotEpsilonValid extends GraphBuilderAnnotation {
 
-    private static final long serialVersionUID = 1L;
-
     public static final String FMT = "Area %s is not epsilon-valid (epsilon = " + WalkableAreaBuilder.VISIBILITY_EPSILON + ")";
 
-    final OSMWithTags area;
+    final long areaId;
 
-    public AreaNotEpsilonValid(OSMWithTags area) {
-        this.area = area;
+    public AreaNotEpsilonValid(long areaId) {
+        this.areaId = areaId;
     }
 
     @Override
     public String getMessage() {
-        return String.format(FMT, area);
+        return String.format(FMT, areaId);
     }
 }

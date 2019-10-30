@@ -5,20 +5,18 @@ import org.opentripplanner.openstreetmap.model.OSMWithTags;
 
 public class AreaTooComplicated extends GraphBuilderAnnotation {
 
-    private static final long serialVersionUID = 1L;
-
     public static final String FMT = "Area %s is too complicated (%s > " + WalkableAreaBuilder.MAX_AREA_NODES + ")";
 
-    final OSMWithTags area;
+    final long areaId;
     final int nbNodes;
 
-    public AreaTooComplicated(OSMWithTags area, int nbNodes) {
-        this.area = area;
+    public AreaTooComplicated(long areaId, int nbNodes) {
+        this.areaId = areaId;
         this.nbNodes = nbNodes;
     }
 
     @Override
     public String getMessage() {
-        return String.format(FMT, area, nbNodes);
+        return String.format(FMT, areaId, nbNodes);
     }
 }

@@ -24,11 +24,8 @@ public class FlexibleStopPlaceMapper extends StopMapper {
 
     private FlexibleStopPlaceTypeMapper flexibleStopPlaceTypeMapper = new FlexibleStopPlaceTypeMapper();
 
-    private final AddBuilderAnnotation addBuilderAnnotation;
-
     public FlexibleStopPlaceMapper(AddBuilderAnnotation addBuilderAnnotation) {
         super(addBuilderAnnotation);
-        this.addBuilderAnnotation = addBuilderAnnotation;
     }
 
     public void mapFlexibleStopPlaceWithQuay(FlexibleStopPlace flexibleStopPlace, OtpTransitBuilder transitBuilder) {
@@ -44,7 +41,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             quay.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             quay.setLon(flexibleStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else{
-            addBuilderAnnotation.addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
 
         quay.setVehicleType(flexibleStopPlaceTypeMapper.getTransportMode(flexibleStopPlace));
@@ -55,7 +52,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             quay.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             quay.setLon(flexibleStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else {
-            addBuilderAnnotation.addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
         if (flexibleStopPlace.getAreas() != null && flexibleStopPlace.getAreas().getFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea() != null) {
             List<Object> areas = flexibleStopPlace.getAreas().getFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea();
@@ -86,7 +83,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             stopPlace.setLon(centroid.x + positionOffset / 1000.0);
             positionOffset += 1;
         }else {
-            addBuilderAnnotation.addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
         stopPlace.setId(AgencyAndIdFactory.createAgencyAndId(flexibleStopPlace.getId()));
         stopPlace.setLocationType(1);

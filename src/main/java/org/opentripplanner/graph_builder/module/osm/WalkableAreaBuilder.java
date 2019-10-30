@@ -235,12 +235,12 @@ public class WalkableAreaBuilder {
             // FIXME: temporary hard limit on size of
             // areas to prevent way explosion
             if (visibilityPoints.size() > MAX_AREA_NODES) {
-                graph.addBuilderAnnotation(new AreaTooComplicated(group.getSomeOSMObject(), visibilityPoints.size()));
+                graph.addBuilderAnnotation(new AreaTooComplicated(group.getSomeOSMObject().getId(), visibilityPoints.size()));
                 continue;
             }
 
             if (!areaEnv.is_valid(VISIBILITY_EPSILON)) {
-                graph.addBuilderAnnotation(new AreaNotEpsilonValid(group.getSomeOSMObject()));
+                graph.addBuilderAnnotation(new AreaNotEpsilonValid(group.getSomeOSMObject().getId()));
                 continue;
             }
 

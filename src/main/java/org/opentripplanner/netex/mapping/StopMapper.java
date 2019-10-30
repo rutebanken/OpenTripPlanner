@@ -2,6 +2,7 @@ package org.opentripplanner.netex.mapping;
 
 import com.google.common.collect.ListMultimap;
 import org.opentripplanner.graph_builder.annotation.FlexibleStopPlaceWithoutCoordinates;
+import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
 import org.opentripplanner.graph_builder.annotation.QuayWithoutCoordinates;
 import org.opentripplanner.graph_builder.annotation.StopPlaceWithoutCoordinates;
 import org.opentripplanner.model.AgencyAndId;
@@ -43,6 +44,10 @@ public class StopMapper {
         this.addBuilderAnnotation = addBuilderAnnotation;
     }
 
+    protected void addBuilderAnnotation(GraphBuilderAnnotation annotation) {
+        addBuilderAnnotation.addBuilderAnnotation(annotation);
+    }
+
     public Collection<Stop> mapParentAndChildStops(Collection<StopPlace> stopPlaces, OtpTransitBuilder transitBuilder, NetexDao netexDao){
         // Extract current stop based on validity and version
         StopPlaceVersionAndValidityComparator comparator = new StopPlaceVersionAndValidityComparator();
@@ -68,7 +73,7 @@ public class StopMapper {
             stop.setLat(currentStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             stop.setLon(currentStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else{
-            addBuilderAnnotation.addBuilderAnnotation(new StopPlaceWithoutCoordinates(currentStopPlace.getId()));
+            addBuilderAnnotation(new StopPlaceWithoutCoordinates(currentStopPlace.getId()));
         }
 
         // Find parent multimodal stop if it present

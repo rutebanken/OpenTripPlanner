@@ -2,8 +2,6 @@ package org.opentripplanner.graph_builder.annotation;
 
 public class FloorNumberUnknownGuessedFromAltitude extends GraphBuilderAnnotation {
 
-    private static final long serialVersionUID = 1L;
-
     public static final String FMT = "Could not determine floor number for layer %s. Guessed %s (0-based) from altitude.";
 
     final String layer;
