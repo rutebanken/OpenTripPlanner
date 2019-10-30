@@ -45,7 +45,7 @@ public class MappingTest {
         JsonNode buildConfig = OTPMain.loadJson(netexConfigFile);
         NetexBundle netexBundle = new NetexBundle(netexFile, new GraphBuilderParameters(buildConfig));
 
-        otpBuilderFromNetex = new NetexLoader(netexBundle).loadBundle();
+        otpBuilderFromNetex = new NetexLoader(netexBundle, gba -> {}).loadBundle();
         otpBuilderFromGtfs = GtfsContextBuilder
                 .contextBuilder(gtfsFile)
                 .turnOnSetAgencyToFeedIdForAllElements().build()

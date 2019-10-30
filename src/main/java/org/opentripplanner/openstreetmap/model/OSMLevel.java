@@ -142,7 +142,7 @@ public class OSMLevel implements Comparable<OSMLevel> {
         return new OSMLevel(floorNumber, altitude, shortName, longName, source, reliable);
     }
 
-    public static List<OSMLevel> fromSpecList (String specList, Source source, boolean incrementNonNegative) {
+    public static List<OSMLevel> fromSpecList (String specList, Source source, boolean incrementNonNegative, AddBuilderAnnotation addBuilderAnnotation) {
 
         List<String> levelSpecs = new ArrayList<String>();
 
@@ -163,14 +163,14 @@ public class OSMLevel implements Comparable<OSMLevel> {
         /* build an OSMLevel for each level spec in the list */
         List<OSMLevel> levels = new ArrayList<OSMLevel>();
         for (String spec : levelSpecs) {
-            levels.add(fromString(spec, source, incrementNonNegative));
+            levels.add(fromString(spec, source, incrementNonNegative, addBuilderAnnotation));
         }
         return levels;
     }
 
-    public static Map<String, OSMLevel> mapFromSpecList (String specList, Source source, boolean incrementNonNegative) {
+    public static Map<String, OSMLevel> mapFromSpecList (String specList, Source source, boolean incrementNonNegative, AddBuilderAnnotation addBuilderAnnotation) {
         Map<String, OSMLevel> map = new HashMap<String, OSMLevel>();
-        for (OSMLevel level : fromSpecList(specList, source, incrementNonNegative)) {
+        for (OSMLevel level : fromSpecList(specList, source, incrementNonNegative, addBuilderAnnotation)) {
             map.put(level.shortName, level);
         }
         return map;

@@ -30,13 +30,14 @@ import org.opentripplanner.openstreetmap.services.OpenStreetMapContentHandler;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseModeSet;
 import org.opentripplanner.routing.edgetype.StreetTraversalPermission;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.opentripplanner.util.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class OSMDatabase implements OpenStreetMapContentHandler {
+public class OSMDatabase implements OpenStreetMapContentHandler, AddBuilderAnnotation {
 
     private static Logger LOG = LoggerFactory.getLogger(OSMDatabase.class);
 
@@ -571,10 +572,10 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
             OSMLevel level = OSMLevel.DEFAULT;
             if (way.hasTag("level")) { // TODO: floating-point levels &c.
                 levelName = way.getTag("level");
-                level = OSMLevel.fromString(levelName, OSMLevel.Source.LEVEL_TAG, noZeroLevels);
+                level = OSMLevel.fromString(levelName, OSMLevel.Source.LEVEL_TAG, noZeroLevels, this);
             } else if (way.hasTag("layer")) {
                 levelName = way.getTag("layer");
-                level = OSMLevel.fromString(levelName, OSMLevel.Source.LAYER_TAG, noZeroLevels);
+                level = OSMLevel.fromString(levelName, OSMLevel.Source.LAYER_TAG, noZeroLevels, this);
             }
             if (level == null || (!level.reliable)) {
                 addBuilderAnnotation(new LevelAmbiguous(levelName, way.getId()));
@@ -827,7 +828,7 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
      */
     private void processLevelMap(OSMRelation relation) {
         Map<String, OSMLevel> levels = OSMLevel.mapFromSpecList(relation.getTag("levels"),
-                Source.LEVEL_MAP, true);
+                Source.LEVEL_MAP, true, this);
         for (OSMRelationMember member : relation.getMembers()) {
             if ("way".equals(member.getType()) && waysById.containsKey(member.getRef())) {
                 OSMWay way = waysById.get(member.getRef());
@@ -931,7 +932,8 @@ public class OSMDatabase implements OpenStreetMapContentHandler {
         return routes + ", " + name;
     }
 
-    private void addBuilderAnnotation(GraphBuilderAnnotation gba) {
+    @Override
+    public void addBuilderAnnotation(GraphBuilderAnnotation gba) {
         GRAPH_BUILDER_ANNOTATION_LOG.info(gba.getMessage());
         if (this.annotations != null) {
             this.annotations.add(gba);
