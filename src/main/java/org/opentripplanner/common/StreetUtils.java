@@ -106,8 +106,9 @@ public class StreetUtils {
         count = processIslands(graph, islands, isolated, islandLog, false, maxIslandSize, islandWithStopMaxSize);
         LOG.info("Modified " + count + " islands");
 
-        if (graph.removeEdgelessVertices() > 0) {
-            LOG.info("Removed {} edgeless vertices after pruning islands", graph.removeEdgelessVertices());
+        int removedEdgeLessVertices = graph.removeEdgelessVertices();
+        if (removedEdgeLessVertices > 0) {
+            LOG.info("Removed {} edgeless vertices after pruning islands", removedEdgeLessVertices);
         }
     }
 

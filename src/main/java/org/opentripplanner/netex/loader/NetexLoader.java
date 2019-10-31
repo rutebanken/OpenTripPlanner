@@ -16,6 +16,8 @@ package org.opentripplanner.netex.loader;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.opentripplanner.graph_builder.annotation.FlexibleStopPlaceNotFound;
+import org.opentripplanner.graph_builder.annotation.QuayNotFoundInStopPlaceFile;
 import org.opentripplanner.graph_builder.annotation.StopWithoutQuay;
 import org.opentripplanner.graph_builder.module.NetexModule;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
@@ -265,7 +267,7 @@ public class NetexLoader {
                         if (quay != null) {
                             currentNetexDao().quayIdByStopPointRef.add(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), quay.getId());
                         } else {
-                            LOG.warn("Quay " + quayRef + " not found in stop place file.");
+                            addBuilderAnnotation.addBuilderAnnotation(new QuayNotFoundInStopPlaceFile(quayRef));
                         }
                     }
                     if (assignment.getValue() instanceof FlexibleStopAssignment) {
@@ -275,7 +277,7 @@ public class NetexLoader {
                         if (flexibleStopPlace != null) {
                             currentNetexDao().flexibleStopPlaceIdByStopPointRef.add(flexibleStopAssignment.getScheduledStopPointRef().getValue().getRef(), flexibleStopPlace.getId());
                         } else {
-                            LOG.warn("Flexible StopPlace " + flexstopRef + " not found.");
+                            addBuilderAnnotation.addBuilderAnnotation(new FlexibleStopPlaceNotFound(flexstopRef));
                         }
                     }
                 }

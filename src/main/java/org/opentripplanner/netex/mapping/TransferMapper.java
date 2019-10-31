@@ -74,8 +74,6 @@ public class TransferMapper {
         transfer.setFromRoute(transfer.getFromTrip().getRoute());
         transfer.setToRoute(transfer.getToTrip().getRoute());
 
-        LOG.info(transfer.toString());
-
         return transfer;
     }
 }
