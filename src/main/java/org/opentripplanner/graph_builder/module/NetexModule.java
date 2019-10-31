@@ -35,7 +35,7 @@ public class NetexModule implements GraphBuilderModule {
 
         try {
             for (NetexBundle netexBundle : netexBundles) {
-                OtpTransitBuilder daoBuilder = new NetexLoader(netexBundle).loadBundle();
+                OtpTransitBuilder daoBuilder = new NetexLoader(netexBundle,graph).loadBundle();
 
                 TripTransformService.runTripTransform(daoBuilder, netexBundle.fileDir());
 

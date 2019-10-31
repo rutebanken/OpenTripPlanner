@@ -4,9 +4,11 @@ import org.locationtech.jts.geom.Coordinate;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
+import org.opentripplanner.graph_builder.annotation.MissingProjectionInServiceLink;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.netex.loader.NetexDao;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.LinkInLinkSequence_VersionedChildStructure;
 import org.rutebanken.netex.model.LinkSequenceProjection_VersionStructure;
@@ -23,6 +25,11 @@ import java.util.List;
 
 public class ServiceLinkMapper {
     private static final Logger LOG = LoggerFactory.getLogger(StopMapper.class);
+    private final AddBuilderAnnotation addBuilderAnnotation;
+
+    public ServiceLinkMapper(AddBuilderAnnotation addBuilderAnnotation) {
+        this.addBuilderAnnotation = addBuilderAnnotation;
+    }
 
     private Collection<ShapePoint> mapServiceLink(ServiceLink serviceLink, JourneyPattern journeyPattern, MutableInt sequenceCounter, MutableDouble distanceCounter, NetexDao netexDao) {
         Collection<ShapePoint> shapePoints = new ArrayList<>();
@@ -38,7 +45,7 @@ public class ServiceLinkMapper {
             Quay toPointQuay = netexDao.quayById.lookupLastVersionById(toPointQuayId);
 
             if (fromPointQuay != null && fromPointQuay.getCentroid() != null && toPointQuay != null && toPointQuay.getCentroid() != null) {
-                LOG.warn("Creating straight line path between Quays for ServiceLink with missing projection: " + serviceLink);
+                addBuilderAnnotation.addBuilderAnnotation(new MissingProjectionInServiceLink(serviceLink.getId()));
 
                 ShapePoint fromShapePoint = new ShapePoint();
                 fromShapePoint.setShapeId(shapePointIdFromJourneyPatternId);

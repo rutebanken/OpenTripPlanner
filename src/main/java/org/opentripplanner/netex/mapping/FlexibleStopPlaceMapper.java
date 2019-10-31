@@ -3,9 +3,11 @@ package org.opentripplanner.netex.mapping;
 import net.opengis.gml._3.LinearRingType;
 import org.locationtech.jts.geom.Coordinate;
 import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.graph_builder.annotation.FlexibleStopPlaceWithoutCoordinates;
 import org.opentripplanner.model.Area;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.rutebanken.netex.model.FlexibleArea;
 import org.rutebanken.netex.model.FlexibleStopPlace;
 import org.rutebanken.netex.model.HailAndRideArea;
@@ -22,6 +24,10 @@ public class FlexibleStopPlaceMapper extends StopMapper {
 
     private FlexibleStopPlaceTypeMapper flexibleStopPlaceTypeMapper = new FlexibleStopPlaceTypeMapper();
 
+    public FlexibleStopPlaceMapper(AddBuilderAnnotation addBuilderAnnotation) {
+        super(addBuilderAnnotation);
+    }
+
     public void mapFlexibleStopPlaceWithQuay(FlexibleStopPlace flexibleStopPlace, OtpTransitBuilder transitBuilder) {
         Stop quay = new Stop();
         Area area = new Area();
@@ -35,7 +41,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             quay.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             quay.setLon(flexibleStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else{
-            LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
 
         quay.setVehicleType(flexibleStopPlaceTypeMapper.getTransportMode(flexibleStopPlace));
@@ -46,7 +52,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             quay.setLat(flexibleStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             quay.setLon(flexibleStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else {
-            LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
         if (flexibleStopPlace.getAreas() != null && flexibleStopPlace.getAreas().getFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea() != null) {
             List<Object> areas = flexibleStopPlace.getAreas().getFlexibleAreaOrFlexibleAreaRefOrHailAndRideArea();
@@ -77,7 +83,7 @@ public class FlexibleStopPlaceMapper extends StopMapper {
             stopPlace.setLon(centroid.x + positionOffset / 1000.0);
             positionOffset += 1;
         }else {
-            LOG.warn(flexibleStopPlace.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation(new FlexibleStopPlaceWithoutCoordinates(flexibleStopPlace.getId()));
         }
         stopPlace.setId(AgencyAndIdFactory.createAgencyAndId(flexibleStopPlace.getId()));
         stopPlace.setLocationType(1);

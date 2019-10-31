@@ -1,11 +1,16 @@
 package org.opentripplanner.netex.mapping;
 
 import com.google.common.collect.ListMultimap;
+import org.opentripplanner.graph_builder.annotation.FlexibleStopPlaceWithoutCoordinates;
+import org.opentripplanner.graph_builder.annotation.GraphBuilderAnnotation;
+import org.opentripplanner.graph_builder.annotation.QuayWithoutCoordinates;
+import org.opentripplanner.graph_builder.annotation.StopPlaceWithoutCoordinates;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.EntityMap;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.rutebanken.netex.model.GroupOfStopPlaces;
 import org.rutebanken.netex.model.Quay;
 import org.rutebanken.netex.model.StopPlace;
@@ -33,6 +38,16 @@ public class StopMapper {
 
     protected String DEFAULT_TIMEZONE = "Europe/Oslo";
 
+    private final AddBuilderAnnotation addBuilderAnnotation;
+
+    public StopMapper(AddBuilderAnnotation addBuilderAnnotation) {
+        this.addBuilderAnnotation = addBuilderAnnotation;
+    }
+
+    protected void addBuilderAnnotation(GraphBuilderAnnotation annotation) {
+        addBuilderAnnotation.addBuilderAnnotation(annotation);
+    }
+
     public Collection<Stop> mapParentAndChildStops(Collection<StopPlace> stopPlaces, OtpTransitBuilder transitBuilder, NetexDao netexDao){
         // Extract current stop based on validity and version
         StopPlaceVersionAndValidityComparator comparator = new StopPlaceVersionAndValidityComparator();
@@ -58,7 +73,7 @@ public class StopMapper {
             stop.setLat(currentStopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             stop.setLon(currentStopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else{
-            LOG.warn(currentStopPlace.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation(new StopPlaceWithoutCoordinates(currentStopPlace.getId()));
         }
 
         // Find parent multimodal stop if it present
@@ -132,7 +147,7 @@ public class StopMapper {
                         if (quay.getCentroid() == null || quay.getCentroid().getLocation() == null
                                 || quay.getCentroid().getLocation().getLatitude() == null
                                 || quay.getCentroid().getLocation().getLatitude() == null) {
-                            LOG.warn("Quay " + quay.getId() + " does not contain any coordinates.");
+                            addBuilderAnnotation.addBuilderAnnotation(new QuayWithoutCoordinates(quay.getId()));
                             continue;
                         }
                         stopQuay.setName(stop.getName());
@@ -227,7 +242,7 @@ public class StopMapper {
             stop.setLat(stopPlace.getCentroid().getLocation().getLatitude().doubleValue());
             stop.setLon(stopPlace.getCentroid().getLocation().getLongitude().doubleValue());
         }else{
-            LOG.warn(stopPlace.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation.addBuilderAnnotation(new StopPlaceWithoutCoordinates(stopPlace.getId()));
         }
 
         stop.setWeight(mapInterchange(stopPlace));
@@ -251,7 +266,7 @@ public class StopMapper {
             group.setLat(groupOfStopPlaces.getCentroid().getLocation().getLatitude().doubleValue());
             group.setLon(groupOfStopPlaces.getCentroid().getLocation().getLongitude().doubleValue());
         } else{
-            LOG.warn(groupOfStopPlaces.getId() + " does not contain any coordinates.");
+            addBuilderAnnotation.addBuilderAnnotation(new StopPlaceWithoutCoordinates(groupOfStopPlaces.getId()));
         }
 
         StopPlaceRefs_RelStructure members = groupOfStopPlaces.getMembers();

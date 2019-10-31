@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.opentripplanner.graph_builder.annotation.BikeParkUnlinked;
 import org.opentripplanner.graph_builder.linking.SynchronisedSimpleStreetSplitter;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -154,8 +155,7 @@ public class BikeParkUpdater extends PollingGraphUpdater {
                 if (bikeParkVertex == null) {
                     bikeParkVertex = new BikeParkVertex(graph, bikePark);
                     if (!linker.link(bikeParkVertex)) {
-                        // the toString includes the text "Bike park"
-                        LOG.warn("{} not near any streets; it will not be usable.", bikePark);
+                        graph.addBuilderAnnotation(new BikeParkUnlinked(bikeParkVertex));
                     }
                     verticesByPark.put(bikePark, bikeParkVertex);
                     new BikeParkEdge(bikeParkVertex);

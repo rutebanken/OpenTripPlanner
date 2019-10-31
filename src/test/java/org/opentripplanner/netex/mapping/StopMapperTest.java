@@ -22,7 +22,7 @@ public class StopMapperTest {
 
     private ObjectFactory netexObjectFactory = new ObjectFactory();
 
-    private StopMapper stopMapper = new StopMapper();
+    private StopMapper stopMapper = new StopMapper(gba -> {});
 
     private OtpTransitBuilder otpTransitBuilder = new OtpTransitBuilder();
 

@@ -5,6 +5,7 @@ import org.opentripplanner.model.NoticeAssignment;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.rutebanken.netex.model.*;
 import org.rutebanken.netex.model.Branding;
 import org.rutebanken.netex.model.Notice;
@@ -27,11 +28,11 @@ public class NetexMapper {
 
     private final RouteMapper routeMapper = new RouteMapper();
 
-    private final StopMapper stopMapper = new StopMapper();
+    private final StopMapper stopMapper;
 
-    private final FlexibleStopPlaceMapper flexibleStopPlaceMapper = new FlexibleStopPlaceMapper();
+    private final FlexibleStopPlaceMapper flexibleStopPlaceMapper;
 
-    private final TripPatternMapper tripPatternMapper = new TripPatternMapper();
+    private final TripPatternMapper tripPatternMapper;
 
     private final ParkingMapper parkingMapper = new ParkingMapper();
 
@@ -39,7 +40,7 @@ public class NetexMapper {
 
     private final OperatorMapper operatorMapper = new OperatorMapper();
 
-    private final ServiceLinkMapper serviceLinkMapper = new ServiceLinkMapper();
+    private final ServiceLinkMapper serviceLinkMapper;
 
     private final TariffZoneMapper tariffZoneMapper = new TariffZoneMapper();
 
@@ -50,10 +51,14 @@ public class NetexMapper {
     private final String defaultFlexMaxTravelTime;
 
 
-    public NetexMapper(OtpTransitBuilder transitBuilder, String agencyId, String defaultFlexMaxTravelTime) {
+    public NetexMapper(OtpTransitBuilder transitBuilder, String agencyId, String defaultFlexMaxTravelTime, AddBuilderAnnotation addBuilderAnnotation) {
         this.transitBuilder = transitBuilder;
         this.agencyId = agencyId;
         this.defaultFlexMaxTravelTime = defaultFlexMaxTravelTime;
+        this.tripPatternMapper = new TripPatternMapper(addBuilderAnnotation);
+        this.flexibleStopPlaceMapper= new FlexibleStopPlaceMapper(addBuilderAnnotation);
+        this.serviceLinkMapper = new ServiceLinkMapper(addBuilderAnnotation);
+        this.stopMapper= new StopMapper(addBuilderAnnotation);
     }
 
     public void mapNetexToOtpEntities(NetexDao netexDao) {

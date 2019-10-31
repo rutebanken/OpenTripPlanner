@@ -107,7 +107,7 @@ public class StreetUtils {
         LOG.info("Modified " + count + " islands");
 
         if (graph.removeEdgelessVertices() > 0) {
-            LOG.warn("Removed edgeless vertices after pruning islands");
+            LOG.info("Removed {} edgeless vertices after pruning islands", graph.removeEdgelessVertices());
         }
     }
 

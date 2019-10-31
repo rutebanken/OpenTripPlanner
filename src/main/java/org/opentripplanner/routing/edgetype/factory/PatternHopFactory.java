@@ -371,7 +371,7 @@ public class PatternHopFactory {
         }
 
         /* Generate unique human-readable names for all the TableTripPatterns. */
-        TripPattern.generateUniqueNames(tripPatterns);
+        TripPattern.generateUniqueNames(tripPatterns, graph);
 
         /* Generate unique short IDs for all the TableTripPatterns. */
         TripPattern.generateUniqueIds(tripPatterns);

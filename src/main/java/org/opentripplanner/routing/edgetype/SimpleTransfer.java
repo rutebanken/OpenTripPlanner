@@ -51,7 +51,7 @@ public class SimpleTransfer extends Edge {
 
     @Override
     public State traverse(State s0) {
-        if (s0.getBackEdge() instanceof StationStopEdge) {
+        if (s0.getBackEdge() instanceof StationStopEdge && !s0.getReverseOptimizing()) {
             return null;
         }
         if (!s0.getOptions().modes.contains(TraverseMode.WALK)) {

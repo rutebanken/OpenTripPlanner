@@ -16,10 +16,12 @@ package org.opentripplanner.netex.loader;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.opentripplanner.graph_builder.annotation.StopWithoutQuay;
 import org.opentripplanner.graph_builder.module.NetexModule;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.mapping.NetexMapper;
 import org.opentripplanner.netex.mapping.ServiceIdMapper;
+import org.opentripplanner.routing.graph.AddBuilderAnnotation;
 import org.rutebanken.netex.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +49,11 @@ public class NetexLoader {
 
     private Deque<NetexDao> netexDaoStack = new LinkedList<>();
 
-    public NetexLoader(NetexBundle netexBundle) {
+    private AddBuilderAnnotation addBuilderAnnotation;
+
+    public NetexLoader(NetexBundle netexBundle, AddBuilderAnnotation addBuilderAnnotation) {
         this.netexBundle = netexBundle;
+        this.addBuilderAnnotation = addBuilderAnnotation;
     }
 
     public OtpTransitBuilder loadBundle() throws Exception {
@@ -56,7 +61,7 @@ public class NetexLoader {
         this.unmarshaller = createUnmarshaller();
         OtpTransitBuilder transitBuilder = new OtpTransitBuilder();
 
-        this.otpMapper = new NetexMapper(transitBuilder, netexBundle.netexParameters.netexFeedId, netexBundle.netexParameters.defaultFlexMaxTravelTime);
+        this.otpMapper = new NetexMapper(transitBuilder, netexBundle.netexParameters.netexFeedId, netexBundle.netexParameters.defaultFlexMaxTravelTime, addBuilderAnnotation);
 
         loadDao();
 
@@ -194,7 +199,7 @@ public class NetexLoader {
                     } else {
                         currentNetexDao().stopPlaceById.add(stopPlace);
                         if (stopPlace.getQuays() == null) {
-                            LOG.warn(stopPlace.getId() + " does not contain any quays");
+                            addBuilderAnnotation.addBuilderAnnotation(new StopWithoutQuay(stopPlace.getId()));
                         } else {
                             List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
                             for (Object quayObject : quayRefOrQuay) {

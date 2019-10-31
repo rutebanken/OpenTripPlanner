@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.opentripplanner.graph_builder.annotation.BikeRentalStationUnlinked;
 import org.opentripplanner.graph_builder.linking.SynchronisedSimpleStreetSplitter;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -193,8 +194,7 @@ public class BikeRentalUpdater extends PollingGraphUpdater {
                 if (vertex == null) {
                     vertex = new BikeRentalStationVertex(graph, station);
                     if (!linker.link(vertex)) {
-                        // the toString includes the text "Bike rental station"
-                        LOG.warn("{} not near any streets; it will not be usable.", station);
+                        graph.addBuilderAnnotation(new BikeRentalStationUnlinked(vertex));
                     }
                     verticesByStation.put(station, vertex);
                     graph.streetIndex.addToSpatialIndex(vertex);

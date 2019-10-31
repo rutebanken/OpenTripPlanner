@@ -19,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.opentripplanner.graph_builder.annotation.CarParkUnlinked;
+import org.opentripplanner.graph_builder.annotation.ParkAndRideUnlinked;
 import org.opentripplanner.graph_builder.linking.SynchronisedSimpleStreetSplitter;
 import org.opentripplanner.routing.car_park.CarPark;
 import org.opentripplanner.routing.car_park.CarParkService;
@@ -178,7 +180,7 @@ public class CarParkUpdater extends PollingGraphUpdater {
                         if (numberOfVertices == 0) {
                             if (!(linker.link(carParkVertex, TraverseMode.CAR, null) &&
                                     linker.link(carParkVertex, TraverseMode.WALK, null))) {
-                                LOG.warn("{} not near any streets; it will not be usable.", carPark);
+                                graph.addBuilderAnnotation(new CarParkUnlinked(carParkVertex));
                             }
                         }
                         verticesByPark.put(carPark, carParkVertex);

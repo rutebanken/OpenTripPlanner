@@ -24,6 +24,8 @@ import java.util.Set;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.SphericalDistanceLibrary;
 import org.opentripplanner.common.model.P2;
+import org.opentripplanner.graph_builder.annotation.AreaNotEpsilonValid;
+import org.opentripplanner.graph_builder.annotation.AreaTooComplicated;
 import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule.Handler;
 import org.opentripplanner.graph_builder.services.StreetEdgeFactory;
 import org.opentripplanner.openstreetmap.model.OSMNode;
@@ -42,7 +44,6 @@ import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.spt.DominanceFunction;
-import org.opentripplanner.routing.spt.DominanceFunction.EarliestArrival;
 import org.opentripplanner.routing.spt.GraphPath;
 import org.opentripplanner.routing.spt.ShortestPathTree;
 import org.opentripplanner.routing.vertextype.IntersectionVertex;
@@ -82,9 +83,9 @@ public class WalkableAreaBuilder {
 
     private static Logger LOG = LoggerFactory.getLogger(WalkableAreaBuilder.class);
 
-    private final int MAX_AREA_NODES = 500;
+    public static final int MAX_AREA_NODES = 500;
 
-    private static final double VISIBILITY_EPSILON = 0.000000001;
+    public static final double VISIBILITY_EPSILON = 0.000000001;
 
     private Graph graph;
 
@@ -234,14 +235,12 @@ public class WalkableAreaBuilder {
             // FIXME: temporary hard limit on size of
             // areas to prevent way explosion
             if (visibilityPoints.size() > MAX_AREA_NODES) {
-                LOG.warn("Area " + group.getSomeOSMObject() + " is too complicated ("
-                        + visibilityPoints.size() + " > " + MAX_AREA_NODES);
+                graph.addBuilderAnnotation(new AreaTooComplicated(group.getSomeOSMObject().getId(), visibilityPoints.size()));
                 continue;
             }
 
             if (!areaEnv.is_valid(VISIBILITY_EPSILON)) {
-                LOG.warn("Area " + group.getSomeOSMObject() + " is not epsilon-valid (epsilon = "
-                        + VISIBILITY_EPSILON + ")");
+                graph.addBuilderAnnotation(new AreaNotEpsilonValid(group.getSomeOSMObject().getId()));
                 continue;
             }
 
