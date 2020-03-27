@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GIT_REMOTE_REPO="`git remote -v  | grep "entur/OpenTripPlanner" | grep "push" | awk '{print $1;}'`"
+GIT_BRANCH=otp2_entur_develop
+TAGS_FILE=target/git-entur-tags.txt
+
+echo "git fetch ${GIT_REMOTE_REPO}"
+git fetch ${GIT_REMOTE_REPO}
+
+echo "Verify current branch is ${GIT_BRANCH} "
+git status | grep -q "On branch ${GIT_BRANCH}"
+
+## List all entur tags to allow the UpdatePomVersion java program find the next version number
+echo "Dump all entur tags to ${TAGS_FILE}"
+git tag -l | grep entur > ${TAGS_FILE}
+
+echo "Update pom.xml with new version"
+javac -d target/classes src/main/java/EnturUpdatePomVersion.java
+
+VERSION="`java -cp target/classes EnturUpdatePomVersion ${TAGS_FILE}`"
+echo ""
+echo "New version set: ${VERSION}"
+echo ""
+
+## Verify everything builds and tests run
+mvn clean test
+
+echo ""
+
+## Add [ci skip] here before moving this to the CI server
+echo "Add and commit pom.xml"
+git commit -m "Version ${VERSION}" pom.xml
+
+echo ""
+echo "Tag version ${VERSION}"
+git tag -a v${VERSION} -m "Version ${VERSION}"
+
+echo ""
+echo "Push pom.xml and new tag"
+git push -f ${GIT_REMOTE_REPO} "v${VERSION}" ${GIT_BRANCH}
+
