@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ENTUR_DEVELOP=otp2_entur_develop
+
+if [[ "$#" != "1" ]]; then
+  echo ""
+  echo "This script take ONE argument, the **base branch** or **commit** to use as the starting"
+  echo "point for the release - a base. The '${ENTUR_DEVELOP}' branch is reset to this commit and"
+  echo "then the extension branches is rebased on to of it and merged into '${ENTUR_DEVELOP}'."
+  echo ""
+  echo "Usage:"
+  echo "  prepare_release otp/dev-2.x"
+  echo ""
+  exit 1
+fi
+
+OTP_BASE="$1"
+REMOTE_REPO="`git remote -v  | grep "entur/OpenTripPlanner" | grep "push" | awk '{print $1;}'`"
+
+echo ""
+echo "Git base branch/commit:        ${OTP_BASE}"
+echo "Entur develop branch:          ${ENTUR_DEVELOP}"
+echo "Entur remote repo(pull/push):  ${REMOTE_REPO}"
+echo ""
+
+if git diff-index --quiet HEAD --; then
+   echo "OK - No local changes, prepare to checkout ${ENTUR_DEVELOP}"
+else
+   echo "You have local modification, the script will abort. Nothing done!"
+   exit 2
+fi
+
+git fetch
+git status
+
+echo ""
+echo "## ------------------------------------------------------------------------------------- ##"
+echo "##   RESET '${ENTUR_DEVELOP}' TO '${OTP_BASE}'"
+echo "## ------------------------------------------------------------------------------------- ##"
+echo ""
+echo "Wod you like to reset the '${ENTUR_DEVELOP}' to '${OTP_BASE}'. The "
+echo "script will continue with the extension branches after this is done."
+echo "If you already did this skip it and continue to the extension branches."
+echo ""
+echo ""
+echo "Do you want to continue: [y:Yes, s:Skip, e:Exit]"
+
+read ANS
+
+if [[ "$ANS" == "e" ]] ; then
+  exit 0
+fi
+
+if [[ "$ANS" == "y" ]] ; then
+  echo ""
+  echo "Checkout '${ENTUR_DEVELOP}'"
+  git checkout ${ENTUR_DEVELOP}
+  echo ""
+  echo "Reset ${ENTUR_DEVELOP} branch to '${OTP_BASE}'"
+  git reset --hard "${OTP_BASE}"
+fi
+
+function rebaseAndMergeExtBranch() {
+  EXT_BRANCH="$1"
+
+  echo ""
+  echo "## ------------------------------------------------------------------------------------- ##"
+  echo "##   REBASE '${EXT_BRANCH}' ONTO, AND THEN MERGE INTO ${ENTUR_DEVELOP}"
+  echo "## ------------------------------------------------------------------------------------- ##"
+  echo ""
+
+  git checkout "${EXT_BRANCH}"
+
+  echo ""
+  echo "Top 3 commits in '${EXT_BRANCH}'"
+  echo "-------------------------------------------------------------------------------------------"
+  git log -2
+  echo "-------------------------------------------------------------------------------------------"
+  echo ""
+  echo "You are about to rebase the top commit ONLY of '${EXT_BRANCH}'. Check that the "
+  echo "'${EXT_BRANCH}' only have ONE commit that you want to keep, see git log above. "
+  echo ""
+  echo "Do you want to continue: [y:Yes, s:Skip, e:Exit]"
+
+  read ANS
+
+  if [[ "$ANS" == "e" ]] ; then
+    exit 0
+  fi
+
+  if [[ "$ANS" == "y" ]] ; then
+    EXT_BRANCH_BACKUP="${EXT_BRANCH}_backup_$(date +%F)"
+    echo ""
+    echo "Backup EXT_BRANCH to '${EXT_BRANCH_BACKUP}'"
+    git branch "${EXT_BRANCH}_backup_$(date +%F)"
+
+    echo ""
+    echo "Reset to '${REMOTE_REPO}/${EXT_BRANCH}'"
+    git reset --hard "${REMOTE_REPO}/${EXT_BRANCH}"
+
+    echo ""
+    echo "Rebase '${EXT_BRANCH}' onto '${ENTUR_DEVELOP}'"
+    git rebase --onto ${ENTUR_DEVELOP} HEAD~1
+
+    echo ""
+    echo "Push '${EXT_BRANCH}'"
+    git push -f
+
+    echo ""
+    echo "Checkout '${ENTUR_DEVELOP}' and merge in '${EXT_BRANCH}'"
+    git checkout "${ENTUR_DEVELOP}"
+    git merge "${EXT_BRANCH}"
+  fi
+}
+
+rebaseAndMergeExtBranch otp2_ext_config
+rebaseAndMergeExtBranch otp2_add_submode_support
+rebaseAndMergeExtBranch otp2_fuzzy_alert_matching
