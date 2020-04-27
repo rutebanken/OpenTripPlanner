@@ -7,12 +7,14 @@ import org.opentripplanner.standalone.datastore.file.DirectoryDataSource;
 import org.opentripplanner.standalone.datastore.file.ZipFileDataSource;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 public class ZipStreamDataSource implements CompositeDataSource {
@@ -152,8 +154,17 @@ public class ZipStreamDataSource implements CompositeDataSource {
                         ).withBytes(bArray)
                 );
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (ZipException ex) {
+            throw new RuntimeException(
+                    "Can not read zip file " + path() + ": " + ex.getLocalizedMessage(),
+                    ex
+            );
+        }
+        catch (IOException ie) {
+            throw new RuntimeException(
+                    "Failed to load " + path() + ": " + ie.getLocalizedMessage(),
+                    ie
+            );
         }
     }
 }

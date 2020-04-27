@@ -83,7 +83,10 @@ public class DirectoryDataSource extends AbstractFileDataSource implements Compo
             FileUtils.moveFile(currentFile, newFileFile);
         }
         catch (IOException e) {
-            throw new IllegalStateException(e.getLocalizedMessage(), e);
+            throw new RuntimeException(
+                    "Failed to rename " + path() + ": " + e.getLocalizedMessage(),
+                    e
+            );
         }
     }
 

@@ -33,7 +33,10 @@ public class FileDataSource extends AbstractFileDataSource {
       }
     }
     catch (IOException e) {
-      throw new IllegalStateException(e.getLocalizedMessage(), e);
+      throw new RuntimeException(
+              "Failed to load " + path() + ": " + e.getLocalizedMessage(),
+              e
+      );
     }
   }
 
