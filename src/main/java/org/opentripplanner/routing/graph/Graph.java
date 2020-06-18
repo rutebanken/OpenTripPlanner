@@ -45,6 +45,8 @@ import org.opentripplanner.model.calendar.CalendarService;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.calendar.impl.CalendarServiceImpl;
+import org.opentripplanner.model.modes.TransitSubmode;
+import org.opentripplanner.model.modes.TransitSubmodeConfiguration;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
@@ -252,6 +254,7 @@ public class Graph implements Serializable {
 
     private transient AlertPatchService alertPatchService;
 
+    private TransitSubmodeConfiguration transitSubmodeConfiguration;
 
     /**
      * Hack. I've tried three different ways of generating unique labels.
@@ -1046,5 +1049,18 @@ public class Graph implements Serializable {
 
     public Collection<SimpleTransfer> getTransfersByStop(Stop stop) {
         return transfersByStop.get(stop);
+    }
+
+    public TransitSubmodeConfiguration getTransitSubmodeConfiguration() {
+        return transitSubmodeConfiguration;
+    }
+
+    public void setTransitSubmodeConfiguration(
+        TransitSubmodeConfiguration transitSubmodeConfiguration
+    ) {
+        if (this.transitSubmodeConfiguration != null) {
+            throw new IllegalStateException("TransitSubmodeConfiguration can only be set once.");
+        }
+        this.transitSubmodeConfiguration = transitSubmodeConfiguration;
     }
 }

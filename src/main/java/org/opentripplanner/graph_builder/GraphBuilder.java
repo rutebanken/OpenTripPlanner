@@ -9,6 +9,7 @@ import org.opentripplanner.graph_builder.module.DirectTransferGenerator;
 import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.graph_builder.module.PruneFloatingIslands;
 import org.opentripplanner.graph_builder.module.StreetLinkerModule;
+import org.opentripplanner.graph_builder.module.SubmodesConfiguration;
 import org.opentripplanner.graph_builder.module.TransitToTaggedStopsModule;
 import org.opentripplanner.graph_builder.module.map.BusRouteStreetMatcher;
 import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
@@ -23,6 +24,7 @@ import org.opentripplanner.openstreetmap.BinaryOpenStreetMapProvider;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.standalone.config.BuildConfig;
 import org.opentripplanner.standalone.config.S3BucketConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.opentripplanner.util.OTPFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +93,7 @@ public class GraphBuilder implements Runnable {
      */
     public static GraphBuilder create(
             BuildConfig config,
+            SubmodesConfig submodesConfig,
             GraphBuilderDataSources dataSources,
             Graph baseGraph
     ) {
@@ -132,6 +135,11 @@ public class GraphBuilder implements Runnable {
             pruneFloatingIslands.setPruningThresholdIslandWithoutStops(config.pruningThresholdIslandWithoutStops);
             pruneFloatingIslands.setPruningThresholdIslandWithStops(config.pruningThresholdIslandWithStops);
             graphBuilder.addModule(pruneFloatingIslands);
+        }
+        if (hasTransitData) {
+            SubmodesConfiguration submodesConfiguration = new SubmodesConfiguration();
+            submodesConfiguration.setConfig(submodesConfig);
+            graphBuilder.addModule(submodesConfiguration);
         }
         if ( hasGtfs ) {
             List<GtfsBundle> gtfsBundles = Lists.newArrayList();

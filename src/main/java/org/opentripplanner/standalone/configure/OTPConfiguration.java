@@ -129,6 +129,8 @@ public class OTPConfiguration {
         return routerConfig;
     }
 
+    public SubmodesConfig submodesConfig() { return submodesConfig; }
+
     /**
      * Create plug in config to the data store.
      */
