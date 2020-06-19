@@ -14,7 +14,7 @@ import org.opentripplanner.model.Station;
 import org.opentripplanner.model.StationElement;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Transfer;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.routing.core.TransferTable;
 import org.opentripplanner.routing.edgetype.ElevatorAlightEdge;

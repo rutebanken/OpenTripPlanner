@@ -1,6 +1,6 @@
 package org.opentripplanner.routing.api.request;
 
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 
 import java.util.Set;
 

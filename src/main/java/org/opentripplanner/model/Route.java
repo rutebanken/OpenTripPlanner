@@ -1,7 +1,7 @@
 /* This file is based on code copied from project OneBusAway, see the LICENSE file for further information. */
 package org.opentripplanner.model;
 
-import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.model.modes.TransitMode;
 
 public final class Route extends TransitEntity<FeedScopedId> {
 

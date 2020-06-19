@@ -1,7 +1,6 @@
 package org.opentripplanner.gtfs.mapping;
 
-import org.opentripplanner.model.TransitMode;
-import org.opentripplanner.routing.core.TraverseMode;
+import org.opentripplanner.model.modes.TransitMode;
 
 public class TransitModeMapper {
 

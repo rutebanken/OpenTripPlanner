@@ -2,7 +2,7 @@ package org.opentripplanner.api.parameter;
 
 import com.beust.jcommander.internal.Sets;
 
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.StreetMode;
 

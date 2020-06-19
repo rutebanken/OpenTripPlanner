@@ -1,7 +1,7 @@
 package org.opentripplanner.standalone.config;
 
 import com.csvreader.CsvReader;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

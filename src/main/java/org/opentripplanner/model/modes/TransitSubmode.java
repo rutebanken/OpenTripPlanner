@@ -1,7 +1,5 @@
 package org.opentripplanner.model.modes;
 
-import org.opentripplanner.model.TransitMode;
-
 public class TransitSubmode {
 
   private final String name;
