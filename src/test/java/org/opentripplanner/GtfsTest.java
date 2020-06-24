@@ -59,7 +59,8 @@ public abstract class GtfsTest extends TestCase {
         List<GtfsBundle> gtfsBundleList = Collections.singletonList(gtfsBundle);
         GtfsModule gtfsGraphBuilderImpl = new GtfsModule(
                 gtfsBundleList,
-                ServiceDateInterval.unbounded()
+                ServiceDateInterval.unbounded(),
+                null
         );
 
         alertsUpdateHandler = new AlertsUpdateHandler();

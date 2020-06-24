@@ -21,6 +21,7 @@ import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.kryo.BuildConfigSerializer;
 import org.opentripplanner.kryo.HashBiMapSerializer;
 import org.opentripplanner.kryo.RouterConfigSerializer;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.standalone.config.BuildConfig;
 import org.opentripplanner.standalone.config.RouterConfig;
 import org.opentripplanner.util.OtpAppException;

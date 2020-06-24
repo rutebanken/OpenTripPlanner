@@ -14,10 +14,12 @@ import org.opentripplanner.model.TransitEntity;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
 import org.opentripplanner.routing.trippattern.Deduplicator;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.Authority;
 import org.rutebanken.netex.model.GroupOfStopPlaces;
 import org.rutebanken.netex.model.JourneyPattern;
@@ -51,6 +53,8 @@ public class NetexMapper {
     private final FeedScopedIdFactory idFactory;
     private final Deduplicator deduplicator;
     private final Multimap<String, Station> stationsByMultiModalStationRfs = ArrayListMultimap.create();
+    private final SubmodesConfig submodesConfig;
+    private final TransitModeConfiguration transitModeConfiguration;
 
 
     private final DataImportIssueStore issueStore;
@@ -66,11 +70,15 @@ public class NetexMapper {
             OtpTransitServiceBuilder transitBuilder,
             String agencyId,
             Deduplicator deduplicator,
+            SubmodesConfig submodesConfig,
+            TransitModeConfiguration transitModeConfiguration,
             DataImportIssueStore issueStore
     ) {
         this.transitBuilder = transitBuilder;
         this.deduplicator = deduplicator;
         this.idFactory = new FeedScopedIdFactory(agencyId);
+        this.submodesConfig = submodesConfig;
+        this.transitModeConfiguration = transitModeConfiguration;
         this.issueStore = issueStore;
     }
 
@@ -175,7 +183,10 @@ public class NetexMapper {
                 transitBuilder.getAgenciesById(),
                 transitBuilder.getOperatorsById(),
                 netexIndex,
-                netexIndex.getTimeZone()
+                netexIndex.getTimeZone(),
+                submodesConfig,
+                transitModeConfiguration
+
         );
         for (Line line : netexIndex.getLineById().localValues()) {
             Route route = routeMapper.mapRoute(line);

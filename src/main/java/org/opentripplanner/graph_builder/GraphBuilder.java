@@ -20,6 +20,7 @@ import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.DefaultStreetEdgeFactory;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.graph_builder.services.ned.ElevationGridCoverageFactory;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.openstreetmap.BinaryOpenStreetMapProvider;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.standalone.config.BuildConfig;
@@ -162,13 +163,22 @@ public class GraphBuilder implements Runnable {
                 gtfsBundle.maxInterlineDistance = config.maxInterlineDistance;
                 gtfsBundles.add(gtfsBundle);
             }
-            GtfsModule gtfsModule = new GtfsModule(gtfsBundles, config.getTransitServicePeriod());
+            GtfsModule gtfsModule = new GtfsModule(
+                gtfsBundles,
+                config.getTransitServicePeriod(),
+                submodesConfig
+            );
             gtfsModule.setFareServiceFactory(config.fareServiceFactory);
             graphBuilder.addModule(gtfsModule);
         }
 
         if( hasNetex ) {
-            graphBuilder.addModule(netexModule(config, dataSources.get(NETEX)));
+            graphBuilder.addModule(
+                netexModule(
+                    config,
+                    submodesConfig,
+                    dataSources.get(NETEX))
+            );
         }
 
         if(hasTransitData && hasOsm) {

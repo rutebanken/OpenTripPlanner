@@ -22,6 +22,7 @@ import org.opentripplanner.graph_builder.module.geometry.GeometryAndBlockProcess
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.gtfs.GenerateTripPatternsOperation;
 import org.opentripplanner.gtfs.RepairStopTimesForEachTripOperation;
+import org.opentripplanner.gtfs.mapping.TransitModeMapper;
 import org.opentripplanner.model.BikeAccess;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.OtpTransitService;
@@ -29,9 +30,11 @@ import org.opentripplanner.model.TripStopTimes;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDateInterval;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.services.FareServiceFactory;
 import org.opentripplanner.standalone.config.BuildConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.opentripplanner.gtfs.mapping.GTFSToOtpTransitServiceMapper.mapGtfsDaoToInternalTransitServiceBuilder;
 
@@ -75,11 +79,18 @@ public class GtfsModule implements GraphBuilderModule {
      */
     private final ServiceDateInterval transitPeriodLimit;
 
+    private final SubmodesConfig submodesConfig;
+
     private List<GtfsBundle> gtfsBundles;
 
-    public GtfsModule(List<GtfsBundle> bundles, ServiceDateInterval transitPeriodLimit) {
+    public GtfsModule(
+        List<GtfsBundle> bundles,
+        ServiceDateInterval transitPeriodLimit,
+        SubmodesConfig submodesConfig
+    ) {
         this.gtfsBundles = bundles;
         this.transitPeriodLimit = transitPeriodLimit;
+        this.submodesConfig = submodesConfig;
     }
 
     public List<String> provides() {
@@ -127,7 +138,9 @@ public class GtfsModule implements GraphBuilderModule {
                 OtpTransitServiceBuilder builder =  mapGtfsDaoToInternalTransitServiceBuilder(
                         loadBundle(gtfsBundle),
                         gtfsBundle.getFeedId().getId(),
-                        issueStore
+                        issueStore,
+                        submodesConfig,
+                        graph.getTransitModeConfiguration()
                 );
 
                 builder.limitServiceDays(transitPeriodLimit);

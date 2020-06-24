@@ -45,7 +45,8 @@ import org.opentripplanner.model.calendar.CalendarService;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.calendar.impl.CalendarServiceImpl;
-import org.opentripplanner.model.modes.TransitSubmodeConfiguration;
+import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
@@ -55,7 +56,6 @@ import org.opentripplanner.routing.edgetype.EdgeWithCleanup;
 import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.impl.AlertPatchServiceImpl;
 import org.opentripplanner.routing.impl.StreetVertexIndex;
-import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.services.AlertPatchService;
 import org.opentripplanner.routing.services.notes.StreetNotesService;
 import org.opentripplanner.routing.trippattern.Deduplicator;
@@ -253,7 +253,7 @@ public class Graph implements Serializable {
 
     private transient AlertPatchService alertPatchService;
 
-    private TransitSubmodeConfiguration transitSubmodeConfiguration;
+    private TransitModeConfiguration transitModeConfiguration;
 
     /**
      * Hack. I've tried three different ways of generating unique labels.
@@ -1050,16 +1050,16 @@ public class Graph implements Serializable {
         return transfersByStop.get(stop);
     }
 
-    public TransitSubmodeConfiguration getTransitSubmodeConfiguration() {
-        return transitSubmodeConfiguration;
+    public TransitModeConfiguration getTransitModeConfiguration() {
+        return transitModeConfiguration;
     }
 
-    public void setTransitSubmodeConfiguration(
-        TransitSubmodeConfiguration transitSubmodeConfiguration
+    public void setTransitModeConfiguration(
+        TransitModeConfiguration transitModeConfiguration
     ) {
-        if (this.transitSubmodeConfiguration != null) {
+        if (this.transitModeConfiguration != null) {
             throw new IllegalStateException("TransitSubmodeConfiguration can only be set once.");
         }
-        this.transitSubmodeConfiguration = transitSubmodeConfiguration;
+        this.transitModeConfiguration = transitModeConfiguration;
     }
 }

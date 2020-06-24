@@ -9,6 +9,8 @@ import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 
 /**
  * This class is responsible for mapping between GTFS DAO objects and into OTP Transit model.
@@ -59,10 +61,15 @@ public class GTFSToOtpTransitServiceMapper {
 
     private final DataImportIssueStore issueStore;
 
-    GTFSToOtpTransitServiceMapper(DataImportIssueStore issueStore, String feedId) {
+    GTFSToOtpTransitServiceMapper(
+        DataImportIssueStore issueStore,
+        String feedId,
+        SubmodesConfig submodesConfig,
+        TransitModeConfiguration transitModeConfiguration
+    ) {
         this.issueStore = issueStore;
         agencyMapper = new AgencyMapper(feedId);
-        routeMapper = new RouteMapper(agencyMapper);
+        routeMapper = new RouteMapper(agencyMapper, submodesConfig, transitModeConfiguration);
         tripMapper = new TripMapper(routeMapper);
         stopTimeMapper = new StopTimeMapper(stopMapper, tripMapper);
         frequencyMapper = new FrequencyMapper(tripMapper);
@@ -78,9 +85,17 @@ public class GTFSToOtpTransitServiceMapper {
      * Map from GTFS data to the internal OTP model
      */
     public static OtpTransitServiceBuilder mapGtfsDaoToInternalTransitServiceBuilder(
-        GtfsRelationalDao data, String feedId, DataImportIssueStore issueStore
+        GtfsRelationalDao data,
+        String feedId,
+        DataImportIssueStore issueStore,
+        SubmodesConfig submodesConfig,
+        TransitModeConfiguration transitModeConfiguration
     ) {
-        return new GTFSToOtpTransitServiceMapper(issueStore, feedId).map(data);
+        return new GTFSToOtpTransitServiceMapper(
+            issueStore,
+            feedId, 
+            submodesConfig,
+            transitModeConfiguration).map(data);
     }
 
     private OtpTransitServiceBuilder map(GtfsRelationalDao data) {

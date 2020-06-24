@@ -64,7 +64,7 @@ public class TraverseModeMapper {
             return null;
         }
 
-        switch (domain) {
+        switch (domain.getMainMode()) {
             case AIRPLANE: return "AIRPLANE";
             case BUS: return "BUS";
             case CABLE_CAR: return "CABLE_CAR";

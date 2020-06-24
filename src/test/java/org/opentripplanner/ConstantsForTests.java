@@ -98,6 +98,8 @@ public class ConstantsForTests {
     public static NetexBundle createMinimalNetexBundle() {
         return NetexConfig.netexBundleForTest(
                 createNetexBuilderParameters(),
+                null,
+                null,
                 new File(ConstantsForTests.NETEX_DIR, ConstantsForTests.NETEX_FILENAME)
         );
     }
@@ -155,7 +157,7 @@ public class ConstantsForTests {
             {
                 BuildConfig buildParameters = createNetexBuilderParameters();
                 List<DataSource> dataSources = Collections.singletonList(NETEX_MINIMAL_DATA_SOURCE);
-                NetexModule module = NetexConfig.netexModule(buildParameters, dataSources);
+                NetexModule module = NetexConfig.netexModule(buildParameters, null, dataSources);
                 module.buildGraph(minNetexGraph, null);
             }
             // Link transit stops to streets

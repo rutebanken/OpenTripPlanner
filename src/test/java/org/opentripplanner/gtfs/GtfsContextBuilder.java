@@ -43,7 +43,11 @@ public class GtfsContextBuilder {
         GtfsImport gtfsImport = gtfsImport(defaultFeedId, path);
         GtfsFeedId feedId = gtfsImport.getFeedId();
         OtpTransitServiceBuilder transitBuilder = mapGtfsDaoToInternalTransitServiceBuilder(
-                gtfsImport.getDao(), feedId.getId(), new DataImportIssueStore(false)
+            gtfsImport.getDao(),
+            feedId.getId(),
+            new DataImportIssueStore(false),
+            null,
+            null
         );
         return new GtfsContextBuilder(
                 feedId,

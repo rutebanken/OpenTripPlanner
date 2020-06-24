@@ -126,7 +126,7 @@ public class ConfigLoader {
     public SubmodesConfig loadSubmodesConfig() {
         File file = new File(configDir, SUBMODES_CONFIG_FILENAME);
         if (!file.exists()) {
-            return new SubmodesConfig(SubmodesConfig.getDefault());
+            return SubmodesConfig.getDefault();
         }
         return new SubmodesConfig(file);
     }

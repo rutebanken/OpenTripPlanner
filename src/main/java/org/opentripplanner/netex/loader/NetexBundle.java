@@ -4,11 +4,13 @@ import org.opentripplanner.datastore.CompositeDataSource;
 import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.graph_builder.DataImportIssueStore;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.loader.mapping.NetexMapper;
 import org.opentripplanner.netex.loader.parser.NetexDocumentParser;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.standalone.config.NetexConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.PublicationDeliveryStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,21 +51,24 @@ public class NetexBundle implements Closeable {
 
     private final String netexFeedId;
 
+    private final SubmodesConfig submodesConfig;
 
     public NetexBundle(
             String netexFeedId,
             CompositeDataSource source,
-            NetexDataSourceHierarchy hierarchy
-
+            NetexDataSourceHierarchy hierarchy,
+            SubmodesConfig submodesConfig
     ) {
         this.netexFeedId = netexFeedId;
         this.source = source;
         this.hierarchy = hierarchy;
+        this.submodesConfig = submodesConfig;
     }
 
     /** load the bundle, map it to the OTP transit model and return */
     public OtpTransitServiceBuilder loadBundle(
             Deduplicator deduplicator,
+            TransitModeConfiguration transitModeConfiguration,
             DataImportIssueStore issueStore
     ) {
         LOG.info("Reading {}", hierarchy.description());
@@ -73,7 +78,14 @@ public class NetexBundle implements Closeable {
 
         // init parser and mapper
         xmlParser = new NetexXmlParser();
-        otpMapper = new NetexMapper(transitBuilder, netexFeedId, deduplicator, issueStore);
+        otpMapper = new NetexMapper(
+            transitBuilder,
+            netexFeedId,
+            deduplicator,
+            submodesConfig,
+            transitModeConfiguration,
+            issueStore
+        );
 
         // Load data
         loadZipFileEntries();

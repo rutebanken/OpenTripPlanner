@@ -1,9 +1,9 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripSchedule;
-import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.transit.raptor.api.transit.IntIterator;
 import org.opentripplanner.transit.raptor.api.transit.RaptorRoute;
 import org.opentripplanner.transit.raptor.api.transit.RaptorTransfer;

@@ -2,7 +2,9 @@ package org.opentripplanner.api.parameter;
 
 import com.beust.jcommander.internal.Sets;
 
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.StreetMode;
 
@@ -42,33 +44,33 @@ public class QualifiedModeSet implements Serializable {
         for (QualifiedMode qMode : qModes) {
              switch (qMode.mode) {
                  case TRANSIT:
-                     transitModes.addAll(Arrays.asList(TransitMode.values()));
+                     transitModes.addAll(TransitModeConfiguration.getAllMainModes());
                  case RAIL:
-                     transitModes.add(TransitMode.RAIL);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.RAIL));
                      break;
                  case SUBWAY:
-                     transitModes.add(TransitMode.SUBWAY);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.SUBWAY));
                      break;
                  case BUS:
-                     transitModes.add(TransitMode.BUS);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.BUS));
                      break;
                  case TRAM:
-                     transitModes.add(TransitMode.TRAM);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.TRAM));
                      break;
                  case FERRY:
-                     transitModes.add(TransitMode.FERRY);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.FERRY));
                      break;
                  case AIRPLANE:
-                     transitModes.add(TransitMode.AIRPLANE);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.AIRPLANE));
                      break;
                  case CABLE_CAR:
-                     transitModes.add(TransitMode.CABLE_CAR);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.CABLE_CAR));
                      break;
                  case GONDOLA:
-                     transitModes.add(TransitMode.GONDOLA);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.GONDOLA));
                      break;
                  case FUNICULAR:
-                     transitModes.add(TransitMode.FUNICULAR);
+                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.FUNICULAR));
                      break;
              }
         }

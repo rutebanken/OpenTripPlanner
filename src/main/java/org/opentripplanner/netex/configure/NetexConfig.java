@@ -4,10 +4,12 @@ import org.opentripplanner.datastore.CompositeDataSource;
 import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.datastore.FileType;
 import org.opentripplanner.datastore.file.ZipFileDataSource;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.netex.loader.NetexDataSourceHierarchy;
 import org.opentripplanner.standalone.config.BuildConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,20 +31,34 @@ public class NetexConfig {
 
     private final BuildConfig buildParams;
 
-    private NetexConfig(BuildConfig builderParams) {
+    private final SubmodesConfig submodesConfig;
+
+    private NetexConfig(
+        BuildConfig builderParams,
+        SubmodesConfig submodesConfig
+    ) {
         this.buildParams = builderParams;
+        this.submodesConfig = submodesConfig;
     }
 
 
     public static NetexModule netexModule(
             BuildConfig buildParams,
+            SubmodesConfig submodesConfig,
             Iterable<DataSource> netexSources
     ) {
-        return new NetexConfig(buildParams).netexModule(netexSources);
+        return new NetexConfig(buildParams, submodesConfig)
+            .netexModule(netexSources);
     }
 
-    public static NetexBundle netexBundleForTest(BuildConfig builderParams, File netexZipFile) {
-        return new NetexConfig(builderParams).netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
+    public static NetexBundle netexBundleForTest(
+        BuildConfig builderParams,
+        SubmodesConfig submodesConfig,
+        TransitModeConfiguration transitModeConfiguration,
+        File netexZipFile
+    ) {
+        return new NetexConfig(builderParams, submodesConfig)
+            .netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
     }
 
     private NetexModule netexModule(Iterable<DataSource> netexSources) {
@@ -66,7 +82,12 @@ public class NetexConfig {
 
     /** public to enable testing */
     private NetexBundle netexBundle(CompositeDataSource source) {
-        return new NetexBundle(buildParams.netex.netexFeedId, source, hierarchy(source));
+        return new NetexBundle(
+            buildParams.netex.netexFeedId,
+            source,
+            hierarchy(source),
+            submodesConfig
+        );
     }
 
     private NetexDataSourceHierarchy hierarchy(CompositeDataSource source){

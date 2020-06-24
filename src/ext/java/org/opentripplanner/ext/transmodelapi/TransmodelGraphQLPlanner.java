@@ -10,6 +10,9 @@ import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.api.response.RoutingError;
 import org.opentripplanner.routing.api.response.RoutingResponse;
 import org.opentripplanner.routing.core.OptimizeType;
@@ -17,7 +20,6 @@ import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.request.BannedStopSet;
 import org.opentripplanner.routing.api.request.StreetMode;
-import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.standalone.server.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,7 +240,7 @@ public class TransmodelGraphQLPlanner {
 
             if (transitModes.get() == null) {
                 // Default to all transport modes if transport modes not specified
-                transitModes.set(new ArrayList<>(Arrays.asList(TransitMode.values())));
+                transitModes.set(new ArrayList<>(TransitModeConfiguration.getAllMainModes()));
             }
 
             request.modes = new RequestModes(

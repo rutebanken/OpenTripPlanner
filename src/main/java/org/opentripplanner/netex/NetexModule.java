@@ -5,11 +5,13 @@ import org.opentripplanner.graph_builder.module.AddTransitModelEntitiesToGraph;
 import org.opentripplanner.graph_builder.module.GtfsFeedId;
 import org.opentripplanner.graph_builder.module.geometry.GeometryAndBlockProcessor;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
+import org.opentripplanner.gtfs.mapping.TransitModeMapper;
 import org.opentripplanner.model.OtpTransitService;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDateInterval;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.NetexBundle;
+import org.opentripplanner.routing.core.RouteMatcher;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.impl.DefaultFareServiceFactory;
 import org.opentripplanner.routing.services.FareServiceFactory;
@@ -80,6 +82,7 @@ public class NetexModule implements GraphBuilderModule {
 
                 OtpTransitServiceBuilder transitBuilder = netexBundle.loadBundle(
                         graph.deduplicator,
+                        graph.getTransitModeConfiguration(),
                         issueStore
                 );
                 transitBuilder.limitServiceDays(transitPeriodLimit);

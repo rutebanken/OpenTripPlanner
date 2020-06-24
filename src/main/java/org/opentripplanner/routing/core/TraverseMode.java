@@ -28,7 +28,7 @@ public enum TraverseMode {
     }
 
     public static TraverseMode fromTransitMode(TransitMode transitMode) {
-        switch (transitMode) {
+        switch (transitMode.getMainMode()) {
             case RAIL:
                 return TraverseMode.RAIL;
             case COACH:

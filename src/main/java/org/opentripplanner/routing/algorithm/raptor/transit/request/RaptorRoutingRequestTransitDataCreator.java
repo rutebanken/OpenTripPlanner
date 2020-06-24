@@ -1,12 +1,12 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
 import org.opentripplanner.transit.raptor.api.transit.RaptorTransfer;
-import org.opentripplanner.model.modes.TransitMode;
 
 import java.time.Instant;
 import java.time.LocalDate;

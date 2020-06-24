@@ -8,6 +8,7 @@ import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.core.IntersectionTraversalCostModel;
 import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.RouteMatcher;
@@ -686,8 +687,11 @@ public class RoutingRequest implements Cloneable, Serializable {
         // http://en.wikipedia.org/wiki/Speed_limit
         carSpeed = 40; // 40 m/s, 144 km/h, above the maximum (finite) driving speed limit worldwide
         // Default to walk for access/egress/direct modes and all transit modes
-        this.modes = new RequestModes(StreetMode.WALK, StreetMode.WALK, StreetMode.WALK, new HashSet<>(
-            Arrays.asList(TransitMode.values())));
+        this.modes = new RequestModes(
+            StreetMode.WALK,
+            StreetMode.WALK,
+            StreetMode.WALK,
+            new HashSet<>(TransitModeConfiguration.getAllMainModes()));
         bikeWalkingOptions = this;
 
         // So that they are never null.
