@@ -1,7 +1,7 @@
 package org.opentripplanner.standalone.config;
 
 import com.csvreader.CsvReader;
-import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +35,12 @@ public class SubmodesConfig {
       csvReader.readHeaders(); // Skip header
       while (csvReader.readRecord()) {
         configItems.add(new ConfigItem(
-            csvReader.get("name"),
-            TransitMode.valueOf(csvReader.get("mode")),
-            csvReader.get("description"),
-            Arrays.asList(csvReader.get("netexSubmodes").split(LIST_DELIMITER)),
-            Arrays.asList(csvReader.get("gtfsExtendedRouteTypes").split(LIST_DELIMITER))
-        ));
+              csvReader.get("name"), TransitMainMode.valueOf(csvReader.get("mode")),
+              csvReader.get("description"),
+              asList(csvReader.get("netexSubmodes")),
+              asList(csvReader.get("gtfsExtendedRouteTypes"))
+            )
+        );
       }
     }
     catch (NullPointerException | IOException e) {
@@ -52,24 +52,24 @@ public class SubmodesConfig {
     return configItems;
   }
 
-  public static File getDefault() {
-    return new File(
+  public static SubmodesConfig getDefault() {
+    return new SubmodesConfig(new File(
         Objects.requireNonNull(
             SubmodesConfig.class.getClassLoader().getResource(DEFAULT_FILE)).getFile()
-    );
+    ));
   }
 
   public static class ConfigItem {
 
     public final String name;
-    public final TransitMode mode;
+    public final TransitMainMode mode;
     public final String description;
     public final List<String> netexSubmodes;
     public final List<String> gtfsExtendRouteTypes;
 
     public ConfigItem(
         String name,
-        TransitMode mode,
+        TransitMainMode mode,
         String description,
         List<String> netexSubmodes,
         List<String> gtfsExtendRouteTypes
@@ -80,5 +80,9 @@ public class SubmodesConfig {
       this.netexSubmodes = netexSubmodes;
       this.gtfsExtendRouteTypes = gtfsExtendRouteTypes;
     }
+  }
+
+  private List<String> asList(String input) {
+    return Arrays.asList(input.replaceAll("[\\[\\]]","").split(LIST_DELIMITER));
   }
 }
