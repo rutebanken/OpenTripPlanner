@@ -12,6 +12,7 @@ import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.calendar.CalendarServiceData;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.configure.NetexConfig;
 import org.opentripplanner.netex.loader.NetexBundle;
@@ -19,6 +20,7 @@ import org.opentripplanner.openstreetmap.BinaryOpenStreetMapProvider;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.standalone.config.ConfigLoader;
 import org.opentripplanner.standalone.config.BuildConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,8 +100,8 @@ public class ConstantsForTests {
     public static NetexBundle createMinimalNetexBundle() {
         return NetexConfig.netexBundleForTest(
                 createNetexBuilderParameters(),
-                null,
-                null,
+                SubmodesConfig.getDefault(),
+                TransitModeConfiguration.getDefault(),
                 new File(ConstantsForTests.NETEX_DIR, ConstantsForTests.NETEX_FILENAME)
         );
     }
@@ -157,7 +159,7 @@ public class ConstantsForTests {
             {
                 BuildConfig buildParameters = createNetexBuilderParameters();
                 List<DataSource> dataSources = Collections.singletonList(NETEX_MINIMAL_DATA_SOURCE);
-                NetexModule module = NetexConfig.netexModule(buildParameters, null, dataSources);
+                NetexModule module = NetexConfig.netexModule(buildParameters, SubmodesConfig.getDefault(), dataSources);
                 module.buildGraph(minNetexGraph, null);
             }
             // Link transit stops to streets

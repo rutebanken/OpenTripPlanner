@@ -1,9 +1,10 @@
 package org.opentripplanner.model.modes;
 
+import org.opentripplanner.standalone.config.SubmodesConfig;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -34,12 +35,20 @@ public class TransitModeConfiguration {
         .collect(Collectors.toList());
   }
 
+  public static TransitModeConfiguration getDefault() {
+    return new TransitModeConfiguration(SubmodesConfig.getDefault());
+  }
+
   public TransitModeConfiguration() {
     configuredTransitModes = new HashSet<>();
   }
 
-  public TransitModeConfiguration(List<TransitMode> transitModes) {
-    this.configuredTransitModes = new HashSet<>(transitModes);
+  public TransitModeConfiguration(SubmodesConfig submodesConfig) {
+    Set<TransitMode> transitModes = new HashSet<>();
+    for (SubmodesConfig.ConfigItem configItem : submodesConfig.getConfig()) {
+      transitModes.add(new TransitMode(configItem.name, configItem.mode));
+    }
+    this.configuredTransitModes = transitModes;
   }
 
   public TransitMode getTransitMode(TransitMainMode mainMode, String submode) {

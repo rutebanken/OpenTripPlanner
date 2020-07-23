@@ -6,6 +6,7 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.impl.EntityById;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
 import org.opentripplanner.standalone.config.SubmodesConfig;
@@ -26,16 +27,13 @@ class RouteMapper {
     private static final Logger LOG = LoggerFactory.getLogger(RouteMapper.class);
 
     private final HexBinaryAdapter hexBinaryAdapter = new HexBinaryAdapter();
-    private final TransportModeMapper transportModeMapper = new TransportModeMapper();
+    private final TransportModeMapper transportModeMapper;
 
     private final FeedScopedIdFactory idFactory;
     private final EntityById<FeedScopedId, Agency> agenciesById;
     private final EntityById<FeedScopedId, Operator> operatorsById;
     private final NetexImportDataIndexReadOnlyView netexIndex;
     private final AuthorityToAgencyMapper authorityMapper;
-
-    private final SubmodesConfig submodesConfig;
-    private final TransitModeConfiguration transitModeConfiguration;
 
     RouteMapper(
             FeedScopedIdFactory idFactory,
@@ -51,8 +49,7 @@ class RouteMapper {
         this.operatorsById = operatorsById;
         this.netexIndex = netexIndex;
         this.authorityMapper = new AuthorityToAgencyMapper(idFactory, timeZone);
-        this.submodesConfig = submodesConfig;
-        this.transitModeConfiguration = transitModeConfiguration;
+        this.transportModeMapper = new TransportModeMapper(submodesConfig, transitModeConfiguration);
     }
 
     org.opentripplanner.model.Route mapRoute(Line line){
@@ -63,15 +60,13 @@ class RouteMapper {
         otpRoute.setOperator(findOperator(line));
         otpRoute.setLongName(line.getName().getValue());
         otpRoute.setShortName(line.getPublicCode());
-        int transportType = transportModeMapper.getTransportMode(
-                line.getTransportMode(),
-                line.getTransportSubmode()
+        TransitMode mode =transportModeMapper.map(
+            line.getTransportMode(),
+            line.getTransportSubmode()
         );
-        otpRoute.setType(transportType);
-        otpRoute.setMode(TransitModeMapper.mapMode(
-            transportType,
-            submodesConfig,
-            transitModeConfiguration
+        otpRoute.setMode(transportModeMapper.map(
+            line.getTransportMode(),
+            line.getTransportSubmode()
             )
         );
 
