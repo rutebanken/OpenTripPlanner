@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 public class SubmodesConfigTest {
 
   private static final String SUBMODES_TEST_FILE =
-      "src/test/resources/org/opentripplanner/standalone/config/submodes.csv";
+      "src/main/resources/org/opentripplanner/submodes/submodes.csv";
 
   @Test
   public void testLoadSubmodesConfig() {
