@@ -1,7 +1,7 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.AllowedTransitModes;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
@@ -49,7 +49,7 @@ class RaptorRoutingRequestTransitDataCreator {
   }
 
   List<List<TripPatternForDates>> createTripPatternsPerStop(
-      int dayRange, Set<TransitMode> transitModes , Set<FeedScopedId> bannedRoutes
+      int dayRange, AllowedTransitModes transitModes , Set<FeedScopedId> bannedRoutes
   ) {
 
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = getTripPatternsForDateRange(
@@ -64,7 +64,7 @@ class RaptorRoutingRequestTransitDataCreator {
   }
 
   private List<Map<FeedScopedId, TripPatternForDate>> getTripPatternsForDateRange(
-      int dayRange, Set<TransitMode> transitModes, Set<FeedScopedId> bannedRoutes
+      int dayRange, AllowedTransitModes transitModes, Set<FeedScopedId> bannedRoutes
   ) {
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = new ArrayList<>();
 
@@ -141,14 +141,14 @@ class RaptorRoutingRequestTransitDataCreator {
   private static Map<FeedScopedId, TripPatternForDate> filterActiveTripPatterns(
       TransitLayer transitLayer,
       LocalDate date,
-      Set<TransitMode> transitModes,
+      AllowedTransitModes transitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
 
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
-        .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode()))
+        .filter(p -> transitModes.isAllowed(p.getTripPattern().getTransitMode()))
         .filter(p -> !bannedRoutes.contains(p.getTripPattern()
             .getPattern().route.getId()))
         .collect(toMap(p -> p.getTripPattern().getId(), p -> p));
