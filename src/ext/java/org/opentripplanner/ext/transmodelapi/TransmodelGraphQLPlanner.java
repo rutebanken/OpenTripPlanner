@@ -1,7 +1,6 @@
 package org.opentripplanner.ext.transmodelapi;
 
 import graphql.schema.DataFetchingEnvironment;
-import org.apache.commons.collections.CollectionUtils;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.common.ParameterException;
 import org.opentripplanner.api.mapping.PlannerErrorMapper;
@@ -12,17 +11,16 @@ import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
-import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.api.response.RoutingError;
 import org.opentripplanner.routing.api.response.RoutingResponse;
 import org.opentripplanner.routing.core.OptimizeType;
+import org.opentripplanner.routing.api.request.BannedStopSet;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
-import org.opentripplanner.routing.api.request.BannedStopSet;
 import org.opentripplanner.routing.api.request.StreetMode;
-import org.opentripplanner.routing.core.TraverseMode;
+
 import org.opentripplanner.standalone.server.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,6 +65,8 @@ public class TransmodelGraphQLPlanner {
             for (RoutingError routingError : res.getRoutingErrors()) {
                 response.messages.add(PlannerErrorMapper.mapMessage(routingError).message);
             }
+
+            response.debugOutput = res.getDebugAggregator().finishedRendering();
         }
         catch (Exception e) {
             LOG.warn("System error");
@@ -75,10 +74,6 @@ public class TransmodelGraphQLPlanner {
             PlannerError error = new PlannerError();
             error.setMsg(Message.SYSTEM_ERROR);
             response.messages.add(error.message);
-        } finally {
-            if (request != null && request.rctx != null) {
-                response.debugOutput = request.rctx.debugOutput;
-            }
         }
         return response;
     }

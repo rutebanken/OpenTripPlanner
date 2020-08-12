@@ -22,7 +22,7 @@ public class GTFSToOtpTransitServiceMapper {
 
     private final StationMapper stationMapper = new StationMapper();
 
-    private final StopMapper stopMapper = new StopMapper();
+    private final StopMapper stopMapper;
 
     private final EntranceMapper entranceMapper = new EntranceMapper();
 
@@ -40,12 +40,7 @@ public class GTFSToOtpTransitServiceMapper {
 
     private final ServiceCalendarMapper serviceCalendarMapper = new ServiceCalendarMapper();
 
-    private final PathwayMapper pathwayMapper = new PathwayMapper(
-        stopMapper,
-        entranceMapper,
-        pathwayNodeMapper,
-        boardingAreaMapper
-    );
+    private final PathwayMapper pathwayMapper;
 
     private final RouteMapper routeMapper;
 
@@ -71,6 +66,13 @@ public class GTFSToOtpTransitServiceMapper {
         agencyMapper = new AgencyMapper(feedId);
         routeMapper = new RouteMapper(agencyMapper, submodesConfig, transitModeConfiguration);
         tripMapper = new TripMapper(routeMapper);
+        stopMapper = new StopMapper(submodesConfig, transitModeConfiguration);
+        pathwayMapper = new PathwayMapper(
+            stopMapper,
+            entranceMapper,
+            pathwayNodeMapper,
+            boardingAreaMapper
+        );
         stopTimeMapper = new StopTimeMapper(stopMapper, tripMapper);
         frequencyMapper = new FrequencyMapper(tripMapper);
         transferMapper = new TransferMapper(

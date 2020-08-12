@@ -5,9 +5,7 @@ import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 public class TransitModeMapper {
 
@@ -44,6 +42,9 @@ public class TransitModeMapper {
     private static TransitMode mapTransitModeOnly(
         int routeType
     ) {
+        // Should really be reference to org.onebusaway.gtfs.model.Stop.MISSING_VALUE, but it is private.
+        if (routeType == -999) { return null; }
+
         /* TPEG Extension  https://groups.google.com/d/msg/gtfs-changes/keT5rTPS7Y0/71uMz2l6ke0J */
         if (routeType >= 100 && routeType < 200) { // Railway Service
             return TransitModeConfiguration.getTransitMode(TransitMainMode.RAIL);

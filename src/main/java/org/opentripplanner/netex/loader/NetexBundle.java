@@ -165,7 +165,7 @@ public class NetexBundle implements Closeable {
         try {
             LOG.info("reading entity {}: {}", fileDescription, entry.name());
 
-            PublicationDeliveryStructure doc = xmlParser.parseXmlDoc(entry.asBytes());
+            PublicationDeliveryStructure doc = xmlParser.parseXmlDoc(entry.asInputStream());
             NetexDocumentParser.parseAndPopulateIndex(index(), doc);
 
         } catch (JAXBException e) {

@@ -2,9 +2,12 @@ package org.opentripplanner.netex.loader.mapping;
 
 import org.opentripplanner.graph_builder.DataImportIssueStore;
 import org.opentripplanner.graph_builder.issues.QuayWithoutCoordinates;
+import org.opentripplanner.gtfs.mapping.TransitModeMapper;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.WgsCoordinate;
+import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.Quay;
 
 class StopMapper {
@@ -35,6 +38,9 @@ class StopMapper {
         quay.getPublicCode(),
         null,
         WgsCoordinateMapper.mapToDomain(quay.getCentroid()),
+        null,
+        null,
+        null,
         null,
         null,
         null,
