@@ -1,12 +1,14 @@
 package org.opentripplanner.ext.transmodelapi;
 
 import graphql.schema.DataFetchingEnvironment;
+import org.apache.commons.collections.CollectionUtils;
 import org.opentripplanner.api.common.Message;
 import org.opentripplanner.api.common.ParameterException;
 import org.opentripplanner.api.mapping.PlannerErrorMapper;
 import org.opentripplanner.api.model.error.PlannerError;
 import org.opentripplanner.ext.transmodelapi.mapping.TransmodelMappingUtil;
 import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
+import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
@@ -20,6 +22,7 @@ import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.request.BannedStopSet;
 import org.opentripplanner.routing.api.request.StreetMode;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.standalone.server.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,37 +235,46 @@ public class TransmodelGraphQLPlanner {
             ElementWrapper<StreetMode> accessMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
-            ElementWrapper<ArrayList<TransitMode>> transitModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<TransitMode>> transitMainModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<TransmodelTransportSubmode>> transitSubModes = new ElementWrapper<>();
             callWith.argument("modes.accessMode", accessMode::set);
             callWith.argument("modes.egressMode", egressMode::set);
             callWith.argument("modes.directMode", directMode::set);
-            callWith.argument("modes.transportMode", transitModes::set);
+            callWith.argument("modes.transportMode", transitMainModes::set);
+            callWith.argument("modes.transportSubMode", transitSubModes::set);
 
-            if (transitModes.get() == null) {
-                // Default to all transport modes if transport modes not specified
-                transitModes.set(new ArrayList<>(TransitModeConfiguration.getAllMainModes()));
+            List<TransitMode> transitModes;
+
+            if (transitMainModes.get() == null && transitSubModes.get() == null ) {
+                // Default to all transport modes if neither transportMode nor transportSubMode
+                // is defined
+                transitModes = new ArrayList<>(TransitModeConfiguration.getAllMainModes());
+            } else {
+                // Add both transportModes and transportSubModes to list of allowed modes
+                transitModes = new ArrayList<>();
+                if (transitMainModes.get() != null) transitModes.addAll(transitMainModes.get());
+                if (transitSubModes.get() != null) {
+                    List<TransitMode> tget = transitSubModes
+                        .get()
+                        .stream()
+                        .map(t -> router.graph.getTransitModeConfiguration().getTransitMode(t.getTransitMainMode(), t.getOtpName()))
+                        .collect(Collectors.toList());
+
+                        transitModes.addAll(transitSubModes
+                            .get()
+                            .stream()
+                            .map(t -> router.graph.getTransitModeConfiguration().getTransitMode(t.getTransitMainMode(), t.getOtpName()))
+                            .collect(Collectors.toList()));
+                }
             }
 
             request.modes = new RequestModes(
                 accessMode.get(),
                 egressMode.get(),
                 directMode.get(),
-                new HashSet<>(transitModes.get())
+                transitModes
             );
         }
-
-        /*
-        List<Map<String, ?>> transportSubmodeFilters = environment.getArgument("transportSubmodes");
-        if (transportSubmodeFilters != null) {
-            request.transportSubmodes = new HashMap<>();
-            for (Map<String, ?> transportSubmodeFilter : transportSubmodeFilters) {
-                TraverseMode transportMode = (TraverseMode) transportSubmodeFilter.get("transportMode");
-                List<TransmodelTransportSubmode> transportSubmodes = (List<TransmodelTransportSubmode>) transportSubmodeFilter.get("transportSubmodes");
-                if (!CollectionUtils.isEmpty(transportSubmodes)) {
-                    request.transportSubmodes.put(transportMode, new HashSet<>(transportSubmodes));
-                }
-            }
-        }*/
 
         if (request.bikeRental && !hasArgument(environment, "bikeSpeed")) {
             //slower bike speed for bike sharing, based on empirical evidence from DC.

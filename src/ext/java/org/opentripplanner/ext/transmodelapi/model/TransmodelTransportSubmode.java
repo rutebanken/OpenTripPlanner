@@ -1,145 +1,66 @@
 package org.opentripplanner.ext.transmodelapi.model;
 
-
-import java.util.Arrays;
+import org.opentripplanner.model.modes.TransitMainMode;
 
 public enum TransmodelTransportSubmode {
 
-    UNKNOWN("unknown"),
-    UNDEFINED("undefined"),
     // Air
-    INTERNATIONAL_FLIGHT("internationalFlight"),
-    DOMESTIC_FLIGHT("domesticFlight"),
-    INTERCONTINENTAL_FLIGHT("intercontinentalFlight"),
-    DOMESTIC_SCHEDULED_FLIGHT("domesticScheduledFlight"),
-    SHUTTLE_FLIGHT("shuttleFlight"),
-    INTERCONTINENTAL_CHARTER_FLIGHT("intercontinentalCharterFlight"),
-    INTERNATIONAL_CHARTER_FLIGHT("internationalCharterFlight"),
-    ROUND_TRIP_CHARTER_FLIGHT("roundTripCharterFlight"),
-    SIGHTSEEING_FLIGHT("sightseeingFlight"),
-    HELICOPTER_SERVICE("helicopterService"),
-    DOMESTIC_CHARTER_FLIGHT("domesticCharterFlight"),
-    SCHENGEN_AREA_FLIGHT("SchengenAreaFlight"),
-    AIRSHIP_SERVICE("airshipService"),
-    SHORT_HAUL_INTERNATIONAL_FLIGHT("shortHaulInternationalFlight"),
-    CANAL_BARGE("canalBarge"),
+    INTERNATIONAL_FLIGHT("internationalFlight", TransitMainMode.AIRPLANE, "INTERNATIONAL"),
+    DOMESTIC_FLIGHT("domesticFlight", TransitMainMode.AIRPLANE, "DOMESTIC"),
+    HELICOPTER_SERVICE("helicopterService", TransitMainMode.AIRPLANE, "HELICOPTER"),
     // Bus
-    LOCAL_BUS("localBus"),
-    REGIONAL_BUS("regionalBus"),
-    EXPRESS_BUS("expressBus"),
-    NIGHT_BUS("nightBus"),
-    POST_BUS("postBus"),
-    SPECIAL_NEEDS_BUS("specialNeedsBus"),
-    MOBILITY_BUS("mobilityBus"),
-    MOBILITY_BUS_FOR_REGISTERED_DISABLED("mobilityBusForRegisteredDisabled"),
-    SIGHTSEEING_BUS("sightseeingBus"),
-    SHUTTLE_BUS("shuttleBus"),
-    HIGH_FREQUENCY_BUS("highFrequencyBus"),
-    DEDICATED_LANE_BUS("dedicatedLaneBus"),
-    SCHOOL_BUS("schoolBus"),
-    SCHOOL_AND_PUBLIC_SERVICE_BUS("schoolAndPublicServiceBus"),
-    RAIL_REPLACEMENT_BUS("railReplacementBus"),
-    DEMAND_AND_RESPONSE_BUS("demandAndResponseBus"),
-    AIRPORT_LINK_BUS("airportLinkBus"),
+    LOCAL_BUS("localBus", TransitMainMode.BUS, "LOCAL"),
+    REGIONAL_BUS("regionalBus", TransitMainMode.BUS, "REGIONAL"),
+    EXPRESS_BUS("expressBus", TransitMainMode.BUS, "EXPRESS"),
+    NIGHT_BUS("nightBus", TransitMainMode.BUS, "NIGHT"),
+    SIGHTSEEING_BUS("sightseeingBus", TransitMainMode.BUS, "SIGHTSEEING"),
+    SHUTTLE_BUS("shuttleBus", TransitMainMode.BUS, "SHUTTLE"),
+    SCHOOL_BUS("schoolBus", TransitMainMode.BUS, "SCHOOL"),
+    RAIL_REPLACEMENT_BUS("railReplacementBus", TransitMainMode.BUS, "RAIL_REPLACEMENT"),
+    AIRPORT_LINK_BUS("airportLinkBus", TransitMainMode.BUS, "AIRPORT_LINK"),
     // Coach
-    INTERNATIONAL_COACH("internationalCoach"),
-    NATIONAL_COACH("nationalCoach"),
-    SHUTTLE_COACH("shuttleCoach"),
-    REGIONAL_COACH("regionalCoach"),
-    SPECIAL_COACH("specialCoach"),
-    SCHOOL_COACH("schoolCoach"),
-    SIGHTSEEING_COACH("sightseeingCoach"),
-    TOURIST_COACH("touristCoach"),
-    COMMUTER_COACH("commuterCoach"),
-    // Funicular
-    FUNICULAR("funicular"),
-    STREET_CABLE_CAR("streetCableCar"),
-    ALL_FUNICULAR_SERVICES("allFunicularServices"),
-    UNDEFINED_FUNICULAR("undefinedFunicular"),
-    // Metro
-    METRO("metro"),
-    TUBE("tube"),
-    URBAN_RAILWAY("urbanRailway"),
-    // Tram
-    CITY_TRAM("cityTram"),
-    LOCAL_TRAM("localTram"),
-    REGIONAL_TRAM("regionalTram"),
-    SIGHTSEEING_TRAM("sightseeingTram"),
-    SHUTTLE_TRAM("shuttleTram"),
-    TRAIN_TRAM("trainTram"),
-    // Telecabin
-    TELECABIN("telecabin"),
-    CABLE_CAR("cableCar"),
-    LIFT("lift"),
-    CHAIR_LIFT("chairLift"),
-    DRAG_LIFT("dragLift"),
-    TELECABIN_LINK("telecabinLink"),
+    INTERNATIONAL_COACH("internationalCoach", TransitMainMode.COACH, "INTERNATIONAL"),
+    NATIONAL_COACH("nationalCoach", TransitMainMode.COACH, "NATIONAL"),
     // Rail
-    LOCAL("local"),
-    HIGH_SPEED_RAIL("highSpeedRail"),
-    SUBURBAN_RAILWAY("suburbanRailway"),
-    REGIONAL_RAIL("regionalRail"),
-    INTERREGIONAL_RAIL("interregionalRail"),
-    LONG_DISTANCE("longDistance"),
-    INTERNATIONAL("international"),
-    SLEEPER_RAIL_SERVICE("sleeperRailService"),
-    NIGHT_RAIL("nightRail"),
-    CAR_TRANSPORT_RAIL_SERVICE("carTransportRailService"),
-    TOURIST_RAILWAY("touristRailway"),
-    AIRPORT_LINK_RAIL("airportLinkRail"),
-    RAIL_SHUTTLE("railShuttle"),
-    REPLACEMENT_RAIL_SERVICE("replacementRailService"),
-    SPECIAL_TRAIN("specialTrain"),
-    CROSS_COUNTRY_RAIL("crossCountryRail"),
-    RACK_AND_PINION_RAILWAY("rackAndPinionRailway"),
+    LOCAL("local", TransitMainMode.RAIL, "LOCAL"),
+    REGIONAL_RAIL("regionalRail", TransitMainMode.RAIL, "REGIONAL"),
+    INTERREGIONAL_RAIL("interregionalRail", TransitMainMode.RAIL, "INTERREGIONAL"),
+    LONG_DISTANCE("longDistance", TransitMainMode.RAIL, "LONG_DISTANCE"),
+    INTERNATIONAL("international", TransitMainMode.RAIL, "INTERNATIONAL"),
+    NIGHT_RAIL("nightRail", TransitMainMode.RAIL, "NIGHT"),
+    TOURIST_RAILWAY("touristRailway", TransitMainMode.RAIL, "TOURIST"),
+    AIRPORT_LINK_RAIL("airportLinkRail", TransitMainMode.RAIL, "AIRPORT_LINK"),
     // Water
-    INTERNATIONAL_CAR_FERRY("internationalCarFerry"),
-    NATIONAL_CAR_FERRY("nationalCarFerry"),
-    REGIONAL_CAR_FERRY("regionalCarFerry"),
-    LOCAL_CAR_FERRY("localCarFerry"),
-    INTERNATIONAL_PASSENGER_FERRY("internationalPassengerFerry"),
-    NATIONAL_PASSENGER_FERRY("nationalPassengerFerry"),
-    REGIONAL_PASSENGER_FERRY("regionalPassengerFerry"),
-    LOCAL_PASSENGER_FERRY("localPassengerFerry"),
-    POST_BOAT("postBoat"),
-    TRAIN_FERRY("trainFerry"),
-    ROAD_FERRY_LINK("roadFerryLink"),
-    AIRPORT_BOAT_LINK("airportBoatLink"),
-    HIGH_SPEED_VEHICLE_SERVICE("highSpeedVehicleService"),
-    HIGH_SPEED_PASSENGER_SERVICE("highSpeedPassengerService"),
-    SIGHTSEEING_SERVICE("sightseeingService"),
-    SCHOOL_BOAT("schoolBoat"),
-    CABLE_FERRY("cableFerry"),
-    RIVER_BUS("riverBus"),
-    SCHEDULED_FERRY("scheduledFerry"),
-    SHUTTLE_FERRY_SERVICE("shuttleFerryService"),
-    // Taxi
-    COMMUNAL_TAXI("communalTaxi"),
-    CHARTER_TAXI("charterTaxi"),
-    WATER_TAXI("waterTaxi"),
-    RAIL_TAXI("railTaxi"),
-    BIKE_TAXI("bikeTaxi"),
-    BLACK_CAB("blackCab"),
-    MINI_CAB("miniCab"),
-    ALL_TAXI_SERVICES("allTaxiServices"),
-    // Self drive
-    HIRE_CAR("hireCar"),
-    HIRE_VAN("hireVan"),
-    HIRE_MOTORBIKE("hireMotorbike"),
-    HIRE_CYCLE("hireCycle"),
-    ALL_HIRE_VEHICLES("allHireVehicles");
+    INTERNATIONAL_CAR_FERRY("internationalCarFerry", TransitMainMode.FERRY, "INTERNATIONAL_CAR_FERRY"),
+    NATIONAL_CAR_FERRY("nationalCarFerry", TransitMainMode.FERRY, "NATIONAL_CAR_FERRY"),
+    LOCAL_CAR_FERRY("localCarFerry", TransitMainMode.FERRY, "LOCAL_CAR_FERRY"),
+    INTERNATIONAL_PASSENGER_FERRY("internationalPassengerFerry", TransitMainMode.FERRY, "INTERNATIONAL_PASSENGER_FERRY"),
+    LOCAL_PASSENGER_FERRY("localPassengerFerry", TransitMainMode.FERRY, "LOCAL_PASSENGER_FERRY"),
+    HIGH_SPEED_VEHICLE_SERVICE("highSpeedVehicleService", TransitMainMode.FERRY, "HIGH_SPEED_VEHICLE_SERVICE"),
+    HIGH_SPEED_PASSENGER_SERVICE("highSpeedPassengerService", TransitMainMode.FERRY, "HIGH_SPEED_PASSENGER_SERVICE"),
+    SIGHTSEEING_SERVICE("sightseeingService", TransitMainMode.FERRY, "SIGHTSEEING_SERVICE");
 
-    private final String value;
+    private final String transmodelName;
 
-    TransmodelTransportSubmode(String value) {
-        this.value = value;
+    private final TransitMainMode transitMainMode;
+
+    private final String otpName;
+
+    TransmodelTransportSubmode(String transmodelName, TransitMainMode transitMainMode, String otpName) {
+        this.transmodelName = transmodelName;
+        this.transitMainMode = transitMainMode;
+        this.otpName = otpName;
     }
 
-    public String getValue() {
-        return value;
+    public String getTransmodelName() {
+        return transmodelName;
     }
 
-    public static TransmodelTransportSubmode fromValue(String value) {
-        return Arrays.stream(TransmodelTransportSubmode.values()).filter(tp -> tp.getValue().equals(value)).findFirst().orElse(null);
+    public TransitMainMode getTransitMainMode() {
+        return transitMainMode;
+    }
+
+    public String getOtpName() {
+        return otpName;
     }
 }

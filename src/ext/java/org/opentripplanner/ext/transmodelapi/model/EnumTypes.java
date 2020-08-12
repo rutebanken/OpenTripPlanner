@@ -193,7 +193,7 @@ public class EnumTypes {
             .build();
 
 */
-    public static GraphQLEnumType TRANSPORT_SUBMODE = createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getValue()));
+    public static GraphQLEnumType TRANSPORT_SUBMODE = createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getTransmodelName()));
     /*
 
     public static GraphQLEnumType flexibleLineTypeEnum = TransmodelIndexGraphQLSchema.createEnum("FlexibleLineType", Route.FlexibleRouteTypeEnum.values(), (t -> t.name()));
