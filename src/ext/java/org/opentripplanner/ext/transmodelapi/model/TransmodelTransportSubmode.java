@@ -46,6 +46,15 @@ public enum TransmodelTransportSubmode {
 
     private final String otpName;
 
+    public static TransmodelTransportSubmode fromOtpName(String s) {
+        for (TransmodelTransportSubmode c : values()) {
+            if (c.otpName.equals(s)) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException(s);
+    }
+
     TransmodelTransportSubmode(String transmodelName, TransitMainMode transitMainMode, String otpName) {
         this.transmodelName = transmodelName;
         this.transitMainMode = transitMainMode;

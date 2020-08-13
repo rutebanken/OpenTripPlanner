@@ -60,10 +60,6 @@ class RouteMapper {
         otpRoute.setOperator(findOperator(line));
         otpRoute.setLongName(line.getName().getValue());
         otpRoute.setShortName(line.getPublicCode());
-        TransitMode mode =transportModeMapper.map(
-            line.getTransportMode(),
-            line.getTransportSubmode()
-        );
         otpRoute.setMode(transportModeMapper.map(
             line.getTransportMode(),
             line.getTransportSubmode()

@@ -11,6 +11,7 @@ import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeConfiguration;
 import org.opentripplanner.routing.api.response.RoutingError;
@@ -230,7 +231,7 @@ public class TransmodelGraphQLPlanner {
             ElementWrapper<StreetMode> accessMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
-            ElementWrapper<ArrayList<TransitMode>> transitMainModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<TransitMainMode>> transitMainModes = new ElementWrapper<>();
             ElementWrapper<ArrayList<TransmodelTransportSubmode>> transitSubModes = new ElementWrapper<>();
             callWith.argument("modes.accessMode", accessMode::set);
             callWith.argument("modes.egressMode", egressMode::set);
@@ -247,19 +248,19 @@ public class TransmodelGraphQLPlanner {
             } else {
                 // Add both transportModes and transportSubModes to list of allowed modes
                 transitModes = new ArrayList<>();
-                if (transitMainModes.get() != null) transitModes.addAll(transitMainModes.get());
+                if (transitMainModes.get() != null) {
+                    transitModes.addAll(transitMainModes
+                        .get()
+                        .stream()
+                        .map(TransitModeConfiguration::getTransitMode)
+                        .collect(Collectors.toList()));
+                }
                 if (transitSubModes.get() != null) {
-                    List<TransitMode> tget = transitSubModes
+                    transitModes.addAll(transitSubModes
                         .get()
                         .stream()
                         .map(t -> router.graph.getTransitModeConfiguration().getTransitMode(t.getTransitMainMode(), t.getOtpName()))
-                        .collect(Collectors.toList());
-
-                        transitModes.addAll(transitSubModes
-                            .get()
-                            .stream()
-                            .map(t -> router.graph.getTransitModeConfiguration().getTransitMode(t.getTransitMainMode(), t.getOtpName()))
-                            .collect(Collectors.toList()));
+                        .collect(Collectors.toList()));
                 }
             }
 
