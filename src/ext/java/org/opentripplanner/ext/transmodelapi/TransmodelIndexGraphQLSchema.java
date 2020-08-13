@@ -3566,7 +3566,7 @@ public class TransmodelIndexGraphQLSchema {
                         .name("transportSubmode")
                         .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
                         .type(EnumTypes.TRANSPORT_SUBMODE)
-                        .dataFetcher(environment ->  (TransmodelTransportSubmode.fromOtpName(getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode().getSubmode())))
+                        .dataFetcher(environment ->  (TransmodelTransportSubmode.fromOtpName(getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode().getSubMode())))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("duration")

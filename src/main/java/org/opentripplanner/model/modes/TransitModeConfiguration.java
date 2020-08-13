@@ -10,6 +10,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Contains all of the configured transit modes. The main modes are not configurable, and are
+ * accessible via a static method. This is instantiated by the SubmodesConfiguration graph builder
+ * module.
+ */
 public class TransitModeConfiguration {
 
   private final Set<TransitMode> configuredTransitModes;
@@ -35,6 +40,9 @@ public class TransitModeConfiguration {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Default subModes configuration used for testing.
+   */
   public static TransitModeConfiguration getDefault() {
     return new TransitModeConfiguration(SubmodesConfig.getDefault());
   }
@@ -51,17 +59,20 @@ public class TransitModeConfiguration {
     this.configuredTransitModes = transitModes;
   }
 
-  public TransitMode getTransitMode(TransitMainMode mainMode, String submode) {
-    Optional<TransitMode> transitSubmode = configuredTransitModes
+  /**
+   * Get a configured subMode by TransitMainMode enum value and subMode string.
+   */
+  public TransitMode getTransitMode(TransitMainMode mainMode, String subMode) {
+    Optional<TransitMode> transitSubMode = configuredTransitModes
         .stream()
         .filter(t -> t.getMainMode().equals(mainMode))
-        .filter(t -> t.getSubmode().equals(submode))
+        .filter(t -> t.getSubMode().equals(subMode))
         .findFirst();
 
-    if (transitSubmode.isEmpty()) {
-      throw new IllegalArgumentException("Requested transit submode is not configured.");
+    if (transitSubMode.isEmpty()) {
+      throw new IllegalArgumentException("Requested transit subMode is not configured.");
     }
 
-    return transitSubmode.get();
+    return transitSubMode.get();
   }
 }

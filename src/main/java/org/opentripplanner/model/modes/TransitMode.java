@@ -2,25 +2,36 @@ package org.opentripplanner.model.modes;
 
 import java.util.Objects;
 
+/**
+ * A mode specified either by the TransitMainMode enum or the TransitMainMode enum and a customizable
+ * subMode string specified by the SubmodesConfiguration module at graph build time.
+ *
+ * TransitMainMode is equivalent to GTFS route_type or to NeTEx TransportMode.
+ *
+ * SubMode is equivalent to either GTFS extended route_type or NeTEx TransportSubMode.
+ *
+ * This should only be instantiated in the TransitModeConfiguration, to ensure only configured modes
+ * are used.
+ */
 public class TransitMode {
 
   private final TransitMainMode mainMode;
 
-  private final String name;
+  private final String subMode;
 
   // For serialization
   public TransitMode() {
     mainMode = null;
-    name = null;
+    subMode = null;
   }
 
-  public TransitMode(String name, TransitMainMode mainMode) {
-    this.name = name;
+  public TransitMode(String subMode, TransitMainMode mainMode) {
+    this.subMode = subMode;
     this.mainMode = mainMode;
   }
 
-  public String getSubmode() {
-    return name;
+  public String getSubMode() {
+    return subMode;
   }
 
   public TransitMainMode getMainMode() {
@@ -32,11 +43,11 @@ public class TransitMode {
     if (this == o) { return true; }
     if (o == null || getClass() != o.getClass()) { return false; }
     TransitMode that = (TransitMode) o;
-    return mainMode == that.mainMode && Objects.equals(name, that.name);
+    return mainMode == that.mainMode && Objects.equals(subMode, that.subMode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mainMode, name);
+    return Objects.hash(mainMode, subMode);
   }
 }
