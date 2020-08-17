@@ -20,9 +20,9 @@ public class TransitMode implements Serializable {
 
   private final String subMode;
 
-  public TransitMode(String subMode, TransitMainMode mainMode) {
-    this.subMode = subMode;
+  public TransitMode(TransitMainMode mainMode, String subMode) {
     this.mainMode = mainMode;
+    this.subMode = subMode;
   }
 
   public String getSubMode() {

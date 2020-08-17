@@ -19,9 +19,9 @@ public class TransitModeService {
 
   private final Set<TransitMode> configuredTransitModes;
 
-  private static Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
+  private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
       .stream(TransitMainMode.values())
-      .map(m -> new TransitMode(null, m))
+      .map(m -> new TransitMode(m, null))
       .collect(Collectors.toMap(TransitMode::getMainMode, m -> m));
 
   public static TransitMode getTransitMode(TransitMainMode mainMode) {
@@ -54,7 +54,7 @@ public class TransitModeService {
   public TransitModeService(SubmodesConfig submodesConfig) {
     Set<TransitMode> transitModes = new HashSet<>();
     for (SubmodesConfig.ConfigItem configItem : submodesConfig.getConfig()) {
-      transitModes.add(new TransitMode(configItem.name, configItem.mode));
+      transitModes.add(new TransitMode(configItem.mode, configItem.name));
     }
     this.configuredTransitModes = transitModes;
   }
