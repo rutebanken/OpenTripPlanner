@@ -1,16 +1,17 @@
 package org.opentripplanner.model.modes;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
- * A mode specified either by the TransitMainMode enum or the TransitMainMode enum and a customizable
- * subMode string specified by the SubmodesConfiguration module at graph build time.
- *
+ * A mode specified either by the TransitMainMode enum or the TransitMainMode enum and a
+ * customizable subMode string specified by the SubmodesConfiguration module at graph build time.
+ * <p>
  * TransitMainMode is equivalent to GTFS route_type or to NeTEx TransportMode.
- *
+ * <p>
  * SubMode is equivalent to either GTFS extended route_type or NeTEx TransportSubMode.
- *
+ * <p>
  * This should only be instantiated in the TransitModeConfiguration, to ensure only configured modes
  * are used.
  */
@@ -31,6 +32,16 @@ public class TransitMode implements Serializable {
 
   public TransitMainMode getMainMode() {
     return mainMode;
+  }
+
+  public boolean containedIn(Collection<TransitMode> transitModes) {
+    return transitModes.stream().anyMatch(this::contains);
+  }
+
+  public boolean contains(TransitMode other) {
+    return mainMode == other.getMainMode() && (
+        other.subMode == null || other.subMode.equals(subMode)
+    );
   }
 
   @Override

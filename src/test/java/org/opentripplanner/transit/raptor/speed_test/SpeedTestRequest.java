@@ -2,7 +2,7 @@ package org.opentripplanner.transit.raptor.speed_test;
 
 import gnu.trove.iterator.TIntIntIterator;
 import gnu.trove.map.TIntIntMap;
-import org.opentripplanner.model.modes.AllowedTransitModes;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.algorithm.raptor.transit.SlackProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripSchedule;
@@ -22,6 +22,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 
@@ -63,8 +64,8 @@ public class SpeedTestRequest {
         return ZonedDateTime.of(date, LocalTime.MIDNIGHT, inputZoneId);
     }
 
-    AllowedTransitModes getTransitModes() {
-        return new AllowedTransitModes(TransitModeService.getMainModesExceptAirplane());
+    Set<TransitMode> getTransitModes() {
+        return TransitModeService.getMainModesExceptAirplane();
     }
 
     double getWalkSpeedMeterPrSecond() {

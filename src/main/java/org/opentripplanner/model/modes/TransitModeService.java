@@ -3,7 +3,6 @@ package org.opentripplanner.model.modes;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -28,16 +27,16 @@ public class TransitModeService {
     return mainTransitModes.get(mainMode);
   }
 
-  public static Collection<TransitMode> getAllMainModes() {
-    return mainTransitModes.values();
+  public static Set<TransitMode> getAllMainModes() {
+    return new HashSet<>(mainTransitModes.values());
   }
 
-  public static Collection<TransitMode> getMainModesExceptAirplane() {
+  public static Set<TransitMode> getMainModesExceptAirplane() {
     return mainTransitModes
         .values()
         .stream()
         .filter(t -> !t.getMainMode().equals(TransitMainMode.AIRPLANE))
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 
   /**
