@@ -10,7 +10,6 @@ import org.opentripplanner.netex.loader.mapping.NetexMapper;
 import org.opentripplanner.netex.loader.parser.NetexDocumentParser;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.opentripplanner.standalone.config.NetexConfig;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.PublicationDeliveryStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,18 +50,14 @@ public class NetexBundle implements Closeable {
 
     private final String netexFeedId;
 
-    private final SubmodesConfig submodesConfig;
-
     public NetexBundle(
             String netexFeedId,
             CompositeDataSource source,
-            NetexDataSourceHierarchy hierarchy,
-            SubmodesConfig submodesConfig
+            NetexDataSourceHierarchy hierarchy
     ) {
         this.netexFeedId = netexFeedId;
         this.source = source;
         this.hierarchy = hierarchy;
-        this.submodesConfig = submodesConfig;
     }
 
     /** load the bundle, map it to the OTP transit model and return */
@@ -82,7 +77,7 @@ public class NetexBundle implements Closeable {
             transitBuilder,
             netexFeedId,
             deduplicator,
-            submodesConfig, transitModeService,
+            transitModeService,
             issueStore
         );
 

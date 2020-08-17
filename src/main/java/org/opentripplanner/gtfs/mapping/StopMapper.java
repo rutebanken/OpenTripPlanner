@@ -2,7 +2,6 @@ package org.opentripplanner.gtfs.mapping;
 
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.modes.TransitModeService;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.opentripplanner.util.MapUtils;
 
 import java.util.Collection;
@@ -15,19 +14,15 @@ class StopMapper {
 
   private Map<org.onebusaway.gtfs.model.Stop, Stop> mappedStops = new HashMap<>();
 
-  private final SubmodesConfig submodesConfig;
-
   private final TransitModeService transitModeService;
 
   public StopMapper() {
-    this.submodesConfig = null;
     this.transitModeService = null;
   }
 
   public StopMapper(
-      SubmodesConfig submodesConfig, TransitModeService transitModeService
+      TransitModeService transitModeService
   ) {
-    this.submodesConfig = submodesConfig;
     this.transitModeService = transitModeService;
   }
 
@@ -61,9 +56,7 @@ class StopMapper {
         gtfsStop.getUrl(),
         gtfsStop.getTimezone() == null ? null : TimeZone.getTimeZone(gtfsStop.getTimezone()),
         (
-            submodesConfig != null ? TransitModeMapper.mapMode(gtfsStop.getVehicleType(),
-                submodesConfig, transitModeService
-            ) : null
+            TransitModeMapper.mapMode(gtfsStop.getVehicleType(), transitModeService)
         )
     );
   }

@@ -2,6 +2,7 @@ package org.opentripplanner.standalone.config;
 
 import com.csvreader.CsvReader;
 import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SubmodesConfig {
 
-  private static final String DEFAULT_FILE =
-      "org/opentripplanner/submodes/submodes.csv";
+  private static final String DEFAULT_FILE = "org/opentripplanner/submodes/submodes.csv";
 
   private static final Charset CHARSET_UTF_8 = StandardCharsets.UTF_8;
 
@@ -34,13 +35,12 @@ public class SubmodesConfig {
       CsvReader csvReader = new CsvReader(file.getAbsolutePath(), CSV_DELIMITER, CHARSET_UTF_8);
       csvReader.readHeaders(); // Skip header
       while (csvReader.readRecord()) {
-        configItems.add(new ConfigItem(
-              csvReader.get("name"), TransitMainMode.valueOf(csvReader.get("mode")),
-              csvReader.get("description"),
-              asList(csvReader.get("netexSubmodes")),
-              asList(csvReader.get("gtfsExtendedRouteTypes"))
-            )
-        );
+        configItems.add(new ConfigItem(csvReader.get("name"),
+            TransitMainMode.valueOf(csvReader.get("mode")),
+            csvReader.get("description"),
+            asList(csvReader.get("netexSubmodes")),
+            asList(csvReader.get("gtfsExtendedRouteTypes"))
+        ));
       }
     }
     catch (NullPointerException | IOException e) {
@@ -48,18 +48,25 @@ public class SubmodesConfig {
     }
   }
 
-  public List<ConfigItem> getConfig() {
-    return configItems;
-  }
-
   public static SubmodesConfig getDefault() {
-    return new SubmodesConfig(new File(
-        Objects.requireNonNull(
-            SubmodesConfig.class.getClassLoader().getResource(DEFAULT_FILE)).getFile()
-    ));
+    return new SubmodesConfig(new File(Objects
+        .requireNonNull(SubmodesConfig.class.getClassLoader().getResource(DEFAULT_FILE))
+        .getFile()));
   }
 
-  public static class ConfigItem {
+  public List<TransitMode> getSubmodes() {
+    return configItems
+        .stream()
+        .map(c -> new TransitMode(c.mode,
+            c.name,
+            c.description,
+            c.netexSubmodes,
+            c.gtfsExtendRouteTypes
+        ))
+        .collect(Collectors.toList());
+  }
+
+  private static class ConfigItem {
 
     public final String name;
     public final TransitMainMode mode;
@@ -68,10 +75,7 @@ public class SubmodesConfig {
     public final List<String> gtfsExtendRouteTypes;
 
     public ConfigItem(
-        String name,
-        TransitMainMode mode,
-        String description,
-        List<String> netexSubmodes,
+        String name, TransitMainMode mode, String description, List<String> netexSubmodes,
         List<String> gtfsExtendRouteTypes
     ) {
       this.name = name;
@@ -83,6 +87,6 @@ public class SubmodesConfig {
   }
 
   private List<String> asList(String input) {
-    return Arrays.asList(input.replaceAll("[\\[\\]]","").split(LIST_DELIMITER));
+    return Arrays.asList(input.replaceAll("[\\[\\]]", "").split(LIST_DELIMITER));
   }
 }

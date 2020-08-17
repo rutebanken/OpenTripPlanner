@@ -46,7 +46,7 @@ public class FareRuleMapperTest {
     }
 
     private FareRuleMapper subject = new FareRuleMapper(
-        new RouteMapper(new AgencyMapper(FEED_ID), null, null),
+        new RouteMapper(new AgencyMapper(FEED_ID), null),
         new FareAttributeMapper());
 
     @Test

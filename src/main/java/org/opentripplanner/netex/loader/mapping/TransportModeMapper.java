@@ -3,13 +3,10 @@ package org.opentripplanner.netex.loader.mapping;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.TransportSubmodeStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 /**
  * This is a best effort at mapping the NeTEx transport modes to the OTP route codes which are identical to the
@@ -19,15 +16,11 @@ class TransportModeMapper {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransportModeMapper.class);
 
-    private final SubmodesConfig submodesConfig;
-
     private final TransitModeService transitModeService;
 
     public TransportModeMapper(
-        SubmodesConfig submodesConfig,
         TransitModeService transitModeService
     ) {
-        this.submodesConfig = submodesConfig;
         this.transitModeService = transitModeService;
     }
 
@@ -97,17 +90,23 @@ class TransportModeMapper {
     }
 
     private TransitMode mapSubmodeFromConfiguration(
-        String submodeString) {
-        Optional<SubmodesConfig.ConfigItem> configItem =
-            submodesConfig.getConfig().stream()
-                .filter(c -> c.netexSubmodes.contains(submodeString))
-                .findFirst();
+        String subModeString) {
 
-        if (configItem.isEmpty()) {
-            LOG.info("Submode {} not configured. Falling back to main mode.", submodeString);
+        if (transitModeService == null) {
+            LOG.info("No transitModeService configured.");
             return null;
         }
 
-        return transitModeService.getTransitMode(configItem.get().mode, configItem.get().name);
+        TransitMode transitMode;
+
+        try {
+            transitMode = transitModeService.getTransitModeByNetexSubMode(
+                String.valueOf(subModeString));
+        } catch (IllegalArgumentException e) {
+            LOG.info("SubMode {} not configured. Falling back to main mode.", subModeString);
+            transitMode = null;
+        }
+
+        return transitMode;
     }
 }

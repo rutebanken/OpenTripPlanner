@@ -46,8 +46,7 @@ public class FakeGraph {
     public static void addTransitMultipleLines (Graph g) {
         GtfsModule gtfs = new GtfsModule(
                 Arrays.asList(new GtfsBundle(getFileForResource("addTransitMultipleLines.gtfs.zip"))),
-                ServiceDateInterval.unbounded(),
-                null
+                ServiceDateInterval.unbounded()
         );
         gtfs.buildGraph(g, new HashMap<>());
     }
@@ -58,8 +57,7 @@ public class FakeGraph {
     public static void addPerpendicularRoutes (Graph graph) {
         GtfsModule gtfs = new GtfsModule(Arrays.asList(
                 new GtfsBundle(getFileForResource("addPerpendicularRoutes.gtfs.zip"))),
-                ServiceDateInterval.unbounded(),
-                null
+                ServiceDateInterval.unbounded()
         );
         gtfs.buildGraph(graph, new HashMap<>());
     }

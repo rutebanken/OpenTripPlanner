@@ -11,7 +11,6 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.ServiceDateInterval;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,7 +35,7 @@ public class GtfsGraphBuilderModuleTest {
 
         List<GtfsBundle> bundleList = getGtfsAsBundleList(gtfs);
         bundleList.get(0).setDefaultBikesAllowed(false);
-        builder = new GtfsModule(bundleList, ServiceDateInterval.unbounded(), SubmodesConfig.getDefault());
+        builder = new GtfsModule(bundleList, ServiceDateInterval.unbounded());
 
         Graph graph = new Graph();
         builder.buildGraph(graph, _extra);
@@ -65,7 +64,7 @@ public class GtfsGraphBuilderModuleTest {
 
         List<GtfsBundle> bundleList = getGtfsAsBundleList(gtfs);
         bundleList.get(0).setDefaultBikesAllowed(true);
-        builder = new GtfsModule(bundleList, ServiceDateInterval.unbounded(), SubmodesConfig.getDefault());
+        builder = new GtfsModule(bundleList, ServiceDateInterval.unbounded());
 
         Graph graph = new Graph();
         builder.buildGraph(graph, _extra);

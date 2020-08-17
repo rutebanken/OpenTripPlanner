@@ -9,7 +9,7 @@ import org.opentripplanner.graph_builder.module.DirectTransferGenerator;
 import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.graph_builder.module.PruneFloatingIslands;
 import org.opentripplanner.graph_builder.module.StreetLinkerModule;
-import org.opentripplanner.graph_builder.module.SubmodesConfiguration;
+import org.opentripplanner.graph_builder.module.TransitModeServiceModule;
 import org.opentripplanner.graph_builder.module.TransitToTaggedStopsModule;
 import org.opentripplanner.graph_builder.module.map.BusRouteStreetMatcher;
 import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
@@ -137,9 +137,9 @@ public class GraphBuilder implements Runnable {
             graphBuilder.addModule(pruneFloatingIslands);
         }
         if (hasTransitData) {
-            SubmodesConfiguration submodesConfiguration = new SubmodesConfiguration();
-            submodesConfiguration.setConfig(submodesConfig);
-            graphBuilder.addModule(submodesConfiguration);
+            TransitModeServiceModule transitModeServiceModule = new TransitModeServiceModule();
+            transitModeServiceModule.setConfig(submodesConfig);
+            graphBuilder.addModule(transitModeServiceModule);
         }
         if ( hasGtfs ) {
             List<GtfsBundle> gtfsBundles = Lists.newArrayList();
@@ -164,8 +164,7 @@ public class GraphBuilder implements Runnable {
             }
             GtfsModule gtfsModule = new GtfsModule(
                 gtfsBundles,
-                config.getTransitServicePeriod(),
-                submodesConfig
+                config.getTransitServicePeriod()
             );
             gtfsModule.setFareServiceFactory(config.fareServiceFactory);
             graphBuilder.addModule(gtfsModule);
@@ -175,7 +174,6 @@ public class GraphBuilder implements Runnable {
             graphBuilder.addModule(
                 netexModule(
                     config,
-                    submodesConfig,
                     dataSources.get(NETEX))
             );
         }

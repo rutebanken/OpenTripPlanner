@@ -6,7 +6,6 @@ import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.Network;
 import org.rutebanken.netex.model.OperatorRefStructure;
@@ -38,7 +37,6 @@ class RouteMapper {
             EntityById<FeedScopedId, Operator> operatorsById,
             NetexImportDataIndexReadOnlyView netexIndex,
             String timeZone,
-            SubmodesConfig submodesConfig,
             TransitModeService transitModeService
     ) {
         this.idFactory = idFactory;
@@ -46,7 +44,7 @@ class RouteMapper {
         this.operatorsById = operatorsById;
         this.netexIndex = netexIndex;
         this.authorityMapper = new AuthorityToAgencyMapper(idFactory, timeZone);
-        this.transportModeMapper = new TransportModeMapper(submodesConfig, transitModeService);
+        this.transportModeMapper = new TransportModeMapper(transitModeService);
     }
 
     org.opentripplanner.model.Route mapRoute(Line line){

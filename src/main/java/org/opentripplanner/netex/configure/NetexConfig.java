@@ -9,7 +9,6 @@ import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.netex.loader.NetexDataSourceHierarchy;
 import org.opentripplanner.standalone.config.BuildConfig;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,33 +30,27 @@ public class NetexConfig {
 
     private final BuildConfig buildParams;
 
-    private final SubmodesConfig submodesConfig;
-
     private NetexConfig(
-        BuildConfig builderParams,
-        SubmodesConfig submodesConfig
+        BuildConfig builderParams
     ) {
         this.buildParams = builderParams;
-        this.submodesConfig = submodesConfig;
     }
 
 
     public static NetexModule netexModule(
             BuildConfig buildParams,
-            SubmodesConfig submodesConfig,
             Iterable<DataSource> netexSources
     ) {
-        return new NetexConfig(buildParams, submodesConfig)
+        return new NetexConfig(buildParams)
             .netexModule(netexSources);
     }
 
     public static NetexBundle netexBundleForTest(
         BuildConfig builderParams,
-        SubmodesConfig submodesConfig,
         TransitModeService transitModeService,
         File netexZipFile
     ) {
-        return new NetexConfig(builderParams, submodesConfig)
+        return new NetexConfig(builderParams)
             .netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
     }
 
@@ -85,8 +78,7 @@ public class NetexConfig {
         return new NetexBundle(
             buildParams.netex.netexFeedId,
             source,
-            hierarchy(source),
-            submodesConfig
+            hierarchy(source)
         );
     }
 

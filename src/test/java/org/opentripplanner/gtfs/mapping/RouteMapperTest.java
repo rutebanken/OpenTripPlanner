@@ -66,7 +66,6 @@ public class RouteMapperTest {
 
     private RouteMapper subject = new RouteMapper(
         new AgencyMapper(FEED_ID),
-        null,
         null
     );
 

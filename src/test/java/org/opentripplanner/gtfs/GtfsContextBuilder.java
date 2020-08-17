@@ -46,7 +46,6 @@ public class GtfsContextBuilder {
             gtfsImport.getDao(),
             feedId.getId(),
             new DataImportIssueStore(false),
-            null,
             null
         );
         return new GtfsContextBuilder(

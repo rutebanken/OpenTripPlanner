@@ -4,6 +4,7 @@ import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +21,7 @@ public class TransitModeService {
 
   private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
       .stream(TransitMainMode.values())
-      .map(m -> new TransitMode(m, null))
+      .map(m -> new TransitMode(m, null, null, null, null))
       .collect(Collectors.toMap(TransitMode::getMainMode, m -> m));
 
   public static TransitMode getTransitMode(TransitMainMode mainMode) {
@@ -43,19 +44,41 @@ public class TransitModeService {
    * Default subModes configuration used for testing.
    */
   public static TransitModeService getDefault() {
-    return new TransitModeService(SubmodesConfig.getDefault());
+    return new TransitModeService(SubmodesConfig.getDefault().getSubmodes());
   }
 
   public TransitModeService() {
     configuredTransitModes = new HashSet<>();
   }
 
-  public TransitModeService(SubmodesConfig submodesConfig) {
-    Set<TransitMode> transitModes = new HashSet<>();
-    for (SubmodesConfig.ConfigItem configItem : submodesConfig.getConfig()) {
-      transitModes.add(new TransitMode(configItem.mode, configItem.name));
+  public TransitModeService(List<TransitMode> transitModes) {
+    this.configuredTransitModes = new HashSet<>(transitModes);
+  }
+
+  public TransitMode getTransitModeByGtfsExtendedRouteType(String gtfsExtendedRouteType) {
+    Optional<TransitMode> transitSubMode = configuredTransitModes
+        .stream()
+        .filter(t -> t.gtfsExtendRouteTypes.contains(gtfsExtendedRouteType))
+        .findFirst();
+
+    if (transitSubMode.isEmpty()) {
+      throw new IllegalArgumentException("Gtfs extended route type not configured.");
     }
-    this.configuredTransitModes = transitModes;
+
+    return transitSubMode.get();
+  }
+
+  public TransitMode getTransitModeByNetexSubMode(String netexSubMode) {
+    Optional<TransitMode> transitSubMode = configuredTransitModes
+        .stream()
+        .filter(t -> t.netexSubmodes.contains(netexSubMode))
+        .findFirst();
+
+    if (transitSubMode.isEmpty()) {
+      throw new IllegalArgumentException("NeTEx subMode not configured.");
+    }
+
+    return transitSubMode.get();
   }
 
   /**

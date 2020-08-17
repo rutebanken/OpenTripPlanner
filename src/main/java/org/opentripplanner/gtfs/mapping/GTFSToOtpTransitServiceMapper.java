@@ -10,7 +10,6 @@ import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.model.modes.TransitModeService;
-import org.opentripplanner.standalone.config.SubmodesConfig;
 
 /**
  * This class is responsible for mapping between GTFS DAO objects and into OTP Transit model.
@@ -59,14 +58,13 @@ public class GTFSToOtpTransitServiceMapper {
     GTFSToOtpTransitServiceMapper(
         DataImportIssueStore issueStore,
         String feedId,
-        SubmodesConfig submodesConfig,
         TransitModeService transitModeService
     ) {
         this.issueStore = issueStore;
         agencyMapper = new AgencyMapper(feedId);
-        routeMapper = new RouteMapper(agencyMapper, submodesConfig, transitModeService);
+        routeMapper = new RouteMapper(agencyMapper, transitModeService);
         tripMapper = new TripMapper(routeMapper);
-        stopMapper = new StopMapper(submodesConfig, transitModeService);
+        stopMapper = new StopMapper(transitModeService);
         pathwayMapper = new PathwayMapper(
             stopMapper,
             entranceMapper,
@@ -90,13 +88,12 @@ public class GTFSToOtpTransitServiceMapper {
         GtfsRelationalDao data,
         String feedId,
         DataImportIssueStore issueStore,
-        SubmodesConfig submodesConfig,
         TransitModeService transitModeService
     ) {
         return new GTFSToOtpTransitServiceMapper(
             issueStore,
             feedId, 
-            submodesConfig, transitModeService
+            transitModeService
         ).map(data);
     }
 

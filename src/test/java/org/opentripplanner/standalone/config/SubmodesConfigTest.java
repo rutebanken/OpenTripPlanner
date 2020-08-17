@@ -15,6 +15,6 @@ public class SubmodesConfigTest {
   public void testLoadSubmodesConfig() {
     File file = new File(SUBMODES_TEST_FILE);
     SubmodesConfig submodesConfig = new SubmodesConfig(file);
-    assertEquals(30, submodesConfig.getConfig().size());
+    assertEquals(30, submodesConfig.getSubmodes().size());
   }
 }

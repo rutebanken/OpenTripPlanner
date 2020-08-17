@@ -47,7 +47,6 @@ public class MockGtfs {
                 gtfsDelegate.read(),
                 "a0",
                 new DataImportIssueStore(false),
-                null,
                 null
         );
     }
@@ -57,7 +56,6 @@ public class MockGtfs {
                 gtfsDelegate.read(reader),
                 "a0",
                 new DataImportIssueStore(false),
-                null,
                 null
         );
     }

@@ -3,19 +3,15 @@ package org.opentripplanner.gtfs.mapping;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
-import org.opentripplanner.standalone.config.SubmodesConfig;
-
-import java.util.Optional;
 
 public class TransitModeMapper {
 
     public static TransitMode mapMode(
         int routeType,
-        SubmodesConfig submodeConfig,
         TransitModeService transitModeService
     ) {
-        TransitMode transitMode = submodeConfig != null ?
-            mapSubmodeFromConfiguration(routeType, submodeConfig, transitModeService) : null;
+        TransitMode transitMode = transitModeService != null ?
+            mapSubmodeFromConfiguration(routeType, transitModeService) : null;
 
         if (transitMode == null) {
             transitMode = mapTransitModeOnly(routeType);
@@ -26,18 +22,22 @@ public class TransitModeMapper {
 
     private static TransitMode mapSubmodeFromConfiguration(
         int routeType,
-        SubmodesConfig submodeConfig,
         TransitModeService transitModeService
     ) {
+        if (transitModeService == null) {
+            return null;
+        }
 
-        Optional<SubmodesConfig.ConfigItem> configItem =
-            submodeConfig.getConfig().stream()
-                .filter(c -> c.gtfsExtendRouteTypes.contains(String.valueOf(routeType)))
-                .findFirst();
+        TransitMode transitMode;
 
-        if (configItem.isEmpty()) return null;
+        try {
+            transitMode = transitModeService.getTransitModeByGtfsExtendedRouteType(
+                String.valueOf(routeType));
+        } catch (IllegalArgumentException e) {
+            transitMode = null;
+        }
 
-        return transitModeService.getTransitMode(configItem.get().mode, configItem.get().name);
+        return transitMode;
     }
 
     private static TransitMode mapTransitModeOnly(

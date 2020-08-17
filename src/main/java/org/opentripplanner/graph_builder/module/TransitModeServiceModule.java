@@ -12,7 +12,7 @@ import java.util.HashMap;
  * This will create a TransitModeConfiguration object which specifies which subModes are configured
  * for the graph.
  */
-public class SubmodesConfiguration implements GraphBuilderModule {
+public class TransitModeServiceModule implements GraphBuilderModule {
 
   private SubmodesConfig submodesConfig;
 
@@ -22,7 +22,7 @@ public class SubmodesConfiguration implements GraphBuilderModule {
       HashMap<Class<?>, Object> extra,
       DataImportIssueStore issueStore
   ) {
-    graph.setTransitModeConfiguration(new TransitModeService(submodesConfig));
+    graph.setTransitModeConfiguration(new TransitModeService(submodesConfig.getSubmodes()));
   }
 
   public void setConfig(SubmodesConfig config) {
