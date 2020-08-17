@@ -22,24 +22,32 @@ public class TransitMode implements Serializable {
 
   private final String subMode;
 
-  public final String description;
+  private final String description;
 
-  public final List<String> netexSubmodes;
+  private final List<String> netexSubmodes;
 
-  public final List<String> gtfsExtendRouteTypes;
+  private final List<String> gtfsExtendRouteTypes;
+
+  private final String netexOutputSubmode;
+
+  private final String gtfsOutputExtendedRouteType;
 
   public TransitMode(
       TransitMainMode mainMode,
       String subMode,
       String description,
       List<String> netexSubmodes,
-      List<String> gtfsExtendRouteTypes
+      List<String> gtfsExtendRouteTypes,
+      String netexOutputSubmode,
+      String gtfsOutputExtendedRouteType
   ) {
     this.mainMode = mainMode;
     this.subMode = subMode;
     this.description = description;
     this.netexSubmodes = netexSubmodes;
     this.gtfsExtendRouteTypes = gtfsExtendRouteTypes;
+    this.netexOutputSubmode = netexOutputSubmode;
+    this.gtfsOutputExtendedRouteType = gtfsOutputExtendedRouteType;
   }
 
   public String getSubMode() {
@@ -48,6 +56,26 @@ public class TransitMode implements Serializable {
 
   public TransitMainMode getMainMode() {
     return mainMode;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public List<String> getNetexSubmodes() {
+    return netexSubmodes;
+  }
+
+  public List<String> getGtfsExtendRouteTypes() {
+    return gtfsExtendRouteTypes;
+  }
+
+  public String getNetexOutputSubmode() {
+    return netexOutputSubmode;
+  }
+
+  public String getGtfsOutputExtendedRouteType() {
+    return gtfsOutputExtendedRouteType;
   }
 
   public boolean containedIn(Collection<TransitMode> transitModes) {

@@ -39,7 +39,9 @@ public class SubmodesConfig {
             TransitMainMode.valueOf(csvReader.get("mode")),
             csvReader.get("description"),
             asList(csvReader.get("netexSubmodes")),
-            asList(csvReader.get("gtfsExtendedRouteTypes"))
+            asList(csvReader.get("gtfsExtendedRouteTypes")),
+            csvReader.get("netexOutputSubmode"),
+            csvReader.get("gtfsOutputExtendedRouteType")
         ));
       }
     }
@@ -61,7 +63,9 @@ public class SubmodesConfig {
             c.name,
             c.description,
             c.netexSubmodes,
-            c.gtfsExtendRouteTypes
+            c.gtfsExtendRouteTypes,
+            c.netexOutputSubmode,
+            c.gtfsOutputExtendedRouteType
         ))
         .collect(Collectors.toList());
   }
@@ -73,16 +77,20 @@ public class SubmodesConfig {
     public final String description;
     public final List<String> netexSubmodes;
     public final List<String> gtfsExtendRouteTypes;
+    public final String netexOutputSubmode;
+    public final String gtfsOutputExtendedRouteType;
 
     public ConfigItem(
         String name, TransitMainMode mode, String description, List<String> netexSubmodes,
-        List<String> gtfsExtendRouteTypes
+        List<String> gtfsExtendRouteTypes, String netexOutputSubmode, String gtfsOutputExtendedRouteType
     ) {
       this.name = name;
       this.mode = mode;
       this.description = description;
       this.netexSubmodes = netexSubmodes;
       this.gtfsExtendRouteTypes = gtfsExtendRouteTypes;
+      this.netexOutputSubmode = netexOutputSubmode;
+      this.gtfsOutputExtendedRouteType = gtfsOutputExtendedRouteType;
     }
   }
 

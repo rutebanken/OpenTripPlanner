@@ -2,6 +2,7 @@ package org.opentripplanner.model.modes;
 
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -15,13 +16,20 @@ import java.util.stream.Collectors;
  * accessible via a static method. This is instantiated by the SubmodesConfiguration graph builder
  * module.
  */
-public class TransitModeService {
+public class TransitModeService implements Serializable {
 
-  private final Set<TransitMode> configuredTransitModes;
+  private Set<TransitMode> configuredTransitModes;
 
-  private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
+  private static Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
       .stream(TransitMainMode.values())
-      .map(m -> new TransitMode(m, null, null, null, null))
+      .map(m -> new TransitMode(m,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+      ))
       .collect(Collectors.toMap(TransitMode::getMainMode, m -> m));
 
   public static TransitMode getTransitMode(TransitMainMode mainMode) {
@@ -58,7 +66,7 @@ public class TransitModeService {
   public TransitMode getTransitModeByGtfsExtendedRouteType(String gtfsExtendedRouteType) {
     Optional<TransitMode> transitSubMode = configuredTransitModes
         .stream()
-        .filter(t -> t.gtfsExtendRouteTypes.contains(gtfsExtendedRouteType))
+        .filter(t -> t.getGtfsExtendRouteTypes().contains(gtfsExtendedRouteType))
         .findFirst();
 
     if (transitSubMode.isEmpty()) {
@@ -71,7 +79,7 @@ public class TransitModeService {
   public TransitMode getTransitModeByNetexSubMode(String netexSubMode) {
     Optional<TransitMode> transitSubMode = configuredTransitModes
         .stream()
-        .filter(t -> t.netexSubmodes.contains(netexSubMode))
+        .filter(t -> t.getNetexSubmodes().contains(netexSubMode))
         .findFirst();
 
     if (transitSubMode.isEmpty()) {
