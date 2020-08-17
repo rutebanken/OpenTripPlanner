@@ -1,5 +1,6 @@
 package org.opentripplanner.model.modes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -13,17 +14,11 @@ import java.util.Objects;
  * This should only be instantiated in the TransitModeConfiguration, to ensure only configured modes
  * are used.
  */
-public class TransitMode {
+public class TransitMode implements Serializable {
 
   private final TransitMainMode mainMode;
 
   private final String subMode;
-
-  // For serialization
-  public TransitMode() {
-    mainMode = null;
-    subMode = null;
-  }
 
   public TransitMode(String subMode, TransitMainMode mainMode) {
     this.subMode = subMode;
