@@ -7,7 +7,7 @@ import org.opentripplanner.common.MavenVersion;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.algorithm.filterchain.FilterChainParameters;
 import org.opentripplanner.routing.core.IntersectionTraversalCostModel;
 import org.opentripplanner.routing.core.OptimizeType;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -706,7 +705,7 @@ public class RoutingRequest implements Cloneable, Serializable {
             StreetMode.WALK,
             StreetMode.WALK,
             StreetMode.WALK,
-            new HashSet<>(TransitModeConfiguration.getAllMainModes()));
+            new HashSet<>(TransitModeService.getAllMainModes()));
         bikeWalkingOptions = this;
 
         // So that they are never null.

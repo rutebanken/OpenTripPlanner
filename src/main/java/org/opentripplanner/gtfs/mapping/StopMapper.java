@@ -1,7 +1,7 @@
 package org.opentripplanner.gtfs.mapping;
 
 import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.opentripplanner.util.MapUtils;
 
@@ -17,18 +17,18 @@ class StopMapper {
 
   private final SubmodesConfig submodesConfig;
 
-  private final TransitModeConfiguration transitModeConfiguration;
+  private final TransitModeService transitModeService;
 
   public StopMapper() {
     this.submodesConfig = null;
-    this.transitModeConfiguration = null;
+    this.transitModeService = null;
   }
 
   public StopMapper(
-      SubmodesConfig submodesConfig, TransitModeConfiguration transitModeConfiguration
+      SubmodesConfig submodesConfig, TransitModeService transitModeService
   ) {
     this.submodesConfig = submodesConfig;
-    this.transitModeConfiguration = transitModeConfiguration;
+    this.transitModeService = transitModeService;
   }
 
   Collection<Stop> map(Collection<org.onebusaway.gtfs.model.Stop> allStops) {
@@ -62,8 +62,7 @@ class StopMapper {
         gtfsStop.getTimezone() == null ? null : TimeZone.getTimeZone(gtfsStop.getTimezone()),
         (
             submodesConfig != null ? TransitModeMapper.mapMode(gtfsStop.getVehicleType(),
-                submodesConfig,
-                transitModeConfiguration
+                submodesConfig, transitModeService
             ) : null
         )
     );

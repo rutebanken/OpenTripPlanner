@@ -2,7 +2,7 @@ package org.opentripplanner.graph_builder.module;
 
 import org.opentripplanner.graph_builder.DataImportIssueStore;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
@@ -22,7 +22,7 @@ public class SubmodesConfiguration implements GraphBuilderModule {
       HashMap<Class<?>, Object> extra,
       DataImportIssueStore issueStore
   ) {
-    graph.setTransitModeConfiguration(new TransitModeConfiguration(submodesConfig));
+    graph.setTransitModeConfiguration(new TransitModeService(submodesConfig));
   }
 
   public void setConfig(SubmodesConfig config) {

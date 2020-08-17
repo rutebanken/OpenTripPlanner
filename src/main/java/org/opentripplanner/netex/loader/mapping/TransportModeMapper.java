@@ -2,7 +2,7 @@ package org.opentripplanner.netex.loader.mapping;
 
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.TransportSubmodeStructure;
@@ -21,14 +21,14 @@ class TransportModeMapper {
 
     private final SubmodesConfig submodesConfig;
 
-    private final TransitModeConfiguration transitModeConfiguration;
+    private final TransitModeService transitModeService;
 
     public TransportModeMapper(
         SubmodesConfig submodesConfig,
-        TransitModeConfiguration transitModeConfiguration
+        TransitModeService transitModeService
     ) {
         this.submodesConfig = submodesConfig;
-        this.transitModeConfiguration = transitModeConfiguration;
+        this.transitModeService = transitModeService;
     }
 
     public TransitMode map(
@@ -50,24 +50,24 @@ class TransportModeMapper {
     private TransitMode mapAllVehicleModesOfTransport(AllVehicleModesOfTransportEnumeration mode) {
         switch (mode) {
             case AIR:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.AIRPLANE);
+                return TransitModeService.getTransitMode(TransitMainMode.AIRPLANE);
             case BUS:
             case TAXI:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.BUS);
+                return TransitModeService.getTransitMode(TransitMainMode.BUS);
             case CABLEWAY:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.CABLE_CAR);
+                return TransitModeService.getTransitMode(TransitMainMode.CABLE_CAR);
             case COACH:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.COACH);
+                return TransitModeService.getTransitMode(TransitMainMode.COACH);
             case FUNICULAR:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.FUNICULAR);
+                return TransitModeService.getTransitMode(TransitMainMode.FUNICULAR);
             case METRO:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.SUBWAY);
+                return TransitModeService.getTransitMode(TransitMainMode.SUBWAY);
             case RAIL:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.RAIL);
+                return TransitModeService.getTransitMode(TransitMainMode.RAIL);
             case TRAM:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.TRAM);
+                return TransitModeService.getTransitMode(TransitMainMode.TRAM);
             case WATER:
-                return TransitModeConfiguration.getTransitMode(TransitMainMode.FERRY);
+                return TransitModeService.getTransitMode(TransitMainMode.FERRY);
             default:
                 throw new IllegalArgumentException();
         }
@@ -108,6 +108,6 @@ class TransportModeMapper {
             return null;
         }
 
-        return transitModeConfiguration.getTransitMode(configItem.get().mode, configItem.get().name);
+        return transitModeService.getTransitMode(configItem.get().mode, configItem.get().name);
     }
 }

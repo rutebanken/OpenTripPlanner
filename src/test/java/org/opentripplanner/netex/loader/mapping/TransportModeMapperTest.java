@@ -2,7 +2,7 @@ package org.opentripplanner.netex.loader.mapping;
 
 import org.junit.Test;
 import org.opentripplanner.model.modes.TransitMainMode;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.RailSubmodeEnumeration;
@@ -14,22 +14,24 @@ import static org.junit.Assert.assertEquals;
 public class TransportModeMapperTest {
 
   private TransportModeMapper transportModeMapper = new TransportModeMapper(SubmodesConfig.getDefault(),
-      new TransitModeConfiguration(SubmodesConfig.getDefault())
+      new TransitModeService(SubmodesConfig.getDefault())
   );
 
-  private TransitModeConfiguration transitModeConfiguration = new TransitModeConfiguration(
+  private TransitModeService transitModeService = new TransitModeService(
       SubmodesConfig.getDefault());
 
   @Test
   public void mapWithTransportModeOnly() {
-    assertEquals(TransitModeConfiguration.getTransitMode(TransitMainMode.BUS),
+    assertEquals(
+        TransitModeService.getTransitMode(TransitMainMode.BUS),
         transportModeMapper.map(AllVehicleModesOfTransportEnumeration.BUS, null)
     );
   }
 
   @Test
   public void mapWithSubMode() {
-    assertEquals(transitModeConfiguration.getTransitMode(TransitMainMode.RAIL, "LONG_DISTANCE"),
+    assertEquals(
+        transitModeService.getTransitMode(TransitMainMode.RAIL, "LONG_DISTANCE"),
         transportModeMapper.map(AllVehicleModesOfTransportEnumeration.RAIL,
             new TransportSubmodeStructure().withRailSubmode(RailSubmodeEnumeration.LONG_DISTANCE)
         ));
@@ -37,7 +39,7 @@ public class TransportModeMapperTest {
 
   @Test
   public void checkSubModePrecedensOverMainMode() {
-    assertEquals(transitModeConfiguration.getTransitMode(
+    assertEquals(transitModeService.getTransitMode(
         TransitMainMode.FERRY,
         "INTERNATIONAL_PASSENGER_FERRY"
     ), transportModeMapper.map(AllVehicleModesOfTransportEnumeration.BUS,

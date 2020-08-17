@@ -9,7 +9,7 @@ import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
 /**
@@ -60,13 +60,13 @@ public class GTFSToOtpTransitServiceMapper {
         DataImportIssueStore issueStore,
         String feedId,
         SubmodesConfig submodesConfig,
-        TransitModeConfiguration transitModeConfiguration
+        TransitModeService transitModeService
     ) {
         this.issueStore = issueStore;
         agencyMapper = new AgencyMapper(feedId);
-        routeMapper = new RouteMapper(agencyMapper, submodesConfig, transitModeConfiguration);
+        routeMapper = new RouteMapper(agencyMapper, submodesConfig, transitModeService);
         tripMapper = new TripMapper(routeMapper);
-        stopMapper = new StopMapper(submodesConfig, transitModeConfiguration);
+        stopMapper = new StopMapper(submodesConfig, transitModeService);
         pathwayMapper = new PathwayMapper(
             stopMapper,
             entranceMapper,
@@ -91,13 +91,13 @@ public class GTFSToOtpTransitServiceMapper {
         String feedId,
         DataImportIssueStore issueStore,
         SubmodesConfig submodesConfig,
-        TransitModeConfiguration transitModeConfiguration
+        TransitModeService transitModeService
     ) {
         return new GTFSToOtpTransitServiceMapper(
             issueStore,
             feedId, 
-            submodesConfig,
-            transitModeConfiguration).map(data);
+            submodesConfig, transitModeService
+        ).map(data);
     }
 
     private OtpTransitServiceBuilder map(GtfsRelationalDao data) {

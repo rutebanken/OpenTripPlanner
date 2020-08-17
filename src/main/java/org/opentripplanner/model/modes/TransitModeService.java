@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * accessible via a static method. This is instantiated by the SubmodesConfiguration graph builder
  * module.
  */
-public class TransitModeConfiguration {
+public class TransitModeService {
 
   private final Set<TransitMode> configuredTransitModes;
 
@@ -43,15 +43,15 @@ public class TransitModeConfiguration {
   /**
    * Default subModes configuration used for testing.
    */
-  public static TransitModeConfiguration getDefault() {
-    return new TransitModeConfiguration(SubmodesConfig.getDefault());
+  public static TransitModeService getDefault() {
+    return new TransitModeService(SubmodesConfig.getDefault());
   }
 
-  public TransitModeConfiguration() {
+  public TransitModeService() {
     configuredTransitModes = new HashSet<>();
   }
 
-  public TransitModeConfiguration(SubmodesConfig submodesConfig) {
+  public TransitModeService(SubmodesConfig submodesConfig) {
     Set<TransitMode> transitModes = new HashSet<>();
     for (SubmodesConfig.ConfigItem configItem : submodesConfig.getConfig()) {
       transitModes.add(new TransitMode(configItem.name, configItem.mode));

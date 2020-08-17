@@ -17,7 +17,7 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.modes.TransitMainMode;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
 import org.opentripplanner.routing.graph.Graph;
@@ -579,7 +579,7 @@ public class TimetableSnapshotSource implements TimetableSnapshotProvider {
             // Guess the route type as it doesn't exist yet in the specifications
             // Bus. Used for short- and long-distance bus routes.
             route.setType(3);
-            route.setMode(TransitModeConfiguration.getTransitMode(TransitMainMode.BUS));
+            route.setMode(TransitModeService.getTransitMode(TransitMainMode.BUS));
             // Create route name
             route.setLongName(tripId);
         }

@@ -4,12 +4,11 @@ import com.beust.jcommander.internal.Sets;
 
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.StreetMode;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,33 +43,33 @@ public class QualifiedModeSet implements Serializable {
         for (QualifiedMode qMode : qModes) {
              switch (qMode.mode) {
                  case TRANSIT:
-                     transitModes.addAll(TransitModeConfiguration.getAllMainModes());
+                     transitModes.addAll(TransitModeService.getAllMainModes());
                  case RAIL:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.RAIL));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.RAIL));
                      break;
                  case SUBWAY:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.SUBWAY));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.SUBWAY));
                      break;
                  case BUS:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.BUS));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.BUS));
                      break;
                  case TRAM:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.TRAM));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.TRAM));
                      break;
                  case FERRY:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.FERRY));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.FERRY));
                      break;
                  case AIRPLANE:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.AIRPLANE));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.AIRPLANE));
                      break;
                  case CABLE_CAR:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.CABLE_CAR));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.CABLE_CAR));
                      break;
                  case GONDOLA:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.GONDOLA));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.GONDOLA));
                      break;
                  case FUNICULAR:
-                     transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.FUNICULAR));
+                     transitModes.add(TransitModeService.getTransitMode(TransitMainMode.FUNICULAR));
                      break;
              }
         }

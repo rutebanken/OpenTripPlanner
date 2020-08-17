@@ -4,7 +4,7 @@ import org.opentripplanner.datastore.CompositeDataSource;
 import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.datastore.FileType;
 import org.opentripplanner.datastore.file.ZipFileDataSource;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.netex.loader.NetexDataSourceHierarchy;
@@ -54,7 +54,7 @@ public class NetexConfig {
     public static NetexBundle netexBundleForTest(
         BuildConfig builderParams,
         SubmodesConfig submodesConfig,
-        TransitModeConfiguration transitModeConfiguration,
+        TransitModeService transitModeService,
         File netexZipFile
     ) {
         return new NetexConfig(builderParams, submodesConfig)

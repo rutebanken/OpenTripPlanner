@@ -3,7 +3,7 @@ package org.opentripplanner.util;
 import org.junit.Test;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +23,7 @@ public class TravelOptionsMakerTest {
         boolean hasBikeShare = false;
 
         HashSet<TransitMode> transitModes = new HashSet<>();
-        transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.BUS));
+        transitModes.add(TransitModeService.getTransitMode(TransitMainMode.BUS));
 
         List<TravelOption> options = TravelOptionsMaker.makeOptions(transitModes, hasBikeShare, hasBikeRide, hasParkRide);
 
@@ -37,7 +37,7 @@ public class TravelOptionsMakerTest {
         expected.add(new TravelOption("CAR,WALK,TRANSIT", "KISSRIDE"));
         assertEquals(expected, new HashSet<>(options));
 
-        transitModes.add(TransitModeConfiguration.getTransitMode(TransitMainMode.RAIL));
+        transitModes.add(TransitModeService.getTransitMode(TransitMainMode.RAIL));
 
         hasBikeRide = true;
 

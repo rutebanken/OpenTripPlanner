@@ -14,7 +14,7 @@ import org.opentripplanner.model.TransitEntity;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
-import org.opentripplanner.model.modes.TransitModeConfiguration;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
@@ -54,7 +54,7 @@ public class NetexMapper {
     private final Deduplicator deduplicator;
     private final Multimap<String, Station> stationsByMultiModalStationRfs = ArrayListMultimap.create();
     private final SubmodesConfig submodesConfig;
-    private final TransitModeConfiguration transitModeConfiguration;
+    private final TransitModeService transitModeService;
 
 
     private final DataImportIssueStore issueStore;
@@ -71,14 +71,14 @@ public class NetexMapper {
             String agencyId,
             Deduplicator deduplicator,
             SubmodesConfig submodesConfig,
-            TransitModeConfiguration transitModeConfiguration,
+            TransitModeService transitModeService,
             DataImportIssueStore issueStore
     ) {
         this.transitBuilder = transitBuilder;
         this.deduplicator = deduplicator;
         this.idFactory = new FeedScopedIdFactory(agencyId);
         this.submodesConfig = submodesConfig;
-        this.transitModeConfiguration = transitModeConfiguration;
+        this.transitModeService = transitModeService;
         this.issueStore = issueStore;
     }
 
@@ -184,8 +184,7 @@ public class NetexMapper {
                 transitBuilder.getOperatorsById(),
                 netexIndex,
                 netexIndex.getTimeZone(),
-                submodesConfig,
-                transitModeConfiguration
+                submodesConfig, transitModeService
 
         );
         for (Line line : netexIndex.getLineById().localValues()) {
