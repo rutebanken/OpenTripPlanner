@@ -4,6 +4,7 @@ import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,8 @@ public class TransitModeService implements Serializable {
       .map(m -> new TransitMode(m,
           null,
           null,
-          null,
-          null,
+          Collections.emptyList(),
+          Collections.emptyList(),
           null,
           null
       ))

@@ -1,6 +1,7 @@
 package org.opentripplanner.model.modes;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -44,8 +45,8 @@ public class TransitMode implements Serializable {
     this.mainMode = mainMode;
     this.subMode = subMode;
     this.description = description;
-    this.netexSubmodes = netexSubmodes;
-    this.gtfsExtendRouteTypes = gtfsExtendRouteTypes;
+    this.netexSubmodes = new ArrayList<>(netexSubmodes);
+    this.gtfsExtendRouteTypes = new ArrayList<>(gtfsExtendRouteTypes);
     this.netexOutputSubmode = netexOutputSubmode;
     this.gtfsOutputExtendedRouteType = gtfsOutputExtendedRouteType;
   }
