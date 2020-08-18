@@ -7,7 +7,6 @@ import org.opentripplanner.api.mapping.PlannerErrorMapper;
 import org.opentripplanner.api.model.error.PlannerError;
 import org.opentripplanner.ext.transmodelapi.mapping.TransmodelMappingUtil;
 import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
-import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
@@ -232,7 +231,7 @@ public class TransmodelGraphQLPlanner {
             ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
             ElementWrapper<ArrayList<TransitMainMode>> transitMainModes = new ElementWrapper<>();
-            ElementWrapper<ArrayList<TransmodelTransportSubmode>> transitSubModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<TransitMode>> transitSubModes = new ElementWrapper<>();
             callWith.argument("modes.accessMode", accessMode::set);
             callWith.argument("modes.egressMode", egressMode::set);
             callWith.argument("modes.directMode", directMode::set);
@@ -256,11 +255,7 @@ public class TransmodelGraphQLPlanner {
                         .collect(Collectors.toList()));
                 }
                 if (transitSubModes.get() != null) {
-                    transitModes.addAll(transitSubModes
-                        .get()
-                        .stream()
-                        .map(t -> router.graph.getTransitModeConfiguration().getTransitMode(t.getTransitMainMode(), t.getOtpName()))
-                        .collect(Collectors.toList()));
+                    transitModes.addAll(transitSubModes.get());
                 }
             }
 

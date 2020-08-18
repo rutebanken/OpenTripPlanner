@@ -2,6 +2,8 @@ package org.opentripplanner.ext.transmodelapi.model;
 
 import graphql.schema.GraphQLEnumType;
 import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.plan.AbsoluteDirection;
 import org.opentripplanner.model.plan.RelativeDirection;
 import org.opentripplanner.model.plan.VertexType;
@@ -193,7 +195,6 @@ public class EnumTypes {
             .build();
 
 */
-    public static GraphQLEnumType TRANSPORT_SUBMODE = createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getTransmodelName()));
     /*
 
     public static GraphQLEnumType flexibleLineTypeEnum = TransmodelIndexGraphQLSchema.createEnum("FlexibleLineType", Route.FlexibleRouteTypeEnum.values(), (t -> t.name()));
@@ -242,11 +243,14 @@ public class EnumTypes {
         return type.getCoercing().serialize(value);
     }
 
+    public static GraphQLEnumType createTransitSubModeEnum(TransitModeService transitModeService) {
 
+        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name("transportSubmode");
 
-    private static <T extends Enum> GraphQLEnumType createEnum(String name, T[] values, Function<T, String> mapping) {
-        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(name);
-        Arrays.stream(values).forEach(type -> enumBuilder.value(mapping.apply(type), type));
+        transitModeService.getAllTransitModes().stream()
+            .filter(m -> m.getNetexOutputSubmode() != null)
+            .forEach(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription()));
+
         return enumBuilder.build();
     }
 }

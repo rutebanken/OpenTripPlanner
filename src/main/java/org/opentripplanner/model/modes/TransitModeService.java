@@ -3,6 +3,7 @@ package org.opentripplanner.model.modes;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,14 +15,14 @@ import java.util.stream.Collectors;
 
 /**
  * Contains all of the configured transit modes. The main modes are not configurable, and are
- * accessible via a static method. This is instantiated by the SubmodesConfiguration graph builder
+ * accessible via a static method. This is instantiated by the TransitModeServiceModule graph builder
  * module.
  */
 public class TransitModeService implements Serializable {
 
-  private Set<TransitMode> configuredTransitModes;
+  private final Set<TransitMode> configuredTransitModes;
 
-  private static Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
+  private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
       .stream(TransitMainMode.values())
       .map(m -> new TransitMode(m,
           null,
@@ -105,5 +106,9 @@ public class TransitModeService implements Serializable {
     }
 
     return transitSubMode.get();
+  }
+
+  public List<TransitMode> getAllTransitModes() {
+    return new ArrayList<>(configuredTransitModes);
   }
 }

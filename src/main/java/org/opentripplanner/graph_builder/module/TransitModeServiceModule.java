@@ -9,7 +9,7 @@ import org.opentripplanner.standalone.config.SubmodesConfig;
 import java.util.HashMap;
 
 /**
- * This will create a TransitModeConfiguration object which specifies which subModes are configured
+ * This will create a TransitModeService object which specifies which subModes are configured
  * for the graph.
  */
 public class TransitModeServiceModule implements GraphBuilderModule {

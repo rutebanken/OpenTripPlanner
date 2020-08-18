@@ -29,7 +29,6 @@ import org.opentripplanner.ext.transmodelapi.model.DefaultRoutingRequest;
 import org.opentripplanner.ext.transmodelapi.model.EnumTypes;
 import org.opentripplanner.ext.transmodelapi.model.MonoOrMultiModalStation;
 import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
-import org.opentripplanner.ext.transmodelapi.model.TransmodelTransportSubmode;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.ext.transmodelapi.model.TripTimeShortHelper;
 import org.opentripplanner.ext.transmodelapi.model.scalars.DateScalarFactory;
@@ -53,6 +52,7 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.model.plan.Leg;
 import org.opentripplanner.model.plan.Place;
@@ -98,7 +98,6 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.STREET_MODE;
 import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.TRANSPORT_MODE;
-import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.TRANSPORT_SUBMODE;
 import static org.opentripplanner.model.StopPattern.PICKDROP_COORDINATE_WITH_DRIVER;
 import static org.opentripplanner.model.StopPattern.PICKDROP_NONE;
 
@@ -249,6 +248,8 @@ public class TransmodelIndexGraphQLSchema {
         timeType = TimeScalarFactory.createSecondsSinceMidnightAsTimeObject();
         dateScalar = DateScalarFactory.createSecondsSinceEpochAsDateStringScalar(graph.getTimeZone());
         localTimeScalar = LocalTimeScalarFactory.createLocalTimeScalar();
+
+        GraphQLEnumType transportSubMode = EnumTypes.createTransitSubModeEnum(graph.getTransitModeConfiguration());
 
         GraphQLInputObjectType coordinateInputType = GraphQLInputObjectType.newInputObject()
                 .name("InputCoordinates")
@@ -549,7 +550,7 @@ public class TransmodelIndexGraphQLSchema {
                     + "for both transportMode and transportSubmode to disallow transit for this search. "
                     + "If both elements are not present or null, the search will default to all "
                     + "transport modes.")
-                .type(new GraphQLList(TRANSPORT_SUBMODE))
+                .type(new GraphQLList(transportSubMode))
                 .build())
             .build();
 
@@ -592,7 +593,7 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .build();
 
-        createPlanType();
+        createPlanType(transportSubMode);
 
 
         GraphQLInputObjectType preferredInputType = GraphQLInputObjectType.newInputObject()
@@ -1297,7 +1298,7 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
                         .description("The transport submode serviced by this stop place. NOT IMPLEMENTED")
-                        .type(TRANSPORT_SUBMODE)
+                        .type(transportSubMode)
                         .dataFetcher(environment -> null)
                         .build())
                 /*
@@ -1914,9 +1915,9 @@ public class TransmodelIndexGraphQLSchema {
                         */
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
-                        .type(TRANSPORT_SUBMODE)
+                        .type(transportSubMode)
                         .description("The transport submode of the journey.")
-                        .dataFetcher(environment -> (TransmodelTransportSubmode.fromOtpName(((Trip)environment.getSource()).getRoute().getMode().getSubMode())))
+                        .dataFetcher(environment -> ((Trip)environment.getSource()).getRoute().getMode())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("publicCode")
@@ -2174,8 +2175,8 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
-                        .type(EnumTypes.TRANSPORT_SUBMODE)
-                        .dataFetcher(environment -> (TransmodelTransportSubmode.fromOtpName(((Route)environment.getSource()).getMode().getSubMode())))
+                        .type(transportSubMode)
+                        .dataFetcher(environment -> ((Route)environment.getSource()).getMode())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("description")
@@ -3371,7 +3372,7 @@ public class TransmodelIndexGraphQLSchema {
         return ids.stream().map(id -> mappingUtil.fromIdString(id)).collect(Collectors.toList());
     }
 
-    private void createPlanType() {
+    private void createPlanType(GraphQLEnumType transportSubMode) {
         final GraphQLObjectType placeType = GraphQLObjectType.newObject()
                 .name("Place")
                 .description("Common super class for all places (stop places, quays, car parks, bike parks and bike rental stations )")
@@ -3570,8 +3571,8 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
                         .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
-                        .type(EnumTypes.TRANSPORT_SUBMODE)
-                        .dataFetcher(environment ->  (TransmodelTransportSubmode.fromOtpName(getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode().getSubMode())))
+                        .type(transportSubMode)
+                        .dataFetcher(environment -> ((Leg)environment.getSource()).routeId != null ? getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode() : null)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("duration")
