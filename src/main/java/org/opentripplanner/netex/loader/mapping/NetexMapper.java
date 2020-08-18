@@ -25,6 +25,7 @@ import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
 import org.rutebanken.netex.model.NoticeAssignment;
 import org.rutebanken.netex.model.StopPlace;
+import org.rutebanken.netex.model.TariffZone;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,6 +98,7 @@ public class NetexMapper {
         mapAuthorities(netexIndex);
         mapOperators(netexIndex);
         mapShapePoints(netexIndex);
+        mapTariffZones(netexIndex);
         mapStopPlaceAndQuays(netexIndex);
         mapMultiModalStopPlaces(netexIndex);
         mapGroupsOfStopPlaces(netexIndex);
@@ -140,7 +142,10 @@ public class NetexMapper {
     private void mapStopPlaceAndQuays(NetexImportDataIndexReadOnlyView netexIndex) {
         for (String stopPlaceId : netexIndex.getStopPlaceById().localKeys()) {
             Collection<StopPlace> stopPlaceAllVersions = netexIndex.getStopPlaceById().lookup(stopPlaceId);
-            StopAndStationMapper stopMapper = new StopAndStationMapper(idFactory, netexIndex.getQuayById(),
+            StopAndStationMapper stopMapper = new StopAndStationMapper(
+                idFactory,
+                netexIndex.getQuayById(),
+                transitBuilder.getFareZonesById(),
                 issueStore
             );
             stopMapper.mapParentAndChildStops(stopPlaceAllVersions);
@@ -244,6 +249,13 @@ public class NetexMapper {
             Multimap<TransitEntity<?>, Notice> noticesByElementId;
             noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
             transitBuilder.getNoticeAssignments().putAll(noticesByElementId);
+        }
+    }
+
+    private void mapTariffZones(NetexImportDataIndexReadOnlyView netexIndex) {
+        TariffZoneMapper tariffZoneMapper = new TariffZoneMapper(idFactory);
+        for (TariffZone tariffZone : netexIndex.getTariffZonesById().localValues()) {
+            transitBuilder.getFareZonesById().add(tariffZoneMapper.mapTariffZone(tariffZone));
         }
     }
 }
