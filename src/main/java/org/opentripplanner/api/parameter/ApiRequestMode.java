@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public enum ApiRequestMode {
-  WALK(TransitModeService.getAllMainModes()),
+  WALK(),
   BICYCLE(),
   CAR(),
   TRAM(TransitModeService.getTransitMode(TransitMainMode.TRAM)),
