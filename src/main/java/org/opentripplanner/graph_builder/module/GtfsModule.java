@@ -131,7 +131,7 @@ public class GtfsModule implements GraphBuilderModule {
                         loadBundle(gtfsBundle),
                         gtfsBundle.getFeedId().getId(),
                         issueStore,
-                        graph.getTransitModeConfiguration()
+                        graph.getTransitModeService()
                 );
 
                 builder.limitServiceDays(transitPeriodLimit);

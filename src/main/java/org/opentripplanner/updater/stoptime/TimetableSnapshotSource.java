@@ -578,7 +578,6 @@ public class TimetableSnapshotSource implements TimetableSnapshotProvider {
             route.setAgency(dummyAgency);
             // Guess the route type as it doesn't exist yet in the specifications
             // Bus. Used for short- and long-distance bus routes.
-            route.setType(3);
             route.setMode(TransitModeService.getTransitMode(TransitMainMode.BUS));
             // Create route name
             route.setLongName(tripId);

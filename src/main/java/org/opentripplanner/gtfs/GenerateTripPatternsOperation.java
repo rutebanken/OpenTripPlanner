@@ -99,7 +99,8 @@ public class GenerateTripPatternsOperation {
         // TODO: move to a validator module
         // Check that the mode is supported
         if(trip.getRoute().getMode() == null) {
-            issueStore.add(new GTFSModeNotSupported(trip, Integer.toString(trip.getRoute().getType())));
+            // TODO Check if this is needed
+            //issueStore.add(new GTFSModeNotSupported(trip, Integer.toString(trip.getRoute().getType())));
             return;
         }
 

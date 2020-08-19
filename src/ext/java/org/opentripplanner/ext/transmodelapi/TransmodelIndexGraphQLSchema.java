@@ -52,7 +52,6 @@ import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
 import org.opentripplanner.model.calendar.ServiceDate;
-import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.model.plan.Leg;
 import org.opentripplanner.model.plan.Place;
@@ -249,7 +248,7 @@ public class TransmodelIndexGraphQLSchema {
         dateScalar = DateScalarFactory.createSecondsSinceEpochAsDateStringScalar(graph.getTimeZone());
         localTimeScalar = LocalTimeScalarFactory.createLocalTimeScalar();
 
-        GraphQLEnumType transportSubMode = EnumTypes.createTransitSubModeEnum(graph.getTransitModeConfiguration());
+        GraphQLEnumType transportSubMode = EnumTypes.createTransitSubModeEnum(graph.getTransitModeService());
 
         GraphQLInputObjectType coordinateInputType = GraphQLInputObjectType.newInputObject()
                 .name("InputCoordinates")

@@ -8,13 +8,13 @@ import java.util.Objects;
 
 /**
  * A mode specified either by the TransitMainMode enum or the TransitMainMode enum and a
- * customizable subMode string specified by the SubmodesConfiguration module at graph build time.
+ * customizable subMode string specified by the TransitModeServiceModule module at graph build time.
  * <p>
  * TransitMainMode is equivalent to GTFS route_type or to NeTEx TransportMode.
  * <p>
  * SubMode is equivalent to either GTFS extended route_type or NeTEx TransportSubMode.
  * <p>
- * This should only be instantiated in the TransitModeConfiguration, to ensure only configured modes
+ * This should only be instantiated in the TransitModeService class, to ensure only configured modes
  * are used.
  */
 public class TransitMode implements Serializable {

@@ -40,7 +40,6 @@ class RouteMapper {
         lhs.setAgency(agencyMapper.map(rhs.getAgency()));
         lhs.setShortName(rhs.getShortName());
         lhs.setLongName(rhs.getLongName());
-        lhs.setType(rhs.getType());
         lhs.setMode(TransitModeMapper.mapMode(rhs.getType(), transitModeService));
         lhs.setDesc(rhs.getDesc());
         lhs.setUrl(rhs.getUrl());

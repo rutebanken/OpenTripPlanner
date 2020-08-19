@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * Contains all of the configured transit modes. The main modes are not configurable, and are
- * accessible via a static method. This is instantiated by the TransitModeServiceModule graph builder
- * module.
+ * accessible via a static method. This class is instantiated by the TransitModeServiceModule graph
+ * builder module.
  */
 public class TransitModeService implements Serializable {
 

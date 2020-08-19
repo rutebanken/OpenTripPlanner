@@ -92,7 +92,6 @@ public class OtpTransitServiceBuilderLimitPeriodTest {
 
         // Add Route
         route.setId(newId());
-        route.setType(3);
         route.setMode(TransitModeService.getTransitMode(TransitMainMode.BUS));
         subject.getRoutes().add(route);
 

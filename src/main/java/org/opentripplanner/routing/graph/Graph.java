@@ -1050,7 +1050,7 @@ public class Graph implements Serializable {
         return transfersByStop.get(stop);
     }
 
-    public TransitModeService getTransitModeConfiguration() {
+    public TransitModeService getTransitModeService() {
         return transitModeService;
     }
 
