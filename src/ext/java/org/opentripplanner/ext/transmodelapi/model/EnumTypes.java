@@ -2,7 +2,6 @@ package org.opentripplanner.ext.transmodelapi.model;
 
 import graphql.schema.GraphQLEnumType;
 import org.opentripplanner.model.modes.TransitMainMode;
-import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.plan.AbsoluteDirection;
 import org.opentripplanner.model.plan.RelativeDirection;
@@ -11,9 +10,6 @@ import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.api.request.StreetMode;
 import org.opentripplanner.routing.trippattern.RealTimeState;
-
-import java.util.Arrays;
-import java.util.function.Function;
 
 public class EnumTypes {
     public static GraphQLEnumType WHEELCHAIR_BOARDING = GraphQLEnumType.newEnum()
