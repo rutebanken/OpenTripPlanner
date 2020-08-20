@@ -3,7 +3,6 @@ package org.opentripplanner.transit.raptor.speed_test;
 import gnu.trove.iterator.TIntIntIterator;
 import gnu.trove.map.TIntIntMap;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.algorithm.raptor.transit.SlackProvider;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripSchedule;
 import org.opentripplanner.transit.raptor.api.request.Optimization;
@@ -65,7 +64,7 @@ public class SpeedTestRequest {
     }
 
     Set<TransitMode> getTransitModes() {
-        return TransitModeService.getMainModesExceptAirplane();
+        return TransitMode.getMainModesExceptAirplane();
     }
 
     double getWalkSpeedMeterPrSecond() {

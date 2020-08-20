@@ -2,7 +2,6 @@ package org.opentripplanner.api.parameter;
 
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,16 +10,16 @@ public enum ApiRequestMode {
   WALK(),
   BICYCLE(),
   CAR(),
-  TRAM(TransitModeService.getTransitMode(TransitMainMode.TRAM)),
-  SUBWAY(TransitModeService.getTransitMode(TransitMainMode.SUBWAY)),
-  RAIL(TransitModeService.getTransitMode(TransitMainMode.RAIL)),
-  BUS(TransitModeService.getTransitMode(TransitMainMode.BUS)),
-  FERRY(TransitModeService.getTransitMode(TransitMainMode.FERRY)),
-  CABLE_CAR(TransitModeService.getTransitMode(TransitMainMode.CABLE_CAR)),
-  GONDOLA(TransitModeService.getTransitMode(TransitMainMode.GONDOLA)),
-  FUNICULAR(TransitModeService.getTransitMode(TransitMainMode.FUNICULAR)),
-  TRANSIT(TransitModeService.getAllMainModes()),
-  AIRPLANE(TransitModeService.getTransitMode(TransitMainMode.AIRPLANE));
+  TRAM(TransitMode.fromMainModeEnum(TransitMainMode.TRAM)),
+  SUBWAY(TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY)),
+  RAIL(TransitMode.fromMainModeEnum(TransitMainMode.RAIL)),
+  BUS(TransitMode.fromMainModeEnum(TransitMainMode.BUS)),
+  FERRY(TransitMode.fromMainModeEnum(TransitMainMode.FERRY)),
+  CABLE_CAR(TransitMode.fromMainModeEnum(TransitMainMode.CABLE_CAR)),
+  GONDOLA(TransitMode.fromMainModeEnum(TransitMainMode.GONDOLA)),
+  FUNICULAR(TransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR)),
+  TRANSIT(TransitMode.getAllMainModes()),
+  AIRPLANE(TransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE));
 
   private final Collection<TransitMode> transitModes;
 

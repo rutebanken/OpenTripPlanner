@@ -2,6 +2,7 @@ package org.opentripplanner.netex.loader.mapping;
 
 import org.junit.Test;
 import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.RailSubmodeEnumeration;
@@ -18,7 +19,8 @@ public class TransportModeMapperTest {
 
   @Test
   public void mapWithTransportModeOnly() {
-    assertEquals(TransitModeService.getTransitMode(TransitMainMode.BUS),
+    assertEquals(
+        TransitMode.fromMainModeEnum(TransitMainMode.BUS),
         transportModeMapper.map(AllVehicleModesOfTransportEnumeration.BUS, null)
     );
   }

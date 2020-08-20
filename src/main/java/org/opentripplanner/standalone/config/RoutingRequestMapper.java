@@ -1,6 +1,6 @@
 package org.opentripplanner.standalone.config;
 
-import org.opentripplanner.model.modes.TransitModeService;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -71,7 +71,7 @@ public class RoutingRequestMapper {
         request.maxWeight = c.asDouble("maxWeight", dft.maxWeight);
         request.maxWheelchairSlope = c.asDouble("maxWheelchairSlope", dft.maxWheelchairSlope); // ADA max wheelchair ramp slope is a good default.
         request.modes = new RequestModes(StreetMode.WALK, StreetMode.WALK, StreetMode.WALK, new HashSet<>(
-            TransitModeService.getAllMainModes())); // TODO Map default modes from config
+            TransitMode.getAllMainModes())); // TODO Map default modes from config
         request.nonpreferredTransferCost = c.asInt("nonpreferredTransferPenalty", dft.nonpreferredTransferCost);
         request.numItineraries = c.asInt("numItineraries", dft.numItineraries);
         request.onlyTransitTrips = c.asBoolean("onlyTransitTrips", dft.onlyTransitTrips);

@@ -6,7 +6,6 @@ import org.onebusaway.gtfs.model.AgencyAndId;
 import org.onebusaway.gtfs.model.Route;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +30,7 @@ public class RouteMapperTest {
 
     private static final int ROUTE_TYPE = 2;
 
-    private static final TransitMode TRANSIT_MODE = TransitModeService.getTransitMode(
+    private static final TransitMode TRANSIT_MODE = TransitMode.fromMainModeEnum(
         TransitMainMode.RAIL);
 
     private static final String URL = "www.url.me";
@@ -113,7 +112,7 @@ public class RouteMapperTest {
         assertNull(result.getShortName());
         assertNull(result.getLongName());
         assertNull(result.getDesc());
-        assertEquals(TransitModeService.getTransitMode(TransitMainMode.TRAM), result.getMode());
+        assertEquals(TransitMode.fromMainModeEnum(TransitMainMode.TRAM), result.getMode());
         assertNull(result.getUrl());
         assertNull(result.getColor());
         assertNull(result.getTextColor());

@@ -2,9 +2,15 @@ package org.opentripplanner.model.modes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A mode specified either by the TransitMainMode enum or the TransitMainMode enum and a
@@ -32,6 +38,34 @@ public class TransitMode implements Serializable {
   private final String netexOutputSubmode;
 
   private final String gtfsOutputExtendedRouteType;
+
+  private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
+      .stream(TransitMainMode.values())
+      .map(m -> new TransitMode(m,
+          null,
+          null,
+          Collections.emptyList(),
+          Collections.emptyList(),
+          null,
+          null
+      ))
+      .collect(Collectors.toMap(TransitMode::getMainMode, m -> m));
+
+  public static TransitMode fromMainModeEnum(TransitMainMode mainMode) {
+    return mainTransitModes.get(mainMode);
+  }
+
+  public static Set<TransitMode> getAllMainModes() {
+    return new HashSet<>(mainTransitModes.values());
+  }
+
+  public static Set<TransitMode> getMainModesExceptAirplane() {
+    return mainTransitModes
+        .values()
+        .stream()
+        .filter(t -> !t.getMainMode().equals(TransitMainMode.AIRPLANE))
+        .collect(Collectors.toSet());
+  }
 
   public TransitMode(
       TransitMainMode mainMode,

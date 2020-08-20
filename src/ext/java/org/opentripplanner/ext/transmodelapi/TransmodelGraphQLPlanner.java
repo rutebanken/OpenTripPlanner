@@ -12,7 +12,6 @@ import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.api.response.RoutingError;
 import org.opentripplanner.routing.api.response.RoutingResponse;
 import org.opentripplanner.routing.core.OptimizeType;
@@ -243,7 +242,7 @@ public class TransmodelGraphQLPlanner {
             if (transitMainModes.get() == null && transitSubModes.get() == null ) {
                 // Default to all transport modes if neither transportMode nor transportSubMode
                 // is defined
-                transitModes = new ArrayList<>(TransitModeService.getAllMainModes());
+                transitModes = new ArrayList<>(TransitMode.getAllMainModes());
             } else {
                 // Add both transportModes and transportSubModes to list of allowed modes
                 transitModes = new ArrayList<>();
@@ -251,7 +250,7 @@ public class TransmodelGraphQLPlanner {
                     transitModes.addAll(transitMainModes
                         .get()
                         .stream()
-                        .map(TransitModeService::getTransitMode)
+                        .map(TransitMode::fromMainModeEnum)
                         .collect(Collectors.toList()));
                 }
                 if (transitSubModes.get() != null) {

@@ -48,54 +48,54 @@ public class TransitModeMapper {
 
         /* TPEG Extension  https://groups.google.com/d/msg/gtfs-changes/keT5rTPS7Y0/71uMz2l6ke0J */
         if (routeType >= 100 && routeType < 200) { // Railway Service
-            return TransitModeService.getTransitMode(TransitMainMode.RAIL);
+            return TransitMode.fromMainModeEnum(TransitMainMode.RAIL);
         } else if (routeType >= 200 && routeType < 300) { //Coach Service
-            return TransitModeService.getTransitMode(TransitMainMode.BUS);
+            return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
         } else if (routeType >= 300
             && routeType < 500) { //Suburban Railway Service and Urban Railway service
             if (routeType >= 401 && routeType <= 402) {
-                return TransitModeService.getTransitMode(TransitMainMode.SUBWAY);
+                return TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY);
             }
-            return TransitModeService.getTransitMode(TransitMainMode.RAIL);
+            return TransitMode.fromMainModeEnum(TransitMainMode.RAIL);
         } else if (routeType >= 500 && routeType < 700) { //Metro Service and Underground Service
-            return TransitModeService.getTransitMode(TransitMainMode.SUBWAY);
+            return TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY);
         } else if (routeType >= 700 && routeType < 900) { //Bus Service and Trolleybus service
-            return TransitModeService.getTransitMode(TransitMainMode.BUS);
+            return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
         } else if (routeType >= 900 && routeType < 1000) { //Tram service
-            return TransitModeService.getTransitMode(TransitMainMode.TRAM);
+            return TransitMode.fromMainModeEnum(TransitMainMode.TRAM);
         } else if (routeType >= 1000 && routeType < 1100) { //Water Transport Service
-            return TransitModeService.getTransitMode(TransitMainMode.FERRY);
+            return TransitMode.fromMainModeEnum(TransitMainMode.FERRY);
         } else if (routeType >= 1100 && routeType < 1200) { //Air Service
-            return TransitModeService.getTransitMode(TransitMainMode.AIRPLANE);
+            return TransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE);
         } else if (routeType >= 1200 && routeType < 1300) { //Ferry Service
-            return TransitModeService.getTransitMode(TransitMainMode.FERRY);
+            return TransitMode.fromMainModeEnum(TransitMainMode.FERRY);
         } else if (routeType >= 1300 && routeType < 1400) { //Telecabin Service
-            return TransitModeService.getTransitMode(TransitMainMode.GONDOLA);
+            return TransitMode.fromMainModeEnum(TransitMainMode.GONDOLA);
         } else if (routeType >= 1400 && routeType < 1500) { //Funicalar Service
-            return TransitModeService.getTransitMode(TransitMainMode.FUNICULAR);
+            return TransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR);
         } else if (routeType >= 1500 && routeType < 1600) { //Taxi Service
             throw new IllegalArgumentException("Taxi service not supported" + routeType);
         } else if (routeType >= 1600 && routeType < 1700) { //Self drive
-            return TransitModeService.getTransitMode(TransitMainMode.BUS);
+            return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
         }
         /* Original GTFS route types. Should these be checked before TPEG types? */
         switch (routeType) {
             case 0:
-                return TransitModeService.getTransitMode(TransitMainMode.TRAM);
+                return TransitMode.fromMainModeEnum(TransitMainMode.TRAM);
             case 1:
-                return TransitModeService.getTransitMode(TransitMainMode.SUBWAY);
+                return TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY);
             case 2:
-                return TransitModeService.getTransitMode(TransitMainMode.RAIL);
+                return TransitMode.fromMainModeEnum(TransitMainMode.RAIL);
             case 3:
-                return TransitModeService.getTransitMode(TransitMainMode.BUS);
+                return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
             case 4:
-                return TransitModeService.getTransitMode(TransitMainMode.FERRY);
+                return TransitMode.fromMainModeEnum(TransitMainMode.FERRY);
             case 5:
-                return TransitModeService.getTransitMode(TransitMainMode.CABLE_CAR);
+                return TransitMode.fromMainModeEnum(TransitMainMode.CABLE_CAR);
             case 6:
-                return TransitModeService.getTransitMode(TransitMainMode.GONDOLA);
+                return TransitMode.fromMainModeEnum(TransitMainMode.GONDOLA);
             case 7:
-                return TransitModeService.getTransitMode(TransitMainMode.FUNICULAR);
+                return TransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR);
             default:
                 throw new IllegalArgumentException("unknown gtfs route type " + routeType);
         }

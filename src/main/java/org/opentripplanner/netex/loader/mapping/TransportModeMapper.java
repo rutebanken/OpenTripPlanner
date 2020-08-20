@@ -43,24 +43,24 @@ class TransportModeMapper {
     private TransitMode mapAllVehicleModesOfTransport(AllVehicleModesOfTransportEnumeration mode) {
         switch (mode) {
             case AIR:
-                return TransitModeService.getTransitMode(TransitMainMode.AIRPLANE);
+                return TransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE);
             case BUS:
             case TAXI:
-                return TransitModeService.getTransitMode(TransitMainMode.BUS);
+                return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
             case CABLEWAY:
-                return TransitModeService.getTransitMode(TransitMainMode.CABLE_CAR);
+                return TransitMode.fromMainModeEnum(TransitMainMode.CABLE_CAR);
             case COACH:
-                return TransitModeService.getTransitMode(TransitMainMode.COACH);
+                return TransitMode.fromMainModeEnum(TransitMainMode.COACH);
             case FUNICULAR:
-                return TransitModeService.getTransitMode(TransitMainMode.FUNICULAR);
+                return TransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR);
             case METRO:
-                return TransitModeService.getTransitMode(TransitMainMode.SUBWAY);
+                return TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY);
             case RAIL:
-                return TransitModeService.getTransitMode(TransitMainMode.RAIL);
+                return TransitMode.fromMainModeEnum(TransitMainMode.RAIL);
             case TRAM:
-                return TransitModeService.getTransitMode(TransitMainMode.TRAM);
+                return TransitMode.fromMainModeEnum(TransitMainMode.TRAM);
             case WATER:
-                return TransitModeService.getTransitMode(TransitMainMode.FERRY);
+                return TransitMode.fromMainModeEnum(TransitMainMode.FERRY);
             default:
                 throw new IllegalArgumentException();
         }
