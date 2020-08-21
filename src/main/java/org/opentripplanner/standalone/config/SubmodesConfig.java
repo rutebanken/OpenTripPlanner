@@ -24,7 +24,7 @@ public class SubmodesConfig {
 
   private static final char CSV_DELIMITER = ',';
 
-  private static final String LIST_DELIMITER = ",";
+  private static final String LIST_DELIMITER = " ";
 
   private final List<ConfigItem> configItems = new ArrayList<>();
 
@@ -95,6 +95,6 @@ public class SubmodesConfig {
   }
 
   private List<String> asList(String input) {
-    return Arrays.asList(input.replaceAll("[\\[\\]]", "").split(LIST_DELIMITER));
+    return Arrays.asList(input.split(LIST_DELIMITER));
   }
 }
