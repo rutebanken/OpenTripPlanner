@@ -28,6 +28,7 @@ public class TransitMode implements Serializable {
 
   private final String description;
 
+  // TODO These mappings should be in another class, so they are not part of the OTP model itself
   private final List<String> netexSubmodes;
 
   private final List<String> gtfsExtendRouteTypes;
