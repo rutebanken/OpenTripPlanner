@@ -231,7 +231,7 @@ public class TransmodelGraphQLPlanner {
             ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
             ElementWrapper<ArrayList<TransitMainMode>> transitMainModes = new ElementWrapper<>();
-            ElementWrapper<ArrayList<AllowedTransitMode>> transitSubModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<TransitMode>> transitSubModes = new ElementWrapper<>();
             callWith.argument("modes.accessMode", accessMode::set);
             callWith.argument("modes.egressMode", egressMode::set);
             callWith.argument("modes.directMode", directMode::set);
@@ -255,7 +255,9 @@ public class TransmodelGraphQLPlanner {
                         .collect(Collectors.toList()));
                 }
                 if (transitSubModes.get() != null) {
-                    transitModes.addAll(transitSubModes.get());
+                    transitModes.addAll(transitSubModes.get().stream()
+                        .map(m -> new AllowedTransitMode(m.getMainMode(), m.getSubMode()))
+                        .collect(Collectors.toList()));
                 }
             }
 
