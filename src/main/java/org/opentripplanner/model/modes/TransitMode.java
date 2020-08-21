@@ -3,13 +3,10 @@ package org.opentripplanner.model.modes;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +36,10 @@ public class TransitMode implements Serializable {
 
   private final String gtfsOutputExtendedRouteType;
 
+  /**
+   * Mapping between the old TransitMainMode enum and the new detailed TransitMode class. This
+   * ensures that we are reusing TransitMode objects when the fromMainModeEnum method is called.
+   */
   private static final Map<TransitMainMode, TransitMode> mainTransitModes = Arrays
       .stream(TransitMainMode.values())
       .map(m -> new TransitMode(m,
@@ -53,18 +54,6 @@ public class TransitMode implements Serializable {
 
   public static TransitMode fromMainModeEnum(TransitMainMode mainMode) {
     return mainTransitModes.get(mainMode);
-  }
-
-  public static Set<TransitMode> getAllMainModes() {
-    return new HashSet<>(mainTransitModes.values());
-  }
-
-  public static Set<TransitMode> getMainModesExceptAirplane() {
-    return mainTransitModes
-        .values()
-        .stream()
-        .filter(t -> !t.getMainMode().equals(TransitMainMode.AIRPLANE))
-        .collect(Collectors.toSet());
   }
 
   public TransitMode(
@@ -111,16 +100,6 @@ public class TransitMode implements Serializable {
 
   public String getGtfsOutputExtendedRouteType() {
     return gtfsOutputExtendedRouteType;
-  }
-
-  public boolean containedIn(Collection<TransitMode> transitModes) {
-    return transitModes.stream().anyMatch(this::contains);
-  }
-
-  public boolean contains(TransitMode other) {
-    return mainMode == other.getMainMode() && (
-        other.subMode == null || other.subMode.equals(subMode)
-    );
   }
 
   @Override

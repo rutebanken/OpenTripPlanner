@@ -10,6 +10,7 @@ import org.opentripplanner.ext.transmodelapi.model.PlanResponse;
 import org.opentripplanner.ext.transmodelapi.model.TransportModeSlack;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
+import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.api.response.RoutingError;
@@ -230,19 +231,19 @@ public class TransmodelGraphQLPlanner {
             ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
             ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
             ElementWrapper<ArrayList<TransitMainMode>> transitMainModes = new ElementWrapper<>();
-            ElementWrapper<ArrayList<TransitMode>> transitSubModes = new ElementWrapper<>();
+            ElementWrapper<ArrayList<AllowedTransitMode>> transitSubModes = new ElementWrapper<>();
             callWith.argument("modes.accessMode", accessMode::set);
             callWith.argument("modes.egressMode", egressMode::set);
             callWith.argument("modes.directMode", directMode::set);
             callWith.argument("modes.transportMode", transitMainModes::set);
             callWith.argument("modes.transportSubMode", transitSubModes::set);
 
-            List<TransitMode> transitModes;
+            List<AllowedTransitMode> transitModes;
 
             if (transitMainModes.get() == null && transitSubModes.get() == null ) {
                 // Default to all transport modes if neither transportMode nor transportSubMode
                 // is defined
-                transitModes = new ArrayList<>(TransitMode.getAllMainModes());
+                transitModes = new ArrayList<>(AllowedTransitMode.getAllTransitModes());
             } else {
                 // Add both transportModes and transportSubModes to list of allowed modes
                 transitModes = new ArrayList<>();
@@ -250,7 +251,7 @@ public class TransmodelGraphQLPlanner {
                     transitModes.addAll(transitMainModes
                         .get()
                         .stream()
-                        .map(TransitMode::fromMainModeEnum)
+                        .map(AllowedTransitMode::fromMainModeEnum)
                         .collect(Collectors.toList()));
                 }
                 if (transitSubModes.get() != null) {

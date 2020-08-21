@@ -2,6 +2,7 @@ package org.opentripplanner.api.parameter;
 
 import com.beust.jcommander.internal.Sets;
 
+import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.StreetMode;
@@ -37,7 +38,7 @@ public class QualifiedModeSet implements Serializable {
         StreetMode directMode = null;
 
         // Set transit modes
-        Set<TransitMode> transitModes = qModes
+        Set<AllowedTransitMode> transitModes = qModes
             .stream()
             .flatMap(q -> q.mode.getTransitModes().stream())
             .collect(Collectors.toSet());
