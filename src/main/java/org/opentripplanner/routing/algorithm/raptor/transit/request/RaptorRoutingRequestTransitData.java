@@ -43,7 +43,8 @@ public class RaptorRoutingRequestTransitData implements RaptorTransitDataProvide
   public RaptorRoutingRequestTransitData(
       TransitLayer transitLayer,
       Instant departureTime,
-      int dayRange,
+      int additionalPastSearchDays,
+      int additionalFutureSearchDays,
       Set<AllowedTransitMode> transitModes,
       Set<FeedScopedId> bannedRoutes,
       double walkSpeed
@@ -59,7 +60,8 @@ public class RaptorRoutingRequestTransitData implements RaptorTransitDataProvide
     this.transitLayer = transitLayer;
     this.startOfTime = creator.getSearchStartTime();
     this.activeTripPatternsPerStop = creator.createTripPatternsPerStop(
-        dayRange,
+        additionalPastSearchDays,
+        additionalFutureSearchDays,
         transitModes,
         bannedRoutes
     );
