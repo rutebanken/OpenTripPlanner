@@ -1,5 +1,6 @@
 package org.opentripplanner.api.mapping;
 
+import org.opentripplanner.model.OtpExtention;
 import org.opentripplanner.model.modes.TransitMode;
 
 public class RouteTypeMapper {
@@ -9,7 +10,7 @@ public class RouteTypeMapper {
   public static int mapToApi(TransitMode domain) {
     if(domain == null) { return DEFAULT_ROUTE_TYPE; }
 
-    String extendedRouteType = domain.getGtfsOutputExtendedRouteType();
+    String extendedRouteType = domain.extension(OtpExtention.GTFS).output();
     if (extendedRouteType != null) {
       return Integer.parseInt(extendedRouteType);
     } else {

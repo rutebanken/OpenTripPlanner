@@ -1,9 +1,10 @@
 package org.opentripplanner.model.modes;
 
+import org.opentripplanner.model.OtpExtention;
+
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,14 +29,7 @@ public class TransitMode implements Serializable {
 
   private final String description;
 
-  // TODO These mappings should be in another class, so they are not part of the OTP model itself
-  private final List<String> netexSubmodes;
-
-  private final List<String> gtfsExtendRouteTypes;
-
-  private final String netexOutputSubmode;
-
-  private final String gtfsOutputExtendedRouteType;
+  private final Map<OtpExtention, TransitSubmodeMappingExtension> extensions;
 
   /**
    * Mapping between the old TransitMainMode enum and the new detailed TransitMode class. This
@@ -46,10 +40,7 @@ public class TransitMode implements Serializable {
       .map(m -> new TransitMode(m,
           null,
           null,
-          Collections.emptyList(),
-          Collections.emptyList(),
-          null,
-          null
+          List.of()
       ))
       .collect(Collectors.toMap(TransitMode::getMainMode, m -> m));
 
@@ -61,18 +52,16 @@ public class TransitMode implements Serializable {
       TransitMainMode mainMode,
       String subMode,
       String description,
-      List<String> netexSubmodes,
-      List<String> gtfsExtendRouteTypes,
-      String netexOutputSubmode,
-      String gtfsOutputExtendedRouteType
+      Collection<TransitSubmodeMappingExtension> extensions
   ) {
     this.mainMode = mainMode;
     this.subMode = subMode;
     this.description = description;
-    this.netexSubmodes = new ArrayList<>(netexSubmodes);
-    this.gtfsExtendRouteTypes = new ArrayList<>(gtfsExtendRouteTypes);
-    this.netexOutputSubmode = netexOutputSubmode;
-    this.gtfsOutputExtendedRouteType = gtfsOutputExtendedRouteType;
+    this.extensions = TransitSubmodeMappingExtension.toMap(extensions);
+  }
+
+  public TransitSubmodeMappingExtension extension(OtpExtention extension) {
+    return extensions.get(extension);
   }
 
   public String getSubMode() {
@@ -85,22 +74,6 @@ public class TransitMode implements Serializable {
 
   public String getDescription() {
     return description;
-  }
-
-  public List<String> getNetexSubmodes() {
-    return netexSubmodes;
-  }
-
-  public List<String> getGtfsExtendRouteTypes() {
-    return gtfsExtendRouteTypes;
-  }
-
-  public String getNetexOutputSubmode() {
-    return netexOutputSubmode;
-  }
-
-  public String getGtfsOutputExtendedRouteType() {
-    return gtfsOutputExtendedRouteType;
   }
 
   @Override

@@ -1,8 +1,10 @@
 package org.opentripplanner.standalone.config;
 
 import com.csvreader.CsvReader;
+import org.opentripplanner.model.OtpExtention;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitSubmodeMappingExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +61,11 @@ public class SubmodesConfig {
   public List<TransitMode> getSubmodes() {
     return configItems
         .stream()
-        .map(c -> new TransitMode(c.mode,
+        .map(c -> new TransitMode(
+            c.mode,
             c.name,
             c.description,
-            c.netexSubmodes,
-            c.gtfsExtendRouteTypes,
-            c.netexOutputSubmode,
-            c.gtfsOutputExtendedRouteType
+            c.extensions()
         ))
         .collect(Collectors.toList());
   }
@@ -91,6 +91,30 @@ public class SubmodesConfig {
       this.gtfsExtendRouteTypes = gtfsExtendRouteTypes;
       this.netexOutputSubmode = netexOutputSubmode;
       this.gtfsOutputExtendedRouteType = gtfsOutputExtendedRouteType;
+    }
+
+    List<TransitSubmodeMappingExtension> extensions() {
+      List<TransitSubmodeMappingExtension> list = new ArrayList<>();
+
+      if(!gtfsExtendRouteTypes.isEmpty()) {
+        list.add(
+            new TransitSubmodeMappingExtension(
+                OtpExtention.GTFS,
+                gtfsExtendRouteTypes,
+                gtfsOutputExtendedRouteType
+            )
+        );
+      }
+      if(!netexOutputSubmode.isEmpty()) {
+        list.add(
+            new TransitSubmodeMappingExtension(
+                OtpExtention.NETEX,
+                netexSubmodes,
+                netexOutputSubmode
+            )
+        );
+      }
+      return list;
     }
   }
 

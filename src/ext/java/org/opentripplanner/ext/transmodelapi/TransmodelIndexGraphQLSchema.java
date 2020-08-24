@@ -40,6 +40,7 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Operator;
+import org.opentripplanner.model.OtpExtention;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
@@ -1916,7 +1917,11 @@ public class TransmodelIndexGraphQLSchema {
                         .name("transportSubmode")
                         .type(transportSubMode)
                         .description("The transport submode of the journey.")
-                        .dataFetcher(environment -> ((Trip)environment.getSource()).getRoute().getMode().getNetexOutputSubmode() != null ? ((Trip)environment.getSource()).getRoute().getMode() : null)
+                        .dataFetcher(environment -> ((Trip) environment.getSource())
+                            .getRoute()
+                            .getMode()
+                            .extension(OtpExtention.NETEX)
+                            .output() != null ? ((Trip)environment.getSource()).getRoute().getMode() : null)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("publicCode")
@@ -2175,7 +2180,10 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")
                         .type(transportSubMode)
-                        .dataFetcher(environment -> ((Route)environment.getSource()).getMode().getNetexOutputSubmode() != null ? ((Route)environment.getSource()).getMode(): null)
+                        .dataFetcher(environment -> ((Route) environment.getSource())
+                            .getMode()
+                            .extension(OtpExtention.NETEX)
+                            .output() != null ? ((Route)environment.getSource()).getMode(): null)
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("description")
@@ -3572,7 +3580,11 @@ public class TransmodelIndexGraphQLSchema {
                         .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
                         .type(transportSubMode)
                         .dataFetcher(environment -> ((Leg)environment.getSource()).routeId != null
-                            && getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode().getNetexOutputSubmode() != null
+                            && getRoutingService(environment)
+                            .getRouteForId(((Leg) environment.getSource()).routeId)
+                            .getMode()
+                            .extension(OtpExtention.NETEX)
+                            .output() != null
                             ? getRoutingService(environment).getRouteForId(((Leg)environment.getSource()).routeId).getMode()
                             : null)
                         .build())

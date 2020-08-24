@@ -1,5 +1,6 @@
 package org.opentripplanner.model.modes;
 
+import org.opentripplanner.model.OtpExtention;
 import org.opentripplanner.standalone.config.SubmodesConfig;
 
 import java.io.Serializable;
@@ -36,7 +37,7 @@ public class TransitModeService implements Serializable {
   public TransitMode getTransitModeByGtfsExtendedRouteType(String gtfsExtendedRouteType) {
     Optional<TransitMode> transitSubMode = configuredTransitModes
         .stream()
-        .filter(t -> t.getGtfsExtendRouteTypes().contains(gtfsExtendedRouteType))
+        .filter(t -> t.extension(OtpExtention.GTFS).input().contains(gtfsExtendedRouteType))
         .findFirst();
 
     if (transitSubMode.isEmpty()) {
@@ -49,7 +50,7 @@ public class TransitModeService implements Serializable {
   public TransitMode getTransitModeByNetexSubMode(String netexSubMode) {
     Optional<TransitMode> transitSubMode = configuredTransitModes
         .stream()
-        .filter(t -> t.getNetexSubmodes().contains(netexSubMode))
+        .filter(t -> t.extension(OtpExtention.NETEX).input().contains(netexSubMode))
         .findFirst();
 
     if (transitSubMode.isEmpty()) {

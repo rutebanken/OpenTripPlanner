@@ -1,6 +1,7 @@
 package org.opentripplanner.ext.transmodelapi.model;
 
 import graphql.schema.GraphQLEnumType;
+import org.opentripplanner.model.OtpExtention;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.plan.AbsoluteDirection;
@@ -244,8 +245,8 @@ public class EnumTypes {
         GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name("transportSubmode");
 
         transitModeService.getAllTransitModes().stream()
-            .filter(m -> m.getNetexOutputSubmode() != null)
-            .forEach(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription()));
+            .filter(m -> m.extension(OtpExtention.NETEX).output() != null)
+            .forEach(m -> enumBuilder.value(m.extension(OtpExtention.NETEX).output(), m, m.getDescription()));
 
         return enumBuilder.build();
     }
