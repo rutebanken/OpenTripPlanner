@@ -242,6 +242,25 @@ public class TransmodelGraphQLSchema {
         gqlUtil
     );
 
+      GraphQLInputObjectType transportModeInputType = GraphQLInputObjectType
+          .newInputObject()
+          .name("transportModes")
+          .field(GraphQLInputObjectField
+              .newInputObjectField()
+              .name("transportMode")
+              .description("A transportMode that should be allowed for this search. You can further"
+                  + "narrow it down by specifying a list of transportSubModes")
+              .type(TRANSPORT_MODE)
+              .build())
+          .field(GraphQLInputObjectField.newInputObjectField()
+              .name("transportSubModes")
+              .description("The allowed transportSubModes for this search. If this element is not"
+                  + "present or null, it will default to all transportSubModes for the specified"
+                  + "TransportMode. Be aware that all transportSubModes have an associated "
+                  + "TransportMode, which must match what is specified in the transportMode field.")
+              .type(new GraphQLList(transportSubMode))
+              .build())
+          .build();
 
     GraphQLInputObjectType modesInputType = GraphQLInputObjectType
         .newInputObject()
@@ -275,11 +294,11 @@ public class TransmodelGraphQLSchema {
             .build())
         .field(GraphQLInputObjectField
             .newInputObjectField()
-            .name("transportMode")
-            .description("The allowed modes for the transit part of the trip. Use an empty list "
-                + "to disallow transit for this search. If the element is not present or null, "
-                + "it will default to all transport modes.")
-            .type(new GraphQLList(TRANSPORT_MODE))
+            .name("transportModes")
+            .description("The allowed modes for the transit part of the trip. Use an empty list to "
+                + "disallow transit for this search. If the element is not present or null, it will "
+                + "default to all transport modes.")
+            .type(new GraphQLList(transportModeInputType))
             .build())
         .build();
 

@@ -249,7 +249,7 @@ public class EnumTypes {
 
         transitModeService.getAllTransitModes().stream()
             .filter(m -> m.getNetexOutputSubmode() != null)
-            .forEach(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription()));
+            .forEach(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription() + " (TransportMode: " + m.getMainMode().name() + ")"));
 
         return enumBuilder.build();
     }
