@@ -30,7 +30,7 @@ public class AllowedTransitMode {
    */
   public boolean allows(TransitMode transitMode) {
     return mainMode == transitMode.getMainMode() && (
-        subMode == null || transitMode.getSubMode().equals(subMode)
+        subMode == null || subMode.equals(transitMode.getSubMode())
     );
   }
 
