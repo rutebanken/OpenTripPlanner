@@ -12,6 +12,7 @@ import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.calendar.CalendarServiceData;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.configure.NetexConfig;
 import org.opentripplanner.netex.loader.NetexBundle;
@@ -98,6 +99,7 @@ public class ConstantsForTests {
     public static NetexBundle createMinimalNetexBundle() {
         return NetexConfig.netexBundleForTest(
                 createNetexBuilderParameters(),
+                TransitModeService.getDefault(),
                 new File(ConstantsForTests.NETEX_DIR, ConstantsForTests.NETEX_FILENAME)
         );
     }

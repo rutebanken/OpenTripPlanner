@@ -1,12 +1,13 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.modes.AllowedTransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
 import org.opentripplanner.transit.raptor.api.transit.RaptorTransfer;
-import org.opentripplanner.model.TransitMode;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -51,7 +52,7 @@ class RaptorRoutingRequestTransitDataCreator {
   List<List<TripPatternForDates>> createTripPatternsPerStop(
       int additionalPastSearchDays,
       int additionalFutureSearchDays,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> transitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
 
@@ -70,7 +71,7 @@ class RaptorRoutingRequestTransitDataCreator {
   private List<Map<FeedScopedId, TripPatternForDate>> getTripPatternsForDateRange(
       int additionalPastSearchDays,
       int additionalFutureSearchDays,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> transitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = new ArrayList<>();
@@ -147,14 +148,14 @@ class RaptorRoutingRequestTransitDataCreator {
   private static Map<FeedScopedId, TripPatternForDate> filterActiveTripPatterns(
       TransitLayer transitLayer,
       LocalDate date,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> allowedTransitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
 
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
-        .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode()))
+        .filter(p -> allowedTransitModes.stream().anyMatch(m -> m.allows(p.getTripPattern().getTransitMode())))
         .filter(p -> !bannedRoutes.contains(p.getTripPattern()
             .getPattern().route.getId()))
         .collect(toMap(p -> p.getTripPattern().getId(), p -> p));

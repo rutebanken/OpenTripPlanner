@@ -19,6 +19,7 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.loader.NetexBundle;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 
@@ -57,7 +58,11 @@ public class NetexLoaderSmokeTest {
 
         // When
         OtpTransitServiceBuilder transitBuilder =
-                netexBundle.loadBundle(new Deduplicator(), new DataImportIssueStore(false));
+                netexBundle.loadBundle(
+                    new Deduplicator(),
+                    TransitModeService.getDefault(),
+                    new DataImportIssueStore(false)
+                );
 
         // Then - smoke test model
         OtpTransitService otpModel = transitBuilder.build();

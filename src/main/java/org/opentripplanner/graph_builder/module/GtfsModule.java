@@ -79,7 +79,10 @@ public class GtfsModule implements GraphBuilderModule {
 
     private List<GtfsBundle> gtfsBundles;
 
-    public GtfsModule(List<GtfsBundle> bundles, ServiceDateInterval transitPeriodLimit) {
+    public GtfsModule(
+        List<GtfsBundle> bundles,
+        ServiceDateInterval transitPeriodLimit
+    ) {
         this.gtfsBundles = bundles;
         this.transitPeriodLimit = transitPeriodLimit;
     }
@@ -129,7 +132,8 @@ public class GtfsModule implements GraphBuilderModule {
                 OtpTransitServiceBuilder builder =  mapGtfsDaoToInternalTransitServiceBuilder(
                         loadBundle(gtfsBundle),
                         gtfsBundle.getFeedId().getId(),
-                        issueStore
+                        issueStore,
+                        graph.getTransitModeService()
                 );
 
                 builder.limitServiceDays(transitPeriodLimit);

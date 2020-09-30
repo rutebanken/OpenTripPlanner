@@ -10,6 +10,7 @@ import org.opentripplanner.graph_builder.module.GtfsModule;
 import org.opentripplanner.ext.flex.FlexLocationsToStreetEdgesMapper;
 import org.opentripplanner.graph_builder.module.PruneFloatingIslands;
 import org.opentripplanner.graph_builder.module.StreetLinkerModule;
+import org.opentripplanner.graph_builder.module.TransitModeServiceModule;
 import org.opentripplanner.graph_builder.module.TransitToTaggedStopsModule;
 import org.opentripplanner.graph_builder.module.map.BusRouteStreetMatcher;
 import org.opentripplanner.graph_builder.module.ned.DegreeGridNEDTileSource;
@@ -24,6 +25,7 @@ import org.opentripplanner.openstreetmap.BinaryOpenStreetMapProvider;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.standalone.config.BuildConfig;
 import org.opentripplanner.standalone.config.S3BucketConfig;
+import org.opentripplanner.standalone.config.SubmodesConfig;
 import org.opentripplanner.util.OTPFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +94,7 @@ public class GraphBuilder implements Runnable {
      */
     public static GraphBuilder create(
             BuildConfig config,
+            SubmodesConfig submodesConfig,
             GraphBuilderDataSources dataSources,
             Graph baseGraph
     ) {
@@ -134,6 +137,11 @@ public class GraphBuilder implements Runnable {
             pruneFloatingIslands.setPruningThresholdIslandWithStops(config.pruningThresholdIslandWithStops);
             graphBuilder.addModule(pruneFloatingIslands);
         }
+        if (hasTransitData) {
+            TransitModeServiceModule transitModeServiceModule = new TransitModeServiceModule();
+            transitModeServiceModule.setConfig(submodesConfig);
+            graphBuilder.addModule(transitModeServiceModule);
+        }
         if ( hasGtfs ) {
             List<GtfsBundle> gtfsBundles = Lists.newArrayList();
             for (DataSource gtfsData : dataSources.get(GTFS)) {
@@ -155,13 +163,20 @@ public class GraphBuilder implements Runnable {
                 gtfsBundle.maxInterlineDistance = config.maxInterlineDistance;
                 gtfsBundles.add(gtfsBundle);
             }
-            GtfsModule gtfsModule = new GtfsModule(gtfsBundles, config.getTransitServicePeriod());
+            GtfsModule gtfsModule = new GtfsModule(
+                gtfsBundles,
+                config.getTransitServicePeriod()
+            );
             gtfsModule.setFareServiceFactory(config.fareServiceFactory);
             graphBuilder.addModule(gtfsModule);
         }
 
         if( hasNetex ) {
-            graphBuilder.addModule(netexModule(config, dataSources.get(NETEX)));
+            graphBuilder.addModule(
+                netexModule(
+                    config,
+                    dataSources.get(NETEX))
+            );
         }
 
         if(hasTransitData && hasOsm) {

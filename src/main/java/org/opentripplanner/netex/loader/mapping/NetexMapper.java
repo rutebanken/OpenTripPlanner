@@ -14,6 +14,7 @@ import org.opentripplanner.model.TransitEntity;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.loader.NetexImportDataIndex;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
@@ -52,6 +53,7 @@ public class NetexMapper {
     private final FeedScopedIdFactory idFactory;
     private final Deduplicator deduplicator;
     private final Multimap<String, Station> stationsByMultiModalStationRfs = ArrayListMultimap.create();
+    private final TransitModeService transitModeService;
 
 
     private final DataImportIssueStore issueStore;
@@ -67,11 +69,13 @@ public class NetexMapper {
             OtpTransitServiceBuilder transitBuilder,
             String agencyId,
             Deduplicator deduplicator,
+            TransitModeService transitModeService,
             DataImportIssueStore issueStore
     ) {
         this.transitBuilder = transitBuilder;
         this.deduplicator = deduplicator;
         this.idFactory = new FeedScopedIdFactory(agencyId);
+        this.transitModeService = transitModeService;
         this.issueStore = issueStore;
     }
 
@@ -180,7 +184,9 @@ public class NetexMapper {
                 transitBuilder.getAgenciesById(),
                 transitBuilder.getOperatorsById(),
                 netexIndex,
-                netexIndex.getTimeZone()
+                netexIndex.getTimeZone(),
+                transitModeService
+
         );
         for (Line line : netexIndex.getLineById().localValues()) {
             Route route = routeMapper.mapRoute(line);
