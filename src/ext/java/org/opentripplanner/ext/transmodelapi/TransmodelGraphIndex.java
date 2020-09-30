@@ -36,7 +36,7 @@ class TransmodelGraphIndex {
         threadPool = Executors.newCachedThreadPool(
                 new ThreadFactoryBuilder().setNameFormat("GraphQLExecutor-%d").build()
         );
-        indexSchema = new TransmodelIndexGraphQLSchema(graph, defaultRoutingRequest).indexSchema;
+        indexSchema = new TransmodelGraphQLSchema(graph, defaultRoutingRequest).indexSchema;
     }
 
     HashMap<String, Object> getGraphQLExecutionResult(

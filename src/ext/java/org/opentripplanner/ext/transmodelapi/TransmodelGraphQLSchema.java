@@ -105,8 +105,8 @@ import static org.opentripplanner.model.StopPattern.PICKDROP_NONE;
  * <p>
  * Currently a simplified version of the IndexGraphQLSchema, with gtfs terminology replaced with corresponding terms from Transmodel.
  */
-public class TransmodelIndexGraphQLSchema {
-    private static final Logger LOG = LoggerFactory.getLogger(TransmodelIndexGraphQLSchema.class);
+public class TransmodelGraphQLSchema {
+    private static final Logger LOG = LoggerFactory.getLogger(TransmodelGraphQLSchema.class);
 
     private final DefaultRoutingRequest routing;
 
@@ -231,7 +231,7 @@ public class TransmodelIndexGraphQLSchema {
     }
 
     @SuppressWarnings("unchecked")
-    public TransmodelIndexGraphQLSchema(Graph graph, RoutingRequest defaultRequest) {
+    public TransmodelGraphQLSchema(Graph graph, RoutingRequest defaultRequest) {
         this.routing = new DefaultRoutingRequest(defaultRequest);
 
         String fixedAgencyIdPropValue = System.getProperty("transmodel.graphql.api.agency.id");
