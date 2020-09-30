@@ -14,7 +14,7 @@ import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.routing.alertpatch.Alert;
+import org.opentripplanner.model.StreetNote;
 import org.opentripplanner.routing.algorithm.astar.AStar;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.core.State;
@@ -333,8 +333,8 @@ public class TestHalfEdges {
         turns.add(left);
         turns.add(leftBack);
 
-        Alert alert = Alert.createSimpleAlerts("This is the alert");
-        Set<Alert> alerts = new HashSet<>();
+        StreetNote alert = new StreetNote("This is the alert");
+        Set<StreetNote> alerts = new HashSet<>();
         alerts.add(alert);
 
         graph.streetNotesService.addStaticNote(left, alert, StreetNotesService.ALWAYS_MATCHER);
@@ -363,8 +363,8 @@ public class TestHalfEdges {
         assertNotSame(leftBack, traversedOne.getBackEdge().getFromVertex());
 
         // now, make sure wheelchair alerts are preserved
-        Alert wheelchairAlert = Alert.createSimpleAlerts("This is the wheelchair alert");
-        Set<Alert> wheelchairAlerts = new HashSet<>();
+        StreetNote wheelchairAlert = new StreetNote("This is the wheelchair alert");
+        Set<StreetNote> wheelchairAlerts = new HashSet<>();
         wheelchairAlerts.add(wheelchairAlert);
 
         graph.streetNotesService.removeStaticNotes(left);

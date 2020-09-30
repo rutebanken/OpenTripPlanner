@@ -1,10 +1,6 @@
 # Security
 
-OpenTripPlanner has some web API methods that are potentially dangerous. For example, it is possible to instruct the OTP server to reload all graphs, or even to load data off the wire as a graph. Access to these methods should clearly be restricted.
-
-Out of the box, OTP is configured to only allow access to these sensitive API methods when the caller has authenticated with a username and password via HTTP Basic authentication, and to only allow Basic authentication over a secure connection. While basic authentication sends the credentials as clear text and is therefore completely insecure when used alone, it is quite safe when used over a secure channel like [SSL/TLS](http://en.wikipedia.org/wiki/Transport_Layer_Security) that encrypts all communication.
-
-Therefore, if you wish to access these sensitive methods OTP must be running on a server that supports HTTPS, or authentication must be disabled entirely. OTP's built-in Grizzly server is configured to accept HTTPS connections on port 8081 by default, but the HTTPS listener needs an encryption key to establish a connection. The key is placed in a "keystore", a format specific to Java server environments. 
+OTP's built-in Grizzly web server is configured to accept HTTPS connections on port 8081 by default, but the HTTPS listener needs an encryption key to establish a connection. The key is placed in a "keystore", a format specific to Java server environments. 
 
 ## Creating a keystore 
 
@@ -18,18 +14,8 @@ Of course with a self-signed key, most clients will (rightfully) refuse to conne
 
 ## Testing
 
-Once you have created a key, start up the OTP server and test that HTTPS access and authentication are possible. The following command should trigger a reload of all graphs:
+Once you have created a key, start up the OTP server and test that HTTPS access and authentication are possible. You should also be able to fetch any OTP resources over HTTPS. For example, you could simply open `https://localhost:8081/index.html` in a browser, or open a raw TLS connection using `openssl s_client -connect localhost:8081`, then issue the request `GET index.html HTTP/1.1`.
 
-    curl -v --insecure -X PUT --user ROUTERS:ultra_secret -H "accept: application/json" "https://localhost:8081/otp/routers"
+## Other
 
-The username and password (`ROUTERS:ultra_secret`) are placeholders hard-coded into OTP. They will be configurable in version 1.0.
-
-You should also be able to fetch any other OTP resources over HTTPS. For example, you could open a raw TLS connection using `openssl s_client -connect localhost:8081`, then issue the request `GET index.html HTTP/1.1`.
-
-## Turning off security
-
-The other alternative is to place OTP behind a firewall, reverse proxy, etc. which will prevent access to dangerous API methods from untrusted networks, then turn off authentication entirely. This will allow you to sidestep the need for SSL/TLS certificates and authentication, but should be done with caution and careful planning. If you are sure you want to disable authentication, simply add the `--insecure` switch when starting up OTP the Grizzly server.
-
-## CORS
-
-TODO explain this
+TODO explain CORS, explain adding TLS with reverse proxy e.g. nginx

@@ -2,7 +2,7 @@ package org.opentripplanner.api.common;
 
 import org.opentripplanner.api.parameter.QualifiedModeSet;
 import org.opentripplanner.model.FeedScopedId;
-import org.opentripplanner.routing.core.OptimizeType;
+import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.request.BannedStopSet;
 import org.opentripplanner.standalone.server.OTPServer;
@@ -202,7 +202,7 @@ public abstract class RoutingResource {
      */
     @Deprecated
     @QueryParam("optimize")
-    protected OptimizeType optimize;
+    protected BicycleOptimizeType optimize;
     
     /**
      * The set of modes that a user is willing to use, with qualifiers stating whether vehicles
@@ -676,7 +676,7 @@ public abstract class RoutingResource {
         if (optimize != null) {
             // Optimize types are basically combined presets of routing parameters, except for triangle
             request.setOptimize(optimize);
-            if (optimize == OptimizeType.TRIANGLE) {
+            if (optimize == BicycleOptimizeType.TRIANGLE) {
                 RoutingRequest.assertTriangleParameters(
                         triangleSafetyFactor, triangleTimeFactor, triangleSlopeFactor
                 );
@@ -686,64 +686,64 @@ public abstract class RoutingResource {
             }
         }
 
-        if (arriveBy != null)
+        if (arriveBy != null) {
             request.setArriveBy(arriveBy);
-
-        if (showIntermediateStops != null)
+        }
+        if (showIntermediateStops != null) {
             request.showIntermediateStops = showIntermediateStops;
-
-        if (intermediatePlaces != null)
+        }
+        if (intermediatePlaces != null) {
             request.setIntermediatePlacesFromStrings(intermediatePlaces);
-
-        if (preferredRoutes != null)
-            request.setPreferredRoutes(preferredRoutes);
-
-        if (otherThanPreferredRoutesPenalty != null)
+        }
+        if (preferredRoutes != null) {
+            request.setPreferredRoutesFromSting(preferredRoutes);
+        }
+        if (otherThanPreferredRoutesPenalty != null) {
             request.setOtherThanPreferredRoutesPenalty(otherThanPreferredRoutesPenalty);
-
-        if (preferredAgencies != null)
-            request.setPreferredAgencies(preferredAgencies);
-
-        if (unpreferredRoutes != null)
-            request.setUnpreferredRoutes(unpreferredRoutes);
-
-        if (unpreferredAgencies != null)
-            request.setUnpreferredAgencies(unpreferredAgencies);
-
-        if (walkBoardCost != null)
+        }
+        if (preferredAgencies != null) {
+            request.setPreferredAgenciesFromString(preferredAgencies);
+        }
+        if (unpreferredRoutes != null) {
+            request.setUnpreferredRoutesFromSting(unpreferredRoutes);
+        }
+        if (unpreferredAgencies != null) {
+            request.setUnpreferredAgenciesFromString(unpreferredAgencies);
+        }
+        if (walkBoardCost != null) {
             request.setWalkBoardCost(walkBoardCost);
-
-        if (bikeBoardCost != null)
+        }
+        if (bikeBoardCost != null) {
             request.setBikeBoardCost(bikeBoardCost);
-
-        if (bannedRoutes != null)
-            request.setBannedRoutes(bannedRoutes);
-
-        if (whiteListedRoutes != null)
-            request.setWhiteListedRoutes(whiteListedRoutes);
-
-        if (bannedAgencies != null)
-            request.setBannedAgencies(bannedAgencies);
-
-        if (whiteListedAgencies != null)
-            request.setWhiteListedAgencies(whiteListedAgencies);
-
+        }
+        if (bannedRoutes != null) {
+            request.setBannedRoutesFromSting(bannedRoutes);
+        }
+        if (whiteListedRoutes != null) {
+            request.setWhiteListedRoutesFromSting(whiteListedRoutes);
+        }
+        if (bannedAgencies != null) {
+            request.setBannedAgenciesFromSting(bannedAgencies);
+        }
+        if (whiteListedAgencies != null) {
+            request.setWhiteListedAgenciesFromSting(whiteListedAgencies);
+        }
         HashMap<FeedScopedId, BannedStopSet> bannedTripMap = makeBannedTripMap(bannedTrips);
       
-        if (bannedTripMap != null)
+        if (bannedTripMap != null) {
             request.bannedTrips = bannedTripMap;
-
+        }
         // The "Least transfers" optimization is accomplished via an increased transfer penalty.
         // See comment on RoutingRequest.transferPentalty.
-        if (transferPenalty != null) request.transferCost = transferPenalty;
-        if (optimize == OptimizeType.TRANSFERS) {
-            optimize = OptimizeType.QUICK;
+        if (transferPenalty != null) { request.transferCost = transferPenalty; }
+        if (optimize == BicycleOptimizeType.TRANSFERS) {
+            optimize = BicycleOptimizeType.QUICK;
             request.transferCost += 1800;
         }
 
-        if (optimize != null)
+        if (optimize != null) {
             request.setOptimize(optimize);
-
+        }
         /* Temporary code to get bike/car parking and renting working. */
         if (modes != null && !modes.qModes.isEmpty()) {
             request.modes = modes.getRequestModes();

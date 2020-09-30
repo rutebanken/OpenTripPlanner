@@ -9,9 +9,8 @@ import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.routing.algorithm.filterchain.FilterChainParameters;
+import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.routing.core.IntersectionTraversalCostModel;
-import org.opentripplanner.routing.core.OptimizeType;
 import org.opentripplanner.routing.core.RouteMatcher;
 import org.opentripplanner.routing.core.RoutingContext;
 import org.opentripplanner.routing.core.SimpleIntersectionTraversalCostModel;
@@ -43,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.DoubleFunction;
 
 /**
  * A trip planning request. Some parameters may not be honored by the trip planner for some or all
@@ -208,7 +208,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      *                       documented and carried over into the Enum name.
      */
     @Deprecated
-    public OptimizeType optimize = OptimizeType.QUICK;
+    public BicycleOptimizeType optimize = BicycleOptimizeType.QUICK;
 
     /** The epoch date/time that the trip should depart (or arrive, for requests where arriveBy is true) */
     public long dateTime = new Date().getTime() / 1000;
@@ -245,8 +245,17 @@ public class RoutingRequest implements Cloneable, Serializable {
     @Deprecated
     public boolean wheelchairAccessible = false;
 
-    /** The maximum number of itineraries to return. */
-    public int numItineraries = 3;
+    /**
+     * The maximum number of itineraries to return. In OTP1 this parameter terminates the search,
+     * but in OTP2 it crops the list of itineraries AFTER the search is complete. This parameter is
+     * a post search filter function. A side effect from reducing the result is that OTP2 cannot
+     * guarantee to find all pareto-optimal itineraries when paging. Also, a large search-window
+     * and a small {@code numItineraries} waste computer CPU calculation time.
+     * <p>
+     * The default value is 50. This is a reasonably high threshold to prevent large amount of data
+     * to be returned. Consider tuning the search-window instead of setting this to a small value.
+     */
+    public int numItineraries = 50;
 
     /** The maximum slope of streets for wheelchair trips. */
     public double maxWheelchairSlope = 0.0833333333333; // ADA max wheelchair ramp slope is a good default.
@@ -398,45 +407,43 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * Do not use certain named agencies
      */
-    public HashSet<FeedScopedId> bannedAgencies = new HashSet<>();
+    private Set<FeedScopedId> bannedAgencies = Set.of();
 
     /**
      * Only use certain named agencies
      */
-    public HashSet<FeedScopedId> whiteListedAgencies = new HashSet<>();
+    private Set<FeedScopedId> whiteListedAgencies = Set.of();
 
 
     /**
      * Set of preferred agencies by user.
-     *
-     * @deprecated TODO OTP2: Needs to be implemented
      */
     @Deprecated
-    public HashSet<FeedScopedId> preferredAgencies = new HashSet<>();
+    private Set<FeedScopedId> preferredAgencies = Set.of();
 
     /**
      * Set of unpreferred agencies for given user.
      */
     @Deprecated
-    public HashSet<FeedScopedId> unpreferredAgencies = new HashSet<>();
+    private Set<FeedScopedId> unpreferredAgencies = Set.of();
 
     /**
      * Do not use certain named routes.
      * The paramter format is: feedId_routeId,feedId_routeId,feedId_routeId
      * This parameter format is completely nonstandard and should be revised for the 2.0 API, see issue #1671.
      */
-    public RouteMatcher bannedRoutes = RouteMatcher.emptyMatcher();
+    private RouteMatcher bannedRoutes = RouteMatcher.emptyMatcher();
 
     /** Only use certain named routes
      */
-    public RouteMatcher whiteListedRoutes = RouteMatcher.emptyMatcher();
+    private RouteMatcher whiteListedRoutes = RouteMatcher.emptyMatcher();
 
     /** Set of preferred routes by user.
      *
      * @deprecated TODO OTP2 Needs to be implemented
      */
     @Deprecated
-    public RouteMatcher preferredRoutes = RouteMatcher.emptyMatcher();
+    private RouteMatcher preferredRoutes = RouteMatcher.emptyMatcher();
 
     /**
      * Penalty added for using every route that is not preferred if user set any route as preferred.
@@ -453,7 +460,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      * @deprecated TODO OTP2: Needs to be implemented
      */
     @Deprecated
-    public RouteMatcher unpreferredRoutes = RouteMatcher.emptyMatcher();
+    private RouteMatcher unpreferredRoutes = RouteMatcher.emptyMatcher();
 
     /**
      * Penalty added for using every unpreferred route. We return number of seconds that we are
@@ -526,6 +533,23 @@ public class RoutingRequest implements Cloneable, Serializable {
      */
     public Map<TraverseMode, Integer> alightSlackForMode = new HashMap<>();
 
+
+    /**
+     * A relative maximum limit for the generalized cost for transit itineraries. The limit is a
+     * linear function of the minimum generalized-cost. The minimum cost is lowest cost from the
+     * set of all returned transit itineraries. The function is used to calculate a max-limit. The
+     * max-limit is then used to to filter by generalized-cost. Transit itineraries with a cost
+     * higher than the max-limit is dropped from the result set. None transit itineraries is
+     * excluded from the filter.
+     * <ul>
+     * <li>To set a filter to be 1 hours plus 2 times the lowest cost use:
+     * {@code 3600 + 2.0 x}
+     * <li>To set an absolute value(3000) use: {@code 3000 + 0x}
+     * </ul>
+     * The default is {@code null} - no filter is applied.
+     */
+    public DoubleFunction<Double> transitGeneralizedCostLimit = null;
+
     /**
      * Ideally maxTransfers should be set in the router config, not here. Instead the client should
      * be able to pass in a parameter for the max number of additional/extra transfers relative to
@@ -537,7 +561,7 @@ public class RoutingRequest implements Cloneable, Serializable {
      *
      * @see https://github.com/opentripplanner/OpenTripPlanner/issues/2886
      */
-    public Integer maxTransfers = null;
+    public Integer maxTransfers = 12;
 
     /**
      * For the bike triangle, how important time is.
@@ -651,6 +675,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     public boolean onlyTransitTrips = false;
 
     /** Option to disable the default filtering of GTFS-RT alerts by time. */
+    @Deprecated
     public boolean disableAlertFiltering = false;
 
     /** Whether to apply the ellipsoid→geoid offset to all elevations in the response */
@@ -672,7 +697,7 @@ public class RoutingRequest implements Cloneable, Serializable {
     /**
      * Keep ONE itinerary for each group with at least this part of the legs in common.
      * Default value is 0.85 (85%), use a value less than 0.50 to turn off.
-     * @see FilterChainParameters#groupBySimilarity()
+     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilterChainBuilder#addGroupBySimilarity(double, int)
      */
     public Double groupBySimilarityKeepOne = 0.85;
 
@@ -680,9 +705,10 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Keep {@link #numItineraries} itineraries for each group with at least this part of the legs
      * in common.
      * Default value is 0.68 (68%), use a value less than 0.50 to turn off.
-     * @see FilterChainParameters#groupBySimilarity()
+     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilterChainBuilder#addGroupBySimilarity(double, int)
      */
     public Double groupBySimilarityKeepNumOfItineraries = 0.68;
+
 
     /* CONSTRUCTORS */
 
@@ -716,11 +742,11 @@ public class RoutingRequest implements Cloneable, Serializable {
         this.setStreetSubRequestModes(new TraverseModeSet(mode));
     }
 
-    public RoutingRequest(TraverseMode mode, OptimizeType optimize) {
+    public RoutingRequest(TraverseMode mode, BicycleOptimizeType optimize) {
         this(new TraverseModeSet(mode), optimize);
     }
 
-    public RoutingRequest(TraverseModeSet modeSet, OptimizeType optimize) {
+    public RoutingRequest(TraverseModeSet modeSet, BicycleOptimizeType optimize) {
         this();
         this.optimize = optimize;
         this.setStreetSubRequestModes(modeSet);
@@ -777,7 +803,7 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
     }
 
-    public void setOptimize(OptimizeType optimize) {
+    public void setOptimize(BicycleOptimizeType optimize) {
         this.optimize = optimize;
         bikeWalkingOptions.optimize = optimize;
     }
@@ -828,18 +854,51 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
     }
 
-    public void setPreferredAgencies(String s) {
+    public void setPreferredAgencies(Collection<FeedScopedId> ids) {
+        if(ids != null) {
+            preferredAgencies = Set.copyOf(ids);
+        }
+    }
+
+    public void setPreferredAgenciesFromString(String s) {
         if (!s.isEmpty()) {
             preferredAgencies = FeedScopedId.parseListOfIds(s);
         }
     }
 
-    public void setPreferredRoutes(String s) {
-        if (!s.isEmpty()) {
-            preferredRoutes = RouteMatcher.parse(s);
+    public void setUnpreferredAgencies(Collection<FeedScopedId> ids) {
+        if (ids != null) {
+            unpreferredAgencies = Set.copyOf(ids);
         }
-        else {
-            preferredRoutes = RouteMatcher.emptyMatcher();
+    }
+
+    public void setUnpreferredAgenciesFromString(String s) {
+        if (!s.isEmpty()) {
+            unpreferredAgencies = FeedScopedId.parseListOfIds(s);
+        }
+    }
+
+    public void setBannedAgencies(Collection<FeedScopedId> ids) {
+        if (ids != null) {
+            bannedAgencies = Set.copyOf(ids);
+        }
+    }
+
+    public void setBannedAgenciesFromSting(String s) {
+        if (!s.isEmpty()) {
+            bannedAgencies = FeedScopedId.parseListOfIds(s);
+        }
+    }
+
+    public void setWhiteListedAgencies(Collection<FeedScopedId> ids) {
+        if (ids != null) {
+            whiteListedAgencies = Set.copyOf(ids);
+        }
+    }
+
+    public void setWhiteListedAgenciesFromSting(String s) {
+        if (!s.isEmpty()) {
+            whiteListedAgencies = FeedScopedId.parseListOfIds(s);
         }
     }
 
@@ -848,13 +907,24 @@ public class RoutingRequest implements Cloneable, Serializable {
         this.otherThanPreferredRoutesPenalty = penalty;
     }
 
-    public void setUnpreferredAgencies(String s) {
+    public void setPreferredRoutes(List<FeedScopedId> routeIds) {
+        preferredRoutes = RouteMatcher.idMatcher(routeIds);
+    }
+
+    public void setPreferredRoutesFromSting(String s) {
         if (!s.isEmpty()) {
-            unpreferredAgencies = FeedScopedId.parseListOfIds(s);
+            preferredRoutes = RouteMatcher.parse(s);
+        }
+        else {
+            preferredRoutes = RouteMatcher.emptyMatcher();
         }
     }
 
-    public void setUnpreferredRoutes(String s) {
+    public void setUnpreferredRoutes(List<FeedScopedId> routeIds) {
+        unpreferredRoutes = RouteMatcher.idMatcher(routeIds);
+    }
+
+    public void setUnpreferredRoutesFromSting(String s) {
         if (!s.isEmpty()) {
             unpreferredRoutes = RouteMatcher.parse(s);
         }
@@ -863,7 +933,11 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
     }
 
-    public void setBannedRoutes(String s) {
+    public void setBannedRoutes(List<FeedScopedId> routeIds) {
+        bannedRoutes = RouteMatcher.idMatcher(routeIds);
+    }
+
+    public void setBannedRoutesFromSting(String s) {
         if (!s.isEmpty()) {
             bannedRoutes = RouteMatcher.parse(s);
         }
@@ -872,7 +946,7 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
     }
 
-    public void setWhiteListedRoutes(String s) {
+    public void setWhiteListedRoutesFromSting(String s) {
         if (!s.isEmpty()) {
             whiteListedRoutes = RouteMatcher.parse(s);
         }
@@ -881,19 +955,10 @@ public class RoutingRequest implements Cloneable, Serializable {
         }
     }
 
-    public void setBannedAgencies(String s) {
-        if (!s.isEmpty()) {
-            bannedAgencies = FeedScopedId.parseListOfIds(s);
-        }
+    public void setWhiteListedRoutes(List<FeedScopedId> routeIds) {
+        whiteListedRoutes = RouteMatcher.idMatcher(routeIds);
     }
 
-    public void setWhiteListedAgencies(String s) {
-        if (!s.isEmpty()) {
-            whiteListedAgencies = FeedScopedId.parseListOfIds(s);
-        }
-    }
-
-    public final static int MIN_SIMILARITY = 1000;
 
     public void setFromString(String from) {
         this.from = LocationStringParser.fromOldStyleString(from);
@@ -1061,16 +1126,25 @@ public class RoutingRequest implements Cloneable, Serializable {
         try {
             RoutingRequest clone = (RoutingRequest) super.clone();
             clone.streetSubRequestModes = streetSubRequestModes.clone();
+
+            clone.preferredAgencies = Set.copyOf(preferredAgencies);
+            clone.unpreferredAgencies = Set.copyOf(unpreferredAgencies);
+            clone.whiteListedAgencies = Set.copyOf(whiteListedAgencies);
+            clone.bannedAgencies = Set.copyOf(bannedAgencies);
+
             clone.bannedRoutes = bannedRoutes.clone();
-            clone.bannedTrips = (HashMap<FeedScopedId, BannedStopSet>) bannedTrips.clone();
-            clone.whiteListedAgencies = (HashSet<FeedScopedId>) whiteListedAgencies.clone();
             clone.whiteListedRoutes = whiteListedRoutes.clone();
-            clone.preferredAgencies = (HashSet<FeedScopedId>) preferredAgencies.clone();
             clone.preferredRoutes = preferredRoutes.clone();
-            if (this.bikeWalkingOptions != this)
+            clone.unpreferredRoutes = unpreferredRoutes.clone();
+
+            clone.bannedTrips = (HashMap<FeedScopedId, BannedStopSet>) bannedTrips.clone();
+
+            if (this.bikeWalkingOptions != this) {
                 clone.bikeWalkingOptions = this.bikeWalkingOptions.clone();
-            else
+            }
+            else {
                 clone.bikeWalkingOptions = clone;
+            }
             return clone;
         } catch (CloneNotSupportedException e) {
             /* this will never happen since our super is the cloneable object */
@@ -1234,7 +1308,6 @@ public class RoutingRequest implements Cloneable, Serializable {
      * Checks if the route is banned. Also, if whitelisting is used, the route (or its agency) has
      * to be whitelisted in order to not count as banned.
      *
-     * @param route
      * @return True if the route is banned
      */
     private boolean routeIsBanned(Route route) {
@@ -1282,19 +1355,16 @@ public class RoutingRequest implements Cloneable, Serializable {
     public long preferencesPenaltyForRoute(Route route) {
         long preferences_penalty = 0;
         FeedScopedId agencyID = route.getAgency().getId();
-        if ((preferredRoutes != null && !preferredRoutes.equals(RouteMatcher.emptyMatcher())) ||
-                (preferredAgencies != null && !preferredAgencies.isEmpty())) {
-            boolean isPreferedRoute = preferredRoutes != null && preferredRoutes.matches(route);
-            boolean isPreferedAgency = preferredAgencies != null && preferredAgencies.contains(agencyID);
+        if (!preferredRoutes.equals(RouteMatcher.emptyMatcher()) || !preferredAgencies.isEmpty()) {
+            boolean isPreferedRoute = preferredRoutes.matches(route);
+            boolean isPreferedAgency = preferredAgencies.contains(agencyID);
+
             if (!isPreferedRoute && !isPreferedAgency) {
                 preferences_penalty += otherThanPreferredRoutesPenalty;
             }
-            else {
-                preferences_penalty = 0;
-            }
         }
-        boolean isUnpreferedRoute  = unpreferredRoutes   != null && unpreferredRoutes.matches(route);
-        boolean isUnpreferedAgency = unpreferredAgencies != null && unpreferredAgencies.contains(agencyID);
+        boolean isUnpreferedRoute  = unpreferredRoutes.matches(route);
+        boolean isUnpreferedAgency = unpreferredAgencies.contains(agencyID);
         if (isUnpreferedRoute || isUnpreferedAgency) {
             preferences_penalty += useUnpreferredRoutesPenalty;
         }

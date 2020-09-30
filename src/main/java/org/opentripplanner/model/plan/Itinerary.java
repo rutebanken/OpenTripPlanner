@@ -146,6 +146,13 @@ public class Itinerary {
     }
 
     /**
+     * Total distance in meters.
+     */
+    public double distanceMeters() {
+        return legs.stream().mapToDouble(it -> it.distanceMeters).sum();
+    }
+
+    /**
      * Return {@code true} if all legs are WALKING.
      */
     public boolean isWalkingAllTheWay() {
@@ -278,7 +285,7 @@ public class Itinerary {
                 buf.walk((int)leg.getDuration());
             }
             else if(leg.isTransitLeg()) {
-                buf.transit(leg.mode, leg.tripId.getId(), leg.startTime, leg.endTime);
+              buf.transit(leg.mode, leg.getTrip().getId().getId(), leg.startTime, leg.endTime);
             }
             else {
                 buf.other(leg.mode, leg.startTime, leg.endTime);

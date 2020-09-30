@@ -8,8 +8,11 @@ import org.opentripplanner.common.geometry.DirectionUtils;
 import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.common.geometry.PackedCoordinateSequence;
 import org.opentripplanner.common.model.P2;
+import org.opentripplanner.ext.flex.FlexLegMapper;
+import org.opentripplanner.ext.flex.edgetype.FlexTripEdge;
 import org.opentripplanner.model.BikeRentalStationInfo;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StreetNote;
 import org.opentripplanner.model.WgsCoordinate;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.model.plan.Leg;
@@ -17,10 +20,8 @@ import org.opentripplanner.model.plan.Place;
 import org.opentripplanner.model.plan.RelativeDirection;
 import org.opentripplanner.model.plan.VertexType;
 import org.opentripplanner.model.plan.WalkStep;
-import org.opentripplanner.routing.alertpatch.Alert;
-import org.opentripplanner.routing.alertpatch.AlertPatch;
-import org.opentripplanner.routing.core.RoutingContext;
 import org.opentripplanner.routing.api.request.RoutingRequest;
+import org.opentripplanner.routing.core.RoutingContext;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.AreaEdge;
@@ -40,6 +41,7 @@ import org.opentripplanner.routing.vertextype.BikeRentalStationVertex;
 import org.opentripplanner.routing.vertextype.ExitVertex;
 import org.opentripplanner.routing.vertextype.StreetVertex;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
+import org.opentripplanner.util.OTPFeature;
 import org.opentripplanner.util.PolylineEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 // TODO OTP2 There is still a lot of transit-related logic here that should be removed. We also need
 //      to decide where real-time updates should be applied to the itinerary.
@@ -73,12 +76,7 @@ public abstract class GraphPathToItineraryMapper {
 
         List<Itinerary> itineraries = new LinkedList<>();
         for (GraphPath path : paths) {
-            Itinerary itinerary = generateItinerary(
-                    path,
-                    request.showIntermediateStops,
-                    request.disableAlertFiltering,
-                    request.locale
-            );
+            Itinerary itinerary = generateItinerary(path, request.locale);
             if (itinerary.legs.isEmpty()) { continue; }
             itinerary = adjustItinerary(request, itinerary);
             itineraries.add(itinerary);
@@ -108,10 +106,9 @@ public abstract class GraphPathToItineraryMapper {
      * rest of the itinerary is generated based on the complete state array.
      *
      * @param path The graph path to base the itinerary on
-     * @param showIntermediateStops Whether to include intermediate stops in the itinerary or not
      * @return The generated itinerary
      */
-    public static Itinerary generateItinerary(GraphPath path, boolean showIntermediateStops, boolean disableAlertFiltering, Locale requestedLocale) {
+    public static Itinerary generateItinerary(GraphPath path, Locale requestedLocale) {
 
         State[] states = new State[path.states.size()];
         State lastState = path.states.getLast();
@@ -126,7 +123,7 @@ public abstract class GraphPathToItineraryMapper {
 
         List<Leg> legs = new ArrayList<>();
         for (State[] legStates : legsStates) {
-            legs.add(generateLeg(graph, legStates, showIntermediateStops, disableAlertFiltering, requestedLocale));
+            legs.add(generateLeg(graph, legStates, requestedLocale));
         }
 
         addWalkSteps(graph, legs, legsStates, requestedLocale);
@@ -182,10 +179,8 @@ public abstract class GraphPathToItineraryMapper {
     }
 
     /**
-     * Slice a {@link State} array at the leg boundaries. Leg switches occur when:
-     * 1. A LEG_SWITCH mode (which itself isn't part of any leg) is seen
-     * 2. The mode changes otherwise, for instance from BICYCLE to WALK
-     * 3. A PatternInterlineDwell edge (i.e. interlining) is seen
+     * Slice a {@link State} array at the leg boundaries. Leg switches occur when the mode changes,
+     * for instance from BICYCLE to WALK.
      *
      * @param states The one-dimensional array of input states
      * @return An array of arrays of states belonging to a single leg (i.e. a two-dimensional array)
@@ -196,7 +191,7 @@ public abstract class GraphPathToItineraryMapper {
         for (State state : states) {
             TraverseMode traverseMode = state.getBackMode();
 
-            if (traverseMode != null && traverseMode != TraverseMode.LEG_SWITCH) {
+            if (traverseMode != null) {
                 trivial = false;
                 break;
             }
@@ -215,18 +210,7 @@ public abstract class GraphPathToItineraryMapper {
 
             if (backMode == null || forwardMode == null) continue;
 
-            Edge edge = states[i + 1].getBackEdge();
-
-            if (backMode == TraverseMode.LEG_SWITCH || forwardMode == TraverseMode.LEG_SWITCH) {
-                if (backMode != TraverseMode.LEG_SWITCH) {              // Start of leg switch
-                    legIndexPairs[1] = i;
-                } else if (forwardMode != TraverseMode.LEG_SWITCH) {    // End of leg switch
-                    if (legIndexPairs[1] != states.length - 1) {
-                        legsIndexes.add(legIndexPairs);
-                    }
-                    legIndexPairs = new int[] {i, states.length - 1};
-                }
-            } else if (backMode != forwardMode) {                       // Mode change => leg switch
+            if (backMode != forwardMode) {
                 legIndexPairs[1] = i;
                 legsIndexes.add(legIndexPairs);
                 legIndexPairs = new int[] {i, states.length - 1};
@@ -254,11 +238,28 @@ public abstract class GraphPathToItineraryMapper {
      * Generate one leg of an itinerary from a {@link State} array.
      *
      * @param states The array of states to base the leg on
-     * @param showIntermediateStops Whether to include intermediate stops in the leg or not
      * @return The generated leg
      */
-    private static Leg generateLeg(Graph graph, State[] states, boolean showIntermediateStops, boolean disableAlertFiltering, Locale requestedLocale) {
-        Leg leg = new Leg();
+    private static Leg generateLeg(Graph graph, State[] states, Locale requestedLocale) {
+        Leg leg = null;
+        FlexTripEdge flexEdge = null;
+
+        if (OTPFeature.FlexRouting.isOn()) {
+            flexEdge = (FlexTripEdge) Stream
+                .of(states)
+                .skip(1)
+                .map(state -> state.backEdge)
+                .filter(edge -> edge instanceof FlexTripEdge)
+                .findFirst()
+                .orElse(null);
+            if (flexEdge != null) {
+                leg = new Leg(flexEdge.getTrip());
+            }
+        }
+
+        if (leg == null) {
+            leg = new Leg(resolveMode(states));
+        }
 
         Edge[] edges = new Edge[states.length - 1];
 
@@ -286,35 +287,15 @@ public abstract class GraphPathToItineraryMapper {
         // But in any case, with Raptor this method is only being used to translate non-transit legs of paths.
         leg.interlineWithPreviousLeg = false;
 
-        addFrequencyFields(states, leg);
-
         leg.rentedBike = states[0].isBikeRenting() && states[states.length - 1].isBikeRenting();
 
-        addModeAndAlerts(graph, leg, states, disableAlertFiltering);
+        addAlerts(graph, leg, states);
+
+        if (flexEdge != null) {
+            FlexLegMapper.fixFlexTripLeg(leg, flexEdge);
+        }
 
         return leg;
-    }
-
-    private static void addFrequencyFields(State[] states, Leg leg) {
-        /* TODO adapt to new frequency handling.
-        if (states[0].getBackEdge() instanceof FrequencyBoard) {
-            State preBoardState = states[0].getBackState();
-
-            FrequencyBoard fb = (FrequencyBoard) states[0].getBackEdge();
-            FrequencyBasedTripPattern pt = fb.getPattern();
-            int boardTime;
-            if (preBoardState.getServiceDay() == null) {
-                boardTime = 0; //TODO why is this happening?
-            } else {
-                boardTime = preBoardState.getServiceDay().secondsSinceMidnight(
-                        preBoardState.getTimeSeconds());
-            }
-            int period = pt.getPeriod(fb.getStopIndex(), boardTime); //TODO fix
-
-            leg.isNonExactFrequency = !pt.isExact();
-            leg.headway = period;
-        }
-        */
     }
 
     /**
@@ -328,8 +309,6 @@ public abstract class GraphPathToItineraryMapper {
         WalkStep previousStep = null;
 
         TraverseMode lastMode = null;
-
-        BikeRentalStationVertex onVertex = null, offVertex = null;
 
         for (int i = 0; i < legsStates.length; i++) {
             List<WalkStep> walkSteps = generateWalkSteps(graph, legsStates[i], previousStep, requestedLocale);
@@ -407,41 +386,35 @@ public abstract class GraphPathToItineraryMapper {
     }
 
     /**
+     * Resolve mode from states.
+     * @param states The states that go with the leg
+     */
+    private static TraverseMode resolveMode(State[] states) {
+        TraverseMode returnMode = TraverseMode.WALK;
+
+        for (State state : states) {
+            TraverseMode mode = state.getBackMode();
+
+            if (mode != null) {
+                returnMode = mode;
+            }
+        }
+        return returnMode;
+    }
+
+    /**
      * Add mode and alerts fields to a {@link Leg}.
      *
      * @param leg The leg to add the mode and alerts to
      * @param states The states that go with the leg
      */
-    private static void addModeAndAlerts(Graph graph, Leg leg, State[] states, boolean disableAlertFiltering) {
+    private static void addAlerts(Graph graph, Leg leg, State[] states) {
         for (State state : states) {
-            TraverseMode mode = state.getBackMode();
-            Set<Alert> alerts = graph.streetNotesService.getNotes(state);
-            Edge edge = state.getBackEdge();
+            Set<StreetNote> streetNotes = graph.streetNotesService.getNotes(state);
 
-            if (mode != null) {
-                leg.mode = mode;
-            }
-
-            if (alerts != null) {
-                for (Alert alert : alerts) {
-                    leg.addAlert(alert);
-                }
-            }
-
-            for (AlertPatch alertPatch : graph.getAlertPatches(edge)) {
-                if (disableAlertFiltering || alertPatch.displayDuring(state)) {
-                    if (alertPatch.hasTrip()) {
-                        // If the alert patch contains a trip and that trip match this leg only add the alert for
-                        // this leg.
-                        if (alertPatch.getTrip().equals(leg.tripId)) {
-                            leg.addAlert(alertPatch.getAlert());
-                            leg.addAlertPatch(alertPatch);
-                        }
-                    } else {
-                        // If we are not matching a particular trip add all known alerts for this trip pattern.
-                        leg.addAlert(alertPatch.getAlert());
-                        leg.addAlertPatch(alertPatch);
-                    }
+            if (streetNotes != null) {
+                for (StreetNote streetNote : streetNotes) {
+                    leg.addStretNote(streetNote);
                 }
             }
         }
@@ -462,20 +435,19 @@ public abstract class GraphPathToItineraryMapper {
         Stop lastStop = lastVertex instanceof TransitStopVertex ?
                 ((TransitStopVertex) lastVertex).getStop(): null;
 
-        leg.from = makePlace(states[0], firstVertex, firstStop, requestedLocale);
-        leg.to = makePlace(states[states.length - 1], lastVertex, lastStop, requestedLocale);
+        leg.from = makePlace(firstVertex, firstStop, requestedLocale);
+        leg.to = makePlace(lastVertex, lastStop, requestedLocale);
     }
 
     /**
      * Make a {@link Place} to add to a {@link Leg}.
      *
-     * @param state The {@link State} that the {@link Place} pertains to.
      * @param vertex The {@link Vertex} at the {@link State}.
      * @param stop The {@link Stop} associated with the {@link Vertex}.
      * @param requestedLocale The locale to use for all text attributes.
      * @return The resulting {@link Place} object.
      */
-    private static Place makePlace(State state, Vertex vertex, Stop stop, Locale requestedLocale) {
+    private static Place makePlace(Vertex vertex, Stop stop, Locale requestedLocale) {
         String name = vertex.getName(requestedLocale);
 
         //This gets nicer names instead of osm:node:id when changing mode of transport
@@ -788,7 +760,7 @@ public abstract class GraphPathToItineraryMapper {
 
             // increment the total length for this step
             step.distance += edge.getDistanceMeters();
-            step.addAlerts(graph.streetNotesService.getNotes(forwardState));
+            step.addStreetNotes(graph.streetNotesService.getNotes(forwardState));
             lastAngle = DirectionUtils.getLastAngle(geom);
 
             step.edges.add(edge);
@@ -835,7 +807,7 @@ public abstract class GraphPathToItineraryMapper {
         step.elevation = encodeElevationProfile(s.getBackEdge(), 0,
                 s.getOptions().geoidElevation ? -graph.ellipsoidToGeoidDifference : 0);
         step.bogusName = en.hasBogusName();
-        step.addAlerts(graph.streetNotesService.getNotes(s));
+        step.addStreetNotes(graph.streetNotesService.getNotes(s));
         step.angle = DirectionUtils.getFirstAngle(s.getBackEdge().getGeometry());
         if (s.getBackEdge() instanceof AreaEdge) {
             step.area = true;

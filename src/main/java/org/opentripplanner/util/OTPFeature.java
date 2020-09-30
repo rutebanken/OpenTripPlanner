@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 public enum OTPFeature {
     APIExternalGeocoder(true),
     APIBikeRental(true),
-    APIAlertPatcher(true),
     APIServerInfo(true),
     APIGraphInspectorTile(true),
     APIUpdaterStatus(true),
@@ -26,8 +25,10 @@ public enum OTPFeature {
     GoogleCloudStorage(false),
     SandboxAPITransmodelApi(false),
     SandboxAPILegacyGraphQLApi(false),
+    SandboxAPIMapboxVectorTilesApi(false),
     SandboxExampleAPIGraphStatistics(false),
-    TransferAnalyzer(false);
+    TransferAnalyzer(false),
+    FlexRouting(false);
 
     private static final Logger LOG = LoggerFactory.getLogger(OTPFeature.class);
 

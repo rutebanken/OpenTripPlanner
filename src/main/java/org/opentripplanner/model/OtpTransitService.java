@@ -1,6 +1,7 @@
 package org.opentripplanner.model;
 
 import com.google.common.collect.Multimap;
+import org.opentripplanner.ext.flex.trip.FlexTrip;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +60,10 @@ public interface OtpTransitService {
 
     Collection<BoardingArea> getAllBoardingAreas();
 
+    Collection<FlexStopLocation> getAllLocations();
+
+    Collection<FlexLocationGroup> getAllLocationGroups();
+
     /**
      * @return the list of {@link StopTime} objects associated with the trip,
      * sorted by {@link StopTime#getStopSequence()}
@@ -70,4 +75,6 @@ public interface OtpTransitService {
     Collection<TripPattern> getTripPatterns();
 
     Collection<Trip> getAllTrips();
+
+    Collection<FlexTrip> getAllFlexTrips();
 }

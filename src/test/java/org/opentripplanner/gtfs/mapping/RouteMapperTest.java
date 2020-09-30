@@ -14,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class RouteMapperTest {
@@ -130,7 +131,7 @@ public class RouteMapperTest {
         org.opentripplanner.model.Route result1 = subject.map(ROUTE);
         org.opentripplanner.model.Route result2 = subject.map(ROUTE);
 
-        assertTrue(result1 == result2);
+        assertSame(result1, result2);
     }
 
 }

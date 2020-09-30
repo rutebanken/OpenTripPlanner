@@ -8,8 +8,9 @@ import org.opentripplanner.model.SimpleTransfer;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.GraphIndex;
-import org.opentripplanner.routing.graphfinder.StopAtDistance;
+import org.opentripplanner.routing.graphfinder.NearbyStop;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
+import org.opentripplanner.util.OTPFeature;
 import org.opentripplanner.util.ProgressTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,14 +80,27 @@ public class DirectTransferGenerator implements GraphBuilderModule {
 
             /* Make transfers to each nearby stop that is the closest stop on some trip pattern. */
             int n = 0;
-            for (StopAtDistance sd : nearbyStopFinder.findNearbyStopsConsideringPatterns(ts0)) {
-                /* Skip the origin stop, loop transfers are not needed. */
-                if (sd.stop == stop) continue;
+            for (NearbyStop sd : nearbyStopFinder.findNearbyStopsConsideringPatterns(ts0, false)) {
+                // Skip the origin stop, loop transfers are not needed.
+                if (sd.stop == stop) { continue; }
                 graph.transfersByStop.put(
                     stop,
                     new SimpleTransfer(stop, sd.stop, sd.distance, sd.edges)
                 );
                 n += 1;
+            }
+            if (OTPFeature.FlexRouting.isOn()) {
+                // This code is for finding transfers from FlexStopLocations to Stops, transfers
+                // from Stops to FlexStopLocations and between Stops are already covered above.
+                for (NearbyStop sd : nearbyStopFinder.findNearbyStopsConsideringPatterns(ts0,  true)) {
+                    // Skip the origin stop, loop transfers are not needed.
+                    if (sd.stop == ts0.getStop()) { continue; }
+                    if (sd.stop instanceof Stop) { continue; }
+                    graph.transfersByStop.put(sd.stop,
+                        new SimpleTransfer(sd.stop, ts0.getStop(), sd.distance, sd.edges)
+                    );
+                    n += 1;
+                }
             }
             LOG.debug("Linked stop {} to {} nearby stops on other patterns.", stop, n);
             if (n == 0) {

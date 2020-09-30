@@ -28,24 +28,27 @@ public class RouterConfig implements Serializable {
     /**
      * The raw JsonNode three kept for reference and (de)serialization.
      */
-    public final JsonNode rawJson;
-
+    private final JsonNode rawJson;
     private final String requestLogFile;
+    private final boolean transmodelApiHideFeedId;
     private final double streetRoutingTimeoutSeconds;
     private final RoutingRequest routingRequestDefaults;
     private final TransitRoutingConfig transitConfig;
     private final UpdaterParameters updaterParameters;
+    private final VectorTileConfig vectorTileLayers;
 
     public RouterConfig(JsonNode node, String source, boolean logUnusedParams) {
         NodeAdapter adapter = new NodeAdapter(node, source);
         this.rawJson = node;
         this.requestLogFile = adapter.asText("requestLogFile", null);
+        this.transmodelApiHideFeedId = adapter.path("transmodelApi").asBoolean("hideFeedId", false);
         this.streetRoutingTimeoutSeconds = adapter.asDouble(
                 "streetRoutingTimeout", DEFAULT_STREET_ROUTING_TIMEOUT
         );
         this.transitConfig = new TransitRoutingConfig(adapter.path("transit"));
         this.routingRequestDefaults = mapRoutingRequest(adapter.path("routingDefaults"));
         this.updaterParameters = new UpdaterConfig(adapter);
+        this.vectorTileLayers = new VectorTileConfig(adapter.path("vectorTileLayers").asList());
 
         if(logUnusedParams) {
             adapter.logAllUnusedParameters(LOG);
@@ -66,6 +69,8 @@ public class RouterConfig implements Serializable {
         return streetRoutingTimeoutSeconds;
     }
 
+    public boolean transmodelApiHideFeedId() { return transmodelApiHideFeedId; }
+
     public RoutingRequest routingRequestDefaults() {
         return routingRequestDefaults;
     }
@@ -79,6 +84,8 @@ public class RouterConfig implements Serializable {
     }
 
     public UpdaterParameters updaterConfig() { return updaterParameters; }
+
+    public VectorTileConfig vectorTileLayers() { return vectorTileLayers; }
 
     /**
      * If {@code true} the config is loaded from file, in not the DEFAULT config is used.

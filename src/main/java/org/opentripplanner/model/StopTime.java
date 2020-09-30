@@ -3,8 +3,6 @@ package org.opentripplanner.model;
 
 import org.opentripplanner.util.TimeToStringConverter;
 
-import java.io.Serializable;
-
 
 /**
  * This class is TEMPORALLY used during mapping of GTFS and Netex into the internal Model,
@@ -21,7 +19,7 @@ public final class StopTime implements Comparable<StopTime> {
 
     private Trip trip;
 
-    private Stop stop;
+    private StopLocation stop;
 
     private int arrivalTime = MISSING_VALUE;
 
@@ -44,6 +42,16 @@ public final class StopTime implements Comparable<StopTime> {
     /** This is a Conveyal extension to the GTFS spec to support Seattle on/off peak fares. */
     private String farePeriodId;
 
+    private int flexWindowStart = MISSING_VALUE;
+
+    private int flexWindowEnd = MISSING_VALUE;
+
+    // Disabled by default
+    private int flexContinuousPickup = MISSING_VALUE;
+
+    // Disabled by default
+    private int flexContinuousDropOff = MISSING_VALUE;
+
     public StopTime() { }
 
     public StopTime(StopTime st) {
@@ -59,6 +67,10 @@ public final class StopTime implements Comparable<StopTime> {
         this.dropOffType = st.dropOffType;
         this.shapeDistTraveled = st.shapeDistTraveled;
         this.farePeriodId = st.farePeriodId;
+        this.flexWindowStart = st.flexWindowStart;
+        this.flexWindowEnd = st.flexWindowEnd;
+        this.flexContinuousPickup = st.flexContinuousPickup;
+        this.flexContinuousDropOff = st.flexContinuousDropOff;
     }
 
     /**
@@ -90,11 +102,11 @@ public final class StopTime implements Comparable<StopTime> {
         this.stopSequence = stopSequence;
     }
 
-    public Stop getStop() {
+    public StopLocation getStop() {
         return stop;
     }
 
-    public void setStop(Stop stop) {
+    public void setStop(StopLocation stop) {
         this.stop = stop;
     }
 
@@ -209,6 +221,38 @@ public final class StopTime implements Comparable<StopTime> {
 
     public void setFarePeriodId(String farePeriodId) {
         this.farePeriodId = farePeriodId;
+    }
+
+    public void setFlexWindowStart(int flexWindowStart) {
+        this.flexWindowStart = flexWindowStart;
+    }
+
+    public int getFlexWindowStart() {
+        return flexWindowStart;
+    }
+
+    public void setFlexWindowEnd(int flexWindowEnd) {
+        this.flexWindowEnd = flexWindowEnd;
+    }
+
+    public int getFlexWindowEnd() {
+        return flexWindowEnd;
+    }
+
+    public int getFlexContinuousPickup() {
+        return flexContinuousPickup == MISSING_VALUE ? 1 : flexContinuousPickup;
+    }
+
+    public void setFlexContinuousPickup(int flexContinuousPickup) {
+        this.flexContinuousPickup = flexContinuousPickup;
+    }
+
+    public int getFlexContinuousDropOff() {
+        return flexContinuousDropOff == MISSING_VALUE ? 1 : flexContinuousDropOff;
+    }
+
+    public void setFlexContinuousDropOff(int flexContinuousDropOff) {
+        this.flexContinuousDropOff = flexContinuousDropOff;
     }
 
     public int compareTo(StopTime o) {

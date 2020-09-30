@@ -10,6 +10,7 @@ import gnu.trove.set.hash.TIntHashSet;
 import org.locationtech.jts.geom.Envelope;
 import org.opentripplanner.common.geometry.CompactElevationProfile;
 import org.opentripplanner.common.geometry.HashGridSpatialIndex;
+import org.opentripplanner.ext.flex.FlexIndex;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
@@ -18,12 +19,14 @@ import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.StopLocation;
 import org.opentripplanner.model.TimetableSnapshot;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.CalendarService;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
+import org.opentripplanner.util.OTPFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,10 +51,11 @@ public class GraphIndex {
     private final Map<Trip, TripPattern> patternForTrip = Maps.newHashMap();
     private final Multimap<String, TripPattern> patternsForFeedId = ArrayListMultimap.create();
     private final Multimap<Route, TripPattern> patternsForRoute = ArrayListMultimap.create();
-    private final Multimap<Stop, TripPattern> patternsForStopId = ArrayListMultimap.create();
+    private final Multimap<StopLocation, TripPattern> patternsForStopId = ArrayListMultimap.create();
     private final Map<Station, MultiModalStation> multiModalStationForStations = Maps.newHashMap();
     private final HashGridSpatialIndex<TransitStopVertex> stopSpatialIndex = new HashGridSpatialIndex<>();
     private final Map<ServiceDate, TIntSet> serviceCodesRunningForDate = new HashMap<>();
+    private FlexIndex flexIndex = null;
 
     public GraphIndex(Graph graph) {
         LOG.info("GraphIndex init...");
@@ -100,6 +104,16 @@ public class GraphIndex {
         }
 
         initalizeServiceCodesForDate(graph);
+
+        if (OTPFeature.FlexRouting.isOn()) {
+            flexIndex = new FlexIndex(graph);
+            for (Route route : flexIndex.routeById.values()) {
+                routeForId.put(route.getId(), route);
+            }
+            for (Trip trip : flexIndex.tripById.values()) {
+                tripForId.put(trip.getId(), trip);
+            }
+        }
 
         LOG.info("GraphIndex init complete.");
     }
@@ -168,7 +182,7 @@ public class GraphIndex {
         return routes;
     }
 
-    public Collection<TripPattern> getPatternsForStop(Stop stop) {
+    public Collection<TripPattern> getPatternsForStop(StopLocation stop) {
         return patternsForStopId.get(stop);
     }
 
@@ -244,5 +258,9 @@ public class GraphIndex {
 
     public Map<ServiceDate, TIntSet> getServiceCodesRunningForDate() {
         return serviceCodesRunningForDate;
+    }
+
+    public FlexIndex getFlexIndex() {
+        return flexIndex;
     }
 }

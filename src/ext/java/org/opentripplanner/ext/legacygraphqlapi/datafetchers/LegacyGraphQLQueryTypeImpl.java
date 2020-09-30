@@ -29,23 +29,24 @@ import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.RoutingService;
+import org.opentripplanner.routing.alertpatch.TransitAlert;
+import org.opentripplanner.routing.graphfinder.NearbyStop;
 import org.opentripplanner.routing.graphfinder.PatternAtStop;
 import org.opentripplanner.routing.graphfinder.PlaceAtDistance;
 import org.opentripplanner.routing.graphfinder.PlaceType;
-import org.opentripplanner.routing.graphfinder.StopAtDistance;
-import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.response.RoutingResponse;
 import org.opentripplanner.routing.bike_park.BikePark;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
 import org.opentripplanner.routing.core.FareRuleSet;
-import org.opentripplanner.routing.core.OptimizeType;
+import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.routing.error.RoutingValidationException;
 import org.opentripplanner.routing.vertextype.TransitStopVertex;
 import org.opentripplanner.updater.GtfsRealtimeFuzzyTripMatcher;
 import org.opentripplanner.util.ResourceBundleSingleton;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -108,7 +109,7 @@ public class LegacyGraphQLQueryTypeImpl
               .arguments(Map.of("id", internalId))
               .build());
 
-          return new PlaceAtDistance(place, Integer.parseInt(parts[0]));
+          return new PlaceAtDistance(place, Double.parseDouble(parts[0]));
         }
         case "Route":
           return routingService.getRouteForId(FeedScopedId.parseId(id));
@@ -121,7 +122,7 @@ public class LegacyGraphQLQueryTypeImpl
           Stop stop = routingService.getStopForId(FeedScopedId.parseId(parts[1]));
 
           // TODO: Add geometry
-          return new StopAtDistance(stop, Integer.parseInt(parts[0]), null, null, null);
+          return new NearbyStop(stop, Integer.parseInt(parts[0]), null, null, null);
         }
         case "TicketType":
           return null; //TODO
@@ -213,11 +214,11 @@ public class LegacyGraphQLQueryTypeImpl
   }
 
   @Override
-  public DataFetcher<Connection<StopAtDistance>> stopsByRadius() {
+  public DataFetcher<Connection<NearbyStop>> stopsByRadius() {
     return environment -> {
       LegacyGraphQLTypes.LegacyGraphQLQueryTypeStopsByRadiusArgs args = new LegacyGraphQLTypes.LegacyGraphQLQueryTypeStopsByRadiusArgs(environment.getArguments());
 
-      List<StopAtDistance> stops;
+      List<NearbyStop> stops;
       try {
         stops = getRoutingService(environment).findClosestStops(
             args.getLegacyGraphQLLat(),
@@ -478,7 +479,7 @@ public class LegacyGraphQLQueryTypeImpl
 
   //TODO
   @Override
-  public DataFetcher<Iterable<AlertPatch>> alerts() {
+  public DataFetcher<Iterable<TransitAlert>> alerts() {
     return environment -> List.of();
   }
 
@@ -589,6 +590,7 @@ public class LegacyGraphQLQueryTypeImpl
 
       callWith.argument("wheelchair", request::setWheelchairAccessible);
       callWith.argument("numItineraries", request::setNumItineraries);
+      callWith.argument("searchWindow", (Long m) -> request.searchWindow = Duration.ofSeconds(m));
       callWith.argument("maxWalkDistance", request::setMaxWalkDistance);
       // callWith.argument("maxSlope", request::setMaxSlope);
       callWith.argument("maxPreTransitTime", request::setMaxPreTransitTime);
@@ -616,16 +618,16 @@ public class LegacyGraphQLQueryTypeImpl
       callWith.argument("arriveBy", request::setArriveBy);
       request.showIntermediateStops = true;
       callWith.argument("intermediatePlaces", (List<Map<String, Object>> v) -> request.intermediatePlaces = v.stream().map(LegacyGraphQLQueryTypeImpl::toGenericLocation).collect(Collectors.toList()));
-      callWith.argument("preferred.routes", request::setPreferredRoutes);
+      callWith.argument("preferred.routes", request::setPreferredRoutesFromSting);
       callWith.argument("preferred.otherThanPreferredRoutesPenalty", request::setOtherThanPreferredRoutesPenalty);
-      callWith.argument("preferred.agencies", request::setPreferredAgencies);
-      callWith.argument("unpreferred.routes", request::setUnpreferredRoutes);
-      callWith.argument("unpreferred.agencies", request::setUnpreferredAgencies);
+      callWith.argument("preferred.agencies", request::setPreferredAgenciesFromString);
+      callWith.argument("unpreferred.routes", request::setUnpreferredRoutesFromSting);
+      callWith.argument("unpreferred.agencies", request::setUnpreferredAgenciesFromString);
       // callWith.argument("unpreferred.useUnpreferredRoutesPenalty", request::setUseUnpreferredRoutesPenalty);
       callWith.argument("walkBoardCost", request::setWalkBoardCost);
       callWith.argument("bikeBoardCost", request::setBikeBoardCost);
-      callWith.argument("banned.routes", request::setBannedRoutes);
-      callWith.argument("banned.agencies", request::setBannedAgencies);
+      callWith.argument("banned.routes", request::setBannedRoutesFromSting);
+      callWith.argument("banned.agencies", request::setBannedAgenciesFromSting);
       // callWith.argument("banned.trips", (String v) -> request.bannedTrips = RoutingResource.makeBannedTripMap(v));
       // callWith.argument("banned.stops", request::setBannedStops);
       // callWith.argument("banned.stopsHard", request::setBannedStopsHard);
@@ -634,9 +636,9 @@ public class LegacyGraphQLQueryTypeImpl
       // callWith.argument("compactLegsByReversedSearch", (Boolean v) -> request.compactLegsByReversedSearch = v);
 
       if (environment.getArgument("optimize") != null) {
-        OptimizeType optimize = OptimizeType.valueOf(environment.getArgument("optimize"));
+        BicycleOptimizeType optimize = BicycleOptimizeType.valueOf(environment.getArgument("optimize"));
 
-        if (optimize == OptimizeType.TRIANGLE) {
+        if (optimize == BicycleOptimizeType.TRIANGLE) {
           callWith.argument("triangle.safetyFactor", request::setBikeTriangleSafetyFactor);
           callWith.argument("triangle.slopeFactor", request::setBikeTriangleSlopeFactor);
           callWith.argument("triangle.timeFactor", request::setBikeTriangleTimeFactor);
@@ -652,8 +654,8 @@ public class LegacyGraphQLQueryTypeImpl
           }
         }
 
-        if (optimize == OptimizeType.TRANSFERS) {
-          optimize = OptimizeType.QUICK;
+        if (optimize == BicycleOptimizeType.TRANSFERS) {
+          optimize = BicycleOptimizeType.QUICK;
           request.transferCost += 1800;
         }
 

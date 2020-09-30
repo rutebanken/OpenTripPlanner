@@ -3,8 +3,12 @@ package org.opentripplanner.gtfs.mapping;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransitModeMapper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TransitModeMapper.class);
 
     public static TransitMode mapMode(
         int routeType,
@@ -74,7 +78,8 @@ public class TransitModeMapper {
         } else if (routeType >= 1400 && routeType < 1500) { //Funicalar Service
             return TransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR);
         } else if (routeType >= 1500 && routeType < 1600) { //Taxi Service
-            throw new IllegalArgumentException("Taxi service not supported" + routeType);
+            LOG.warn("Treating taxi extended route type {} as a bus.", routeType);
+            return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
         } else if (routeType >= 1600 && routeType < 1700) { //Self drive
             return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
         }

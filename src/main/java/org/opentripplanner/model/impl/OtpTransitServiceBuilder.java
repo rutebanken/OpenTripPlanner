@@ -2,6 +2,7 @@ package org.opentripplanner.model.impl;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.opentripplanner.ext.flex.trip.FlexTrip;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.BoardingArea;
 import org.opentripplanner.model.Entrance;
@@ -11,6 +12,8 @@ import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Frequency;
 import org.opentripplanner.model.GroupOfStations;
+import org.opentripplanner.model.FlexStopLocation;
+import org.opentripplanner.model.FlexLocationGroup;
 import org.opentripplanner.model.MultiModalStation;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Operator;
@@ -90,6 +93,10 @@ public class OtpTransitServiceBuilder {
 
     private final EntityById<FeedScopedId, BoardingArea> boardingAreasById = new EntityById<>();
 
+    private final EntityById<FeedScopedId, FlexStopLocation> locationsById = new EntityById<>();
+
+    private final EntityById<FeedScopedId, FlexLocationGroup> locationGroupsById = new EntityById<>();
+
     private final TripStopTimes stopTimesByTrip = new TripStopTimes();
 
     private final EntityById<FeedScopedId, FareZone> fareZonesById = new EntityById<>();
@@ -100,10 +107,10 @@ public class OtpTransitServiceBuilder {
 
     private final Multimap<StopPattern, TripPattern> tripPatterns = ArrayListMultimap.create();
 
+    private final EntityById<FeedScopedId, FlexTrip> flexTripsById = new EntityById<>();
 
     public OtpTransitServiceBuilder() {
     }
-
 
     /* Accessors */
 
@@ -187,6 +194,14 @@ public class OtpTransitServiceBuilder {
         return boardingAreasById;
     }
 
+    public EntityById<FeedScopedId, FlexStopLocation> getLocations() {
+        return locationsById;
+    }
+
+    public EntityById<FeedScopedId, FlexLocationGroup> getLocationGroups() {
+        return locationGroupsById;
+    }
+
     public TripStopTimes getStopTimesSortedByTrip() {
         return stopTimesByTrip;
     }
@@ -203,6 +218,10 @@ public class OtpTransitServiceBuilder {
 
     public Multimap<StopPattern, TripPattern> getTripPatterns() {
         return tripPatterns;
+    }
+
+    public EntityById<FeedScopedId, FlexTrip> getFlexTripsById() {
+        return flexTripsById;
     }
 
 

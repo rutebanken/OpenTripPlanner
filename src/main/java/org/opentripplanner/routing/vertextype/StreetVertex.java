@@ -1,5 +1,7 @@
 package org.opentripplanner.routing.vertextype;
 
+import org.opentripplanner.model.FlexStopLocation;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
@@ -20,6 +22,9 @@ import java.util.*;
 public abstract class StreetVertex extends Vertex {
 
     private static final long serialVersionUID = 1L;
+
+    /** All locations for flex transit, which this vertex is part of */
+    public Set<FlexStopLocation> flexStopLocations;
 
     public StreetVertex(Graph g, String label, Coordinate coord, I18NString streetName) {
         this(g, label, coord.x, coord.y, streetName);
@@ -60,5 +65,19 @@ public abstract class StreetVertex extends Vertex {
             calculatedName = new LocalizedString("unnamedStreet", (String[]) null);
         }
         return calculatedName;
+    }
+
+    public boolean isConnectedToWalkingEdge() {
+        return this.getOutgoing().stream().anyMatch(edge ->
+            edge instanceof StreetEdge && ((StreetEdge) edge).getPermission().allows(TraverseMode.WALK));
+    }
+
+    public boolean isConnectedToDriveableEdge() {
+        return this.getOutgoing().stream().anyMatch(edge ->
+            edge instanceof StreetEdge && ((StreetEdge) edge).getPermission().allows(TraverseMode.CAR));
+    }
+
+    public boolean isEligibleForCarPickupDropoff() {
+        return isConnectedToDriveableEdge() && isConnectedToWalkingEdge();
     }
 }
