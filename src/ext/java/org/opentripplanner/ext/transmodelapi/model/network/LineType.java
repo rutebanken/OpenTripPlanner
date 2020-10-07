@@ -68,7 +68,7 @@ public class LineType {
             .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name("transportMode")
                     .type(TRANSPORT_MODE)
-                    .dataFetcher(environment -> ((Route)environment.getSource()).getMode())
+                    .dataFetcher(environment -> ((Route)environment.getSource()).getMode().getMainMode())
                     .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                 .name("transportSubmode")
