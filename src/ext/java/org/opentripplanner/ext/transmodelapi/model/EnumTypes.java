@@ -141,7 +141,7 @@ public class EnumTypes {
             .value("rail", TransitMainMode.RAIL)
             .value("metro", TransitMainMode.SUBWAY)
             .value("tram", TransitMainMode.TRAM)
-            .value("coach", TransitMainMode.BUS).description("NOT IMPLEMENTED")
+            .value("coach", TransitMainMode.COACH)
             .value("unknown", "unknown")
             .build();
 
