@@ -6,14 +6,13 @@ import org.opentripplanner.model.modes.TransitMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SubmodesConfig {
@@ -30,9 +29,9 @@ public class SubmodesConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(SubmodesConfig.class);
 
-  public SubmodesConfig(File file) {
+  public SubmodesConfig(InputStream inputStream) {
     try {
-      CsvReader csvReader = new CsvReader(file.getAbsolutePath(), CSV_DELIMITER, CHARSET_UTF_8);
+      CsvReader csvReader = new CsvReader(inputStream, CSV_DELIMITER, CHARSET_UTF_8);
       csvReader.readHeaders(); // Skip header
       while (csvReader.readRecord()) {
         configItems.add(new ConfigItem(csvReader.get("name"),
@@ -51,9 +50,7 @@ public class SubmodesConfig {
   }
 
   public static SubmodesConfig getDefault() {
-    return new SubmodesConfig(new File(Objects
-        .requireNonNull(SubmodesConfig.class.getClassLoader().getResource(DEFAULT_FILE))
-        .getFile()));
+    return new SubmodesConfig((SubmodesConfig.class.getClassLoader().getResourceAsStream(DEFAULT_FILE)));
   }
 
   public List<TransitMode> getSubmodes() {
