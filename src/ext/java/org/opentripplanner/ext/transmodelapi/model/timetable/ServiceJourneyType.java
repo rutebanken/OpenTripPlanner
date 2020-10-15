@@ -89,7 +89,7 @@ public class ServiceJourneyType {
                     .name("operator")
                     .type(operatorType)
                     .dataFetcher(
-                            environment -> ((trip(environment)).getOperator()))
+                            environment -> ((trip(environment)).getTripOperator()))
                     .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name("directionType")
