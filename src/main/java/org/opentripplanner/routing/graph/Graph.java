@@ -233,6 +233,8 @@ public class Graph implements Serializable {
      */
     public Map<FeedScopedId, TripPattern> tripPatternForId = Maps.newHashMap();
 
+    public int numberOfDaysOfLongestTrip = 0;
+
     /** Interlining relationships between trips. */
     public final BiMap<Trip,Trip> interlinedTrips = HashBiMap.create();
 
@@ -997,5 +999,9 @@ public class Graph implements Serializable {
             throw new IllegalStateException("TransitSubmodeConfiguration can only be set once.");
         }
         this.transitModeService = transitModeService;
+    }
+
+    public int getNumberOfDaysOfLongestTrip() {
+        return numberOfDaysOfLongestTrip;
     }
 }

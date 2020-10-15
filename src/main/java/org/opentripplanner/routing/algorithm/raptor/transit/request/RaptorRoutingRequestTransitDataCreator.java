@@ -76,16 +76,20 @@ class RaptorRoutingRequestTransitDataCreator {
   ) {
     List<Map<FeedScopedId, TripPatternForDate>> tripPatternForDates = new ArrayList<>();
 
+    // For the special case where there are trips that are longer than 24 hours, we need to
+    // loop through additional days.
+    int totalAdditionalPastSearchDays = additionalPastSearchDays
+        + transitLayer.getNumberOfDaysOfLongestTrip();
+
     // This filters trips by the search date as well as additional dates before and after
-    for (int d = -additionalPastSearchDays; d <= additionalFutureSearchDays; ++d) {
-      tripPatternForDates.add(
-        filterActiveTripPatterns(
+    for (int d = -totalAdditionalPastSearchDays; d <= additionalFutureSearchDays; ++d) {
+      tripPatternForDates.add(filterActiveTripPatterns(
           transitLayer,
           departureDate.plusDays(d),
           transitModes,
+          -d - additionalPastSearchDays,
           bannedRoutes
-        )
-      );
+      ));
     }
 
     return tripPatternForDates;
@@ -149,12 +153,15 @@ class RaptorRoutingRequestTransitDataCreator {
       TransitLayer transitLayer,
       LocalDate date,
       Set<AllowedTransitMode> allowedTransitModes,
+      int filterByLengthOfTripInDays,
       Set<FeedScopedId> bannedRoutes
   ) {
 
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
+        .filter(p -> p.getTripPattern().getPattern().getNumberOfDaysOfLongestTrip()
+            >= filterByLengthOfTripInDays)
         .filter(p -> allowedTransitModes.stream().anyMatch(m -> m.allows(p.getTripPattern().getTransitMode())))
         .filter(p -> !bannedRoutes.contains(p.getTripPattern()
             .getPattern().route.getId()))
