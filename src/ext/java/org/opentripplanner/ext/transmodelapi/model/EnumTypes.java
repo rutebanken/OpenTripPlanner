@@ -2,6 +2,7 @@ package org.opentripplanner.ext.transmodelapi.model;
 
 import graphql.schema.GraphQLEnumType;
 import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.plan.AbsoluteDirection;
 import org.opentripplanner.model.plan.RelativeDirection;
@@ -11,6 +12,8 @@ import org.opentripplanner.routing.alertpatch.StopCondition;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.api.request.StreetMode;
 import org.opentripplanner.routing.trippattern.RealTimeState;
+
+import java.util.Comparator;
 
 public class EnumTypes {
     public static GraphQLEnumType WHEELCHAIR_BOARDING = GraphQLEnumType.newEnum()
@@ -249,7 +252,8 @@ public class EnumTypes {
 
         transitModeService.getAllTransitModes().stream()
             .filter(m -> m.getNetexOutputSubmode() != null)
-            .forEach(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription() + " (TransportMode: " + m.getMainMode().name() + ")"));
+            .sorted(Comparator.comparing(TransitMode::getNetexOutputSubmode))
+            .forEachOrdered(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription() + " (TransportMode: " + m.getMainMode().name() + ")"));
 
         return enumBuilder.build();
     }
