@@ -1,6 +1,7 @@
 package org.opentripplanner.netex.loader.mapping;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.StopTime;
@@ -64,13 +65,14 @@ class TripPatternMapper {
             ReadOnlyHierarchicalMap<String, String> quayIdByStopPointRef,
             ReadOnlyHierarchicalMap<String, DestinationDisplay> destinationDisplayById,
             ReadOnlyHierarchicalMap<String, Collection<ServiceJourney>> serviceJourneyByPatternId,
+            EntityById<FeedScopedId, Operator> operatorsById,
             Deduplicator deduplicator
     ) {
         this.idFactory = idFactory;
         this.routeById = routeById;
         this.serviceJourneyByPatternId = serviceJourneyByPatternId;
         this.otpRouteById = otpRouteById;
-        this.tripMapper = new TripMapper(idFactory, otpRouteById, routeById, journeyPatternById, shapePointsIds);
+        this.tripMapper = new TripMapper(idFactory, otpRouteById, routeById, journeyPatternById, shapePointsIds, operatorsById);
         this.stopTimesMapper = new StopTimesMapper(idFactory, stopsById, destinationDisplayById, quayIdByStopPointRef);
         this.deduplicator = deduplicator;
     }

@@ -3,6 +3,7 @@ package org.opentripplanner.netex.loader.mapping;
 import org.junit.Test;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.loader.util.HierarchicalMapById;
 import org.rutebanken.netex.model.JourneyPattern;
@@ -36,9 +37,12 @@ public class TripMapperTest {
         route.setId(ID_FACTORY.createId(ROUTE_ID));
         transitBuilder.getRoutes().add(route);
 
-        TripMapper tripMapper = new TripMapper(ID_FACTORY, transitBuilder.getRoutes(),
-                new HierarchicalMapById<>(),
-                new HierarchicalMapById<>(), Collections.emptySet()
+        TripMapper tripMapper = new TripMapper(ID_FACTORY,
+            transitBuilder.getRoutes(),
+            new HierarchicalMapById<>(),
+            new HierarchicalMapById<>(),
+            Collections.emptySet(),
+            new EntityById<>()
         );
 
         ServiceJourney serviceJourney = createExampleServiceJourney();
@@ -79,7 +83,8 @@ public class TripMapperTest {
                 transitBuilder.getRoutes(),
                 routeById,
                 journeyPatternById,
-                Collections.emptySet()
+                Collections.emptySet(),
+                new EntityById<>()
         );
 
         Trip trip = tripMapper.mapServiceJourney(serviceJourney);

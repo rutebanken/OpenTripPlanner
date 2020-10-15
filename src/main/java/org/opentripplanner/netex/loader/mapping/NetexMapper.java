@@ -205,6 +205,7 @@ public class NetexMapper {
                 netexIndex.getQuayIdByStopPointRef(),
                 netexIndex.getDestinationDisplayById(),
                 netexIndex.getServiceJourneyByPatternId(),
+                transitBuilder.getOperatorsById(),
                 deduplicator
         );
 
