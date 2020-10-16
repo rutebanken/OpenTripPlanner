@@ -6,7 +6,7 @@ import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
-import org.rutebanken.netex.model.Line;
+import org.rutebanken.netex.model.Line_VersionStructure;
 import org.rutebanken.netex.model.Network;
 import org.rutebanken.netex.model.OperatorRefStructure;
 import org.rutebanken.netex.model.PresentationStructure;
@@ -47,7 +47,7 @@ class RouteMapper {
         this.transportModeMapper = new TransportModeMapper(transitModeService);
     }
 
-    org.opentripplanner.model.Route mapRoute(Line line){
+    org.opentripplanner.model.Route mapRoute(Line_VersionStructure line){
         org.opentripplanner.model.Route otpRoute = new org.opentripplanner.model.Route();
 
         otpRoute.setId(idFactory.createId(line.getId()));
@@ -78,7 +78,7 @@ class RouteMapper {
      * Find an agency by mapping the GroupOfLines/Network Authority. If no authority is found
      * a dummy agency is created and returned.
      */
-    private Agency findOrCreateAuthority(Line line) {
+    private Agency findOrCreateAuthority(Line_VersionStructure line) {
         String groupRef = line.getRepresentedByGroupRef().getRef();
 
         // Find authority, first in *GroupOfLines* and then if not found look in *Network*
@@ -94,7 +94,7 @@ class RouteMapper {
         return createOrGetDummyAgency(line);
     }
 
-    private Agency createOrGetDummyAgency(Line line) {
+    private Agency createOrGetDummyAgency(Line_VersionStructure line) {
         LOG.warn("No authority found for " + line.getId());
 
         Agency agency = agenciesById.get(idFactory.createId(authorityMapper.dummyAgencyId()));
@@ -106,7 +106,7 @@ class RouteMapper {
         return agency;
     }
 
-    private Operator findOperator(Line line) {
+    private Operator findOperator(Line_VersionStructure line) {
         OperatorRefStructure opeRef = line.getOperatorRef();
 
         if(opeRef == null) {

@@ -20,6 +20,8 @@ import org.opentripplanner.netex.loader.NetexImportDataIndexReadOnlyView;
 import org.opentripplanner.netex.support.DayTypeRefsToServiceIdAdapter;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 import org.rutebanken.netex.model.Authority;
+import org.rutebanken.netex.model.FlexibleLine;
+import org.rutebanken.netex.model.FlexibleStopPlace;
 import org.rutebanken.netex.model.GroupOfStopPlaces;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.Line;
@@ -102,6 +104,7 @@ public class NetexMapper {
         mapStopPlaceAndQuays(netexIndex);
         mapMultiModalStopPlaces(netexIndex);
         mapGroupsOfStopPlaces(netexIndex);
+        mapFlexibleStopPlaces(netexIndex);
         mapRoute(netexIndex);
         mapTripPatterns(netexIndex);
         mapCalendarDayTypes(netexIndex);
@@ -178,6 +181,14 @@ public class NetexMapper {
         }
     }
 
+    private void mapFlexibleStopPlaces(NetexImportDataIndexReadOnlyView netexIndex) {
+        FlexStopLocationMapper flexStopLocationMapper = new FlexStopLocationMapper(idFactory);
+
+        for (FlexibleStopPlace flexibleStopPlace : netexIndex.getFlexibleStopPlacesById().localValues()) {
+            transitBuilder.getLocations().add(flexStopLocationMapper.map(flexibleStopPlace));
+        }
+    }
+
     private void mapRoute(NetexImportDataIndexReadOnlyView netexIndex) {
         RouteMapper routeMapper = new RouteMapper(
                 idFactory,
@@ -192,17 +203,23 @@ public class NetexMapper {
             Route route = routeMapper.mapRoute(line);
             transitBuilder.getRoutes().add(route);
         }
+        for (FlexibleLine line : netexIndex.getFlexibleLineById().localValues()) {
+            Route route = routeMapper.mapRoute(line);
+            transitBuilder.getRoutes().add(route);
+        }
     }
 
     private void mapTripPatterns(NetexImportDataIndexReadOnlyView netexIndex) {
         TripPatternMapper tripPatternMapper = new TripPatternMapper(
                 idFactory,
                 transitBuilder.getStops(),
+                transitBuilder.getLocations(),
                 transitBuilder.getRoutes(),
                 transitBuilder.getShapePoints().keySet(),
                 netexIndex.getRouteById(),
                 netexIndex.getJourneyPatternsById(),
                 netexIndex.getQuayIdByStopPointRef(),
+                netexIndex.getFlexibleStopPlaceByStopPointRef(),
                 netexIndex.getDestinationDisplayById(),
                 netexIndex.getServiceJourneyByPatternId(),
                 transitBuilder.getOperatorsById(),
