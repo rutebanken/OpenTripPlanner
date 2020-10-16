@@ -3,6 +3,7 @@ package org.opentripplanner.api.parameter;
 import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.model.modes.TransitMainMode;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -13,14 +14,17 @@ public enum ApiRequestMode {
   TRAM(AllowedTransitMode.fromMainModeEnum(TransitMainMode.TRAM)),
   SUBWAY(AllowedTransitMode.fromMainModeEnum(TransitMainMode.SUBWAY)),
   RAIL(AllowedTransitMode.fromMainModeEnum(TransitMainMode.RAIL)),
-  BUS(AllowedTransitMode.fromMainModeEnum(TransitMainMode.BUS)),
+  BUS(Arrays.asList(
+      AllowedTransitMode.fromMainModeEnum(TransitMainMode.BUS),
+      AllowedTransitMode.fromMainModeEnum(TransitMainMode.COACH)
+  )),
   FERRY(AllowedTransitMode.fromMainModeEnum(TransitMainMode.FERRY)),
   CABLE_CAR(AllowedTransitMode.fromMainModeEnum(TransitMainMode.CABLE_CAR)),
   GONDOLA(AllowedTransitMode.fromMainModeEnum(TransitMainMode.GONDOLA)),
   FUNICULAR(AllowedTransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR)),
   TRANSIT(AllowedTransitMode.getAllTransitModes()),
   AIRPLANE(AllowedTransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE)),
-  FLEXIBLE();
+  FLEXIBLE(AllowedTransitMode.fromMainModeEnum(TransitMainMode.FLEXIBLE));
 
   private final Collection<AllowedTransitMode> transitModes;
 
