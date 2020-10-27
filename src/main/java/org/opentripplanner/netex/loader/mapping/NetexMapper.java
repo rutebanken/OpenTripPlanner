@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.opentripplanner.graph_builder.DataImportIssueStore;
 import org.opentripplanner.model.Agency;
+import org.opentripplanner.model.FlexStopLocation;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.ShapePoint;
@@ -69,14 +70,14 @@ public class NetexMapper {
 
     public NetexMapper(
             OtpTransitServiceBuilder transitBuilder,
-            String agencyId,
+            String feedId,
             Deduplicator deduplicator,
             TransitModeService transitModeService,
             DataImportIssueStore issueStore
     ) {
         this.transitBuilder = transitBuilder;
         this.deduplicator = deduplicator;
-        this.idFactory = new FeedScopedIdFactory(agencyId);
+        this.idFactory = new FeedScopedIdFactory(feedId);
         this.transitModeService = transitModeService;
         this.issueStore = issueStore;
     }
@@ -185,7 +186,10 @@ public class NetexMapper {
         FlexStopLocationMapper flexStopLocationMapper = new FlexStopLocationMapper(idFactory);
 
         for (FlexibleStopPlace flexibleStopPlace : netexIndex.getFlexibleStopPlacesById().localValues()) {
-            transitBuilder.getLocations().add(flexStopLocationMapper.map(flexibleStopPlace));
+            FlexStopLocation stopLocation = flexStopLocationMapper.map(flexibleStopPlace);
+            if (stopLocation != null) {
+                transitBuilder.getLocations().add(stopLocation);
+            }
         }
     }
 
@@ -264,7 +268,7 @@ public class NetexMapper {
                 stopTimesByNetexId
         );
         for (NoticeAssignment noticeAssignment : netexIndex.getNoticeAssignmentById().localValues()) {
-            Multimap<TransitEntity<?>, Notice> noticesByElementId;
+            Multimap<TransitEntity, Notice> noticesByElementId;
             noticesByElementId = noticeAssignmentMapper.map(noticeAssignment);
             transitBuilder.getNoticeAssignments().putAll(noticesByElementId);
         }

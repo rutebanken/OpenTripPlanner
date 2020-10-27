@@ -1,6 +1,5 @@
 package org.opentripplanner.netex.loader.mapping;
 
-import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.FlexStopLocation;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopLocation;
@@ -44,9 +43,9 @@ class StopTimesMapper {
 
     private final ReadOnlyHierarchicalMap<String, DestinationDisplay> destinationDisplayById;
 
-    private final EntityById<FeedScopedId, Stop> stopsById;
+    private final EntityById<Stop> stopsById;
 
-    private final EntityById<FeedScopedId, FlexStopLocation> flexibleStopLocationsById;
+    private final EntityById<FlexStopLocation> flexibleStopLocationsById;
 
     private final ReadOnlyHierarchicalMap<String, String> quayIdByStopPointRef;
 
@@ -57,8 +56,8 @@ class StopTimesMapper {
 
     StopTimesMapper(
             FeedScopedIdFactory idFactory,
-            EntityById<FeedScopedId, Stop> stopsById,
-            EntityById<FeedScopedId, FlexStopLocation> flexStopLocationsById,
+            EntityById<Stop> stopsById,
+            EntityById<FlexStopLocation> flexStopLocationsById,
             ReadOnlyHierarchicalMap<String, DestinationDisplay> destinationDisplayById,
             ReadOnlyHierarchicalMap<String, String> quayIdByStopPointRef,
             ReadOnlyHierarchicalMap<String, String> flexibleStopPlaceIdByStopPointRef
@@ -88,13 +87,7 @@ class StopTimesMapper {
             String pointInJourneyPattern = currentPassingTime.getPointInJourneyPatternRef().getValue().getRef();
 
             StopPointInJourneyPattern stopPoint = findStopPoint(pointInJourneyPattern, journeyPattern);
-            StopLocation stop = lookUpStopLocation(
-                stopPoint,
-                quayIdByStopPointRef,
-                flexibleStopPlaceIdByStopPointRef,
-                stopsById,
-                flexibleStopLocationsById
-            );
+            StopLocation stop = lookUpStopLocation(stopPoint);
             if (stop == null) {
                 LOG.warn("Stop with id {} not found for StopPoint {} in JourneyPattern {}. "
                         + "Trip {} will not be mapped.",
@@ -195,11 +188,7 @@ class StopTimesMapper {
     }
 
     private StopLocation lookUpStopLocation(
-            StopPointInJourneyPattern stopPointInJourneyPattern,
-            ReadOnlyHierarchicalMap<String, String> quayIdByStopPointRef,
-            ReadOnlyHierarchicalMap<String, String> flexibleStopPlaceIdByStopPointRef,
-            EntityById<FeedScopedId, Stop> stopsById,
-            EntityById<FeedScopedId, FlexStopLocation> flexStopLocationsById
+            StopPointInJourneyPattern stopPointInJourneyPattern
     ) {
         if (stopPointInJourneyPattern == null) return null;
 
@@ -217,7 +206,7 @@ class StopTimesMapper {
         if (stopId != null) {
             stopLocation = stopsById.get(idFactory.createId(stopId));
         } else {
-            stopLocation = flexStopLocationsById.get(idFactory.createId(flexibleStopPlaceId));
+            stopLocation = flexibleStopLocationsById.get(idFactory.createId(flexibleStopPlaceId));
         }
 
         if (stopLocation == null) {

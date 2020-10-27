@@ -3,13 +3,11 @@ package org.opentripplanner.model;
 
 import org.opentripplanner.model.modes.TransitMode;
 
-public final class Route extends TransitEntity<FeedScopedId> {
+public final class Route extends TransitEntity {
 
     private static final long serialVersionUID = 1L;
 
     private static final int MISSING_VALUE = -999;
-
-    private FeedScopedId id;
 
     private Agency agency;
 
@@ -40,12 +38,9 @@ public final class Route extends TransitEntity<FeedScopedId> {
 
     private String brandingUrl;
 
-    public FeedScopedId getId() {
-        return id;
-    }
 
-    public void setId(FeedScopedId id) {
-        this.id = id;
+    public Route(FeedScopedId id) {
+        super(id);
     }
 
     /**
@@ -182,6 +177,6 @@ public final class Route extends TransitEntity<FeedScopedId> {
 
     @Override
     public String toString() {
-        return "<Route " + id + " " + shortName + ">";
+        return "<Route " + getId() + " " + shortName + ">";
     }
 }

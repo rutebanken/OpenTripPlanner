@@ -93,7 +93,7 @@ public final class Stop extends StationElement implements StopLocation {
 
   @Override
   public String toString() {
-    return "<Stop " + this.id + ">";
+    return "<Stop " + getId() + ">";
   }
 
   public String getPlatformCode() {

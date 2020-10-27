@@ -33,8 +33,7 @@ public class TripMapperTest {
     @Test
     public void mapTrip() {
         OtpTransitServiceBuilder transitBuilder = new OtpTransitServiceBuilder();
-        Route route = new Route();
-        route.setId(ID_FACTORY.createId(ROUTE_ID));
+        Route route = new Route(ID_FACTORY.createId(ROUTE_ID));
         transitBuilder.getRoutes().add(route);
 
         TripMapper tripMapper = new TripMapper(ID_FACTORY,
@@ -57,8 +56,7 @@ public class TripMapperTest {
     @Test
     public void mapTripWithRouteRefViaJourneyPattern() {
         OtpTransitServiceBuilder transitBuilder = new OtpTransitServiceBuilder();
-        Route route = new Route();
-        route.setId(ID_FACTORY.createId(ROUTE_ID));
+        Route route = new Route(ID_FACTORY.createId(ROUTE_ID));
         transitBuilder.getRoutes().add(route);
 
         JourneyPattern journeyPattern = new JourneyPattern().withId(JOURNEY_PATTERN_ID);
