@@ -68,7 +68,7 @@ public class TransmodelGraphQLPlanner {
         }
         catch (Exception e) {
             LOG.warn("System error");
-            LOG.error("Root cause: " + e.getMessage(), e);
+            LOG.error("Root cause: " + e.getMessage(), e, e.getStackTrace());
             PlannerError error = new PlannerError();
             error.setMsg(Message.SYSTEM_ERROR);
             response.messages.add(error.message);
