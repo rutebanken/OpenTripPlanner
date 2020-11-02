@@ -678,6 +678,13 @@ public class TransmodelGraphQLSchema {
             .defaultValue(routing.request.debugItineraryFilter)
             .build())
 
+        .argument(GraphQLArgument.newArgument()
+            .name("flexibleOnly")
+            .description("Only return itineraries containing at least one flexible leg.")
+            .type(Scalars.GraphQLBoolean)
+            .defaultValue(routing.request.flexibleOnly)
+            .build())
+
         .dataFetcher(environment -> new TransmodelGraphQLPlanner().plan(environment))
         .build();
 

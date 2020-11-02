@@ -708,6 +708,11 @@ public class RoutingRequest implements Cloneable, Serializable {
      */
     public Double groupBySimilarityKeepNumOfItineraries = 0.68;
 
+    /**
+     * Only return itineraries containing at least one flexible transportation leg.
+     */
+    public boolean flexibleOnly = false;
+
 
     /* CONSTRUCTORS */
 

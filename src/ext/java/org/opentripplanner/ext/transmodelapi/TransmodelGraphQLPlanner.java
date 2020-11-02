@@ -203,6 +203,7 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("alightSlackDefault", (Integer v) -> request.alightSlack = v);
         callWith.argument("alightSlackList", (Object v) -> request.alightSlackForMode = TransportModeSlack.mapToDomain(v));
         callWith.argument("maximumTransfers", (Integer v) -> request.maxTransfers = v);
+        callWith.argument("flexibleOnly", (Boolean v) -> request.flexibleOnly = v);
 
         final long NOW_THRESHOLD_MILLIS = 15 * 60 * 60 * 1000;
         boolean tripPlannedForNow = Math.abs(request.getDateTime().getTime() - new Date().getTime()) < NOW_THRESHOLD_MILLIS;

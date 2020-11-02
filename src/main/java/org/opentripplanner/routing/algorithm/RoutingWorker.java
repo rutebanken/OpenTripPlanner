@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.algorithm;
 
 import org.opentripplanner.ext.flex.FlexRouter;
-import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.plan.Itinerary;
@@ -92,10 +91,13 @@ public class RoutingWorker {
         this.debugAggregator.finishedPrecalculating();
 
         // Direct street routing
-        try {
-            itineraries.addAll(DirectStreetRouter.route(router, request));
-        } catch (RoutingValidationException e) {
-            routingErrors.addAll(e.getRoutingErrors());
+        if (!request.flexibleOnly) {
+            try {
+                itineraries.addAll(DirectStreetRouter.route(router, request));
+            }
+            catch (RoutingValidationException e) {
+                routingErrors.addAll(e.getRoutingErrors());
+            }
         }
 
         this.debugAggregator.finishedDirectStreetRouter();
@@ -155,8 +157,14 @@ public class RoutingWorker {
         Collection<NearbyStop> egressStops = AccessEgressRouter.streetSearch(request, true, 2000);
 
         AccessEgressMapper accessEgressMapper = new AccessEgressMapper(transitLayer.getStopIndex());
-        Collection<AccessEgress> accessTransfers = accessEgressMapper.mapNearbyStops(accessStops, false);
-        Collection<AccessEgress> egressTransfers = accessEgressMapper.mapNearbyStops(egressStops, true);
+
+        Collection<AccessEgress> accessTransfers = new ArrayList<>();
+        Collection<AccessEgress> egressTransfers = new ArrayList<>();
+
+        if (!request.flexibleOnly) {
+            accessTransfers.addAll(accessEgressMapper.mapNearbyStops(accessStops, false));
+            egressTransfers.addAll(accessEgressMapper.mapNearbyStops(egressStops, true));
+        }
 
         List<Itinerary> itineraries = new ArrayList<>();
 
