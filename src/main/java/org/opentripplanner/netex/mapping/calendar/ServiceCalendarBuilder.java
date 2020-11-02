@@ -51,10 +51,40 @@ public class ServiceCalendarBuilder {
     // The result is stored in the following collections (cleared before each calendar build)
     private final List<ServiceCalendarDate> calendarDates = new ArrayList<>();
     private final Map<String, AgencyAndId> calendarIdBySJId = new HashMap<>();
+    private Map<String, Map<ServiceDate, TripServiceAlteration>> serviceAlterationBySJId;
 
     /** The current netexDao */
     private NetexDao netexDao;
 
+
+    /**
+     * This class is reused, make sure the result lists are cleared before adding stuff
+     */
+    private void setupBuild(NetexDao netexDao) {
+        this.netexDao = netexDao;
+        calendarDates.clear();
+        calendarIdBySJId.clear();
+    }
+
+    public void buildCalendar(NetexDao netexDao) {
+        setupBuild(netexDao);
+
+        this.serviceAlterationBySJId = CalendarMapper.createDatedServiceJourneyCalendar(
+            netexDao.datedServiceJourneyById,
+            netexDao.operatingDaysById
+        );
+
+        Map<String, Set<ServiceDate>> calendarBySJId = createCalendarBySJId();
+        Map<Collection<ServiceDate>, AgencyAndId> serviceIds = CalendarMapper.mapDatesToServiceId(
+            calendarBySJId.values(),
+            this::createServiceId
+        );
+        saveCalendarDates(serviceIds);
+
+        for (String sjId : calendarBySJId.keySet()) {
+            calendarIdBySJId.put(sjId, serviceIds.get(calendarBySJId.get(sjId)));
+        }
+    }
 
     public List<ServiceCalendarDate> calendarDates() {
         return calendarDates;
@@ -64,32 +94,8 @@ public class ServiceCalendarBuilder {
         return calendarIdBySJId;
     }
 
-    public Map<String, TripServiceAlteration> tripServiceAlterationsBySJId() {
-        return CalendarMapper.tripServiceAlterationsBySJId(netexDao.datedServiceJourneyById);
-    }
-
-    public void buildCalendar(NetexDao netexDao) {
-        setupBuild(netexDao);
-
-        Map<String, Set<ServiceDate>> calendarBySJId = createCalendarBySJId();
-        Map<Collection<ServiceDate>, AgencyAndId> serviceIds = CalendarMapper.mapDatesToServiceId(
-                calendarBySJId.values(),
-                this::createServiceId
-        );
-        saveCalendarDates(serviceIds);
-
-        for (String sjId : calendarBySJId.keySet()) {
-            calendarIdBySJId.put(sjId, serviceIds.get(calendarBySJId.get(sjId)));
-        }
-    }
-
-    /**
-     * This class is reused, make sure the result lists are cleared before adding stuff
-     */
-    private void setupBuild(NetexDao netexDao) {
-        this.netexDao = netexDao;
-        calendarDates.clear();
-        calendarIdBySJId.clear();
+    public Map<String, Map<ServiceDate, TripServiceAlteration>> tripServiceAlterationsBySJId() {
+        return serviceAlterationBySJId;
     }
 
     /**
@@ -116,13 +122,12 @@ public class ServiceCalendarBuilder {
      * Return a map of: SJ.id -> ServiceDates
      */
     private Map<String, Set<ServiceDate>> createCalendarBySJId() {
-        final Map<String, Set<ServiceDate>> result;
+        final Map<String, Set<ServiceDate>> result = new HashMap<>();
 
         // Map DatedServiceJourney
-        result = CalendarMapper.createDatedServiceJourneyCalendar(
-            netexDao.datedServiceJourneyById,
-            netexDao.operatingDaysById
-        );
+        for (Map.Entry<String, Map<ServiceDate, TripServiceAlteration>> e : serviceAlterationBySJId.entrySet()) {
+            result.put(e.getKey(), e.getValue().keySet());
+        }
 
         // Map ServiceJourney DayTypeAssignments and add to result
         {

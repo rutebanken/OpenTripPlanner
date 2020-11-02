@@ -13,6 +13,7 @@ import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -56,7 +57,7 @@ public class TripPatternMapper {
 
     private static final int DAY_IN_SECONDS = 3600 * 24;
 
-    private BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
+    private final BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
     private final AddBuilderAnnotation addBuilderAnnotation;
     private String currentHeadsign;
 
@@ -67,7 +68,7 @@ public class TripPatternMapper {
     public void mapTripPattern(
             JourneyPattern journeyPattern,
             Map<String, AgencyAndId> serviceIdsByServiceJourney,
-            Map<String, TripServiceAlteration> alternations,
+            Map<String, Map<ServiceDate, TripServiceAlteration>> alternations,
             OtpTransitBuilder transitBuilder,
             NetexDao netexDao,
             String defaultFlexMaxTravelTime,
@@ -101,7 +102,7 @@ public class TripPatternMapper {
             }
 
             AgencyAndId serviceId = serviceIdsByServiceJourney.get(serviceJourney.getId());
-            TripServiceAlteration alternation = alternations.get(serviceJourney.getId());
+            Map<ServiceDate, TripServiceAlteration> alterationByDate = alternations.get(serviceJourney.getId());
 
             if(serviceId == null) {
                 throw new IllegalStateException("No service id found for SJ: " + serviceJourney.getId());
@@ -110,7 +111,7 @@ public class TripPatternMapper {
             Trip trip = tripMapper.mapServiceJourney(
                     serviceJourney,
                     serviceId,
-                    alternation,
+                    alterationByDate,
                     transitBuilder,
                     netexDao,
                     defaultFlexMaxTravelTime

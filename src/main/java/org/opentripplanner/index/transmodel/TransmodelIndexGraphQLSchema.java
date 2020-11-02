@@ -2177,8 +2177,13 @@ public class TransmodelIndexGraphQLSchema {
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("serviceAlteration")
                         .type(serviceAlterationEnum)
-                        .description("Whether journey is as planned, a cancellation or an extra journey. Default is as planned")
-                        .dataFetcher(environment -> (((Trip) environment.getSource()).getServiceAlteration()))
+                        .description(
+                            "Whether journey is as planned, a cancellation, a replaced or an extra journey. Default is as planned. "
+                            + "If at least one 'cancellation' exist 'cancellation' is returned, then replaed, extra journey and last "
+                            + "planned. So if planed is treturned there it is safe to assume that all trips for any date have "
+                            + "alteration 'planned'.")
+                        .deprecate("The 'serviceAlteration' depend on the service day, witch is unknown in this contexts. ")
+                        .dataFetcher(environment -> (((Trip) environment.getSource()).getServiceAlterationHighestSeverity()))
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")

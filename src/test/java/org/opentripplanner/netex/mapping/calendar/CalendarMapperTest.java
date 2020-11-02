@@ -190,7 +190,7 @@ public class CalendarMapperTest {
     var dsjById = new HierarchicalMapById<DatedServiceJourney>();
 
     // Map empty collection
-    var result = CalendarMapper.tripServiceAlterationsBySJId(dsjById);
+    var result = CalendarMapper.serviceAlterationsBySJId(dsjById);
     assertTrue(result.isEmpty());
 
     // Add some data
@@ -202,7 +202,7 @@ public class CalendarMapperTest {
     dsjById.add(createDatedServiceJourney("6", OP_DAY_1, SJ_6, PLANNED));
     dsjById.add(createDatedServiceJourney("7", OP_DAY_2, SJ_6));
 
-    result = CalendarMapper.tripServiceAlterationsBySJId(dsjById);
+    result = CalendarMapper.serviceAlterationsBySJId(dsjById);
 
     assertEquals(TripServiceAlteration.planned, result.get(SJ_1));
     assertEquals(TripServiceAlteration.planned, result.get(SJ_2));
@@ -217,7 +217,7 @@ public class CalendarMapperTest {
     var dsjById = new HierarchicalMapById<DatedServiceJourney>();
     dsjById.add(createDatedServiceJourney("1", OP_DAY_1, SJ_1));
     dsjById.add(createDatedServiceJourney("2", OP_DAY_1, SJ_1, REPLACED));
-    CalendarMapper.tripServiceAlterationsBySJId(dsjById);
+    CalendarMapper.serviceAlterationsBySJId(dsjById);
   }
 
 

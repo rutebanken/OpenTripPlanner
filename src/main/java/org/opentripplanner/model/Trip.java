@@ -15,8 +15,11 @@
  */
 package org.opentripplanner.model;
 
+import org.opentripplanner.model.calendar.ServiceDate;
+
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 public final class Trip extends IdentityBean<AgencyAndId> {
 
@@ -49,7 +52,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
     private int wheelchairAccessible = 0;
 
     @NotNull
-    private TripServiceAlteration serviceAlteration = TripServiceAlteration.planned;
+    private TripAlterationSchedule alterations;
 
     private List<KeyValue> keyValues;
 
@@ -86,6 +89,11 @@ public final class Trip extends IdentityBean<AgencyAndId> {
     private transient String replacementForTripId; //Transient to be backwards graph-compatible. Will only be used for realtime-data anyway.
 
     public Trip() {
+        this(new TripAlterationSchedule(Map.of()));
+    }
+
+    public Trip(TripAlterationSchedule alterations) {
+        this.alterations = alterations;
     }
 
     public Trip(Trip obj) {
@@ -104,7 +112,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
         this.tripBikesAllowed = obj.tripBikesAllowed;
         this.bikesAllowed = obj.bikesAllowed;
         this.fareId = obj.fareId;
-        this.serviceAlteration = obj.serviceAlteration;
+        this.alterations = obj.alterations;
         this.keyValues = obj.keyValues;
         this.transportSubmode = obj.transportSubmode;
         this.drtMaxTravelTime = obj.drtMaxTravelTime;
@@ -320,12 +328,16 @@ public final class Trip extends IdentityBean<AgencyAndId> {
         this.continuousDropOffMessage = continuousDropOffMessage;
     }
 
-    public TripServiceAlteration getServiceAlteration() {
-        return serviceAlteration;
+    public TripServiceAlteration getServiceAlteration(ServiceDate date) {
+        return alterations.get(date);
     }
 
-    public void setServiceAlteration(TripServiceAlteration serviceAlteration) {
-        this.serviceAlteration = serviceAlteration == null ? TripServiceAlteration.planned : serviceAlteration;
+    /**
+     * Return the alteration with the highest severity:
+     * cancellation, then replaced, then extraJourney, then planned.
+     */
+    public TripServiceAlteration getServiceAlterationHighestSeverity() {
+        return alterations.getHighestSeverity();
     }
 
     public List<KeyValue> getKeyValues() {

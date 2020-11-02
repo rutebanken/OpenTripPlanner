@@ -105,41 +105,19 @@ class CalendarMapper {
         return serviceIds;
     }
 
-    static Map<String, Set<ServiceDate>> createDatedServiceJourneyCalendar(
-        HierarchicalMapById<DatedServiceJourney> datedServiceJourneyById,
-        HierarchicalMapById<OperatingDay> operatingDaysById
+    static Map<String, Map<ServiceDate, TripServiceAlteration>> createDatedServiceJourneyCalendar(
+        final HierarchicalMapById<DatedServiceJourney> datedServiceJourneyById,
+        final HierarchicalMapById<OperatingDay> operatingDaysById
     ) {
-        Map<String, Set<ServiceDate>> map = new HashMap<>();
-
-        for (DatedServiceJourney dsj : datedServiceJourneyById.values()) {
-            var sjId = dsj.getJourneyRef().get(0).getValue().getRef();
-            var date = operatingDaysById.lookup(dsj.getOperatingDayRef().getRef()).getCalendarDate();
-            var serviceDate = new ServiceDate(date.toLocalDate());
-            map.computeIfAbsent(sjId, k -> new HashSet<>()).add(serviceDate);
-        }
-        return map;
-    }
-
-    static Map<String, TripServiceAlteration> tripServiceAlterationsBySJId(
-        final HierarchicalMapById<DatedServiceJourney> datedServiceJourneyById
-    ) {
-        Map<String, TripServiceAlteration> alternations = new HashMap<>();
+        Map<String, Map<ServiceDate, TripServiceAlteration>> alternations = new HashMap<>();
 
         for (DatedServiceJourney dsj : datedServiceJourneyById.values()) {
             var sjId = dsj.getJourneyRef().get(0).getValue().getRef();
             var alt = mapAlterationWithDefaultPlanned(dsj.getServiceAlteration());
+            var date = operatingDaysById.lookup(dsj.getOperatingDayRef().getRef()).getCalendarDate();
+            var serviceDate = new ServiceDate(date.toLocalDate());
 
-            if(alternations.containsKey(sjId)) {
-                if(alternations.get(sjId) != alt) {
-                    throw new IllegalStateException(
-                            "ERROR! Service alternation miss-match for SJ=" + sjId
-                                    + "(" + alt + "), expected: " + alternations.get(sjId)
-                    );
-        }
-            }
-            else {
-                alternations.put(sjId, alt == null ? TripServiceAlteration.planned : alt);
-            }
+            alternations.computeIfAbsent(sjId, (k) -> new HashMap<>()).put(serviceDate, alt);
         }
         return alternations;
     }
