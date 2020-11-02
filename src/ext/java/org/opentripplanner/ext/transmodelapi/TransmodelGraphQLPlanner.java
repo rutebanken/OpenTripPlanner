@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class TransmodelGraphQLPlanner {
         }
         catch (Exception e) {
             LOG.warn("System error");
-            LOG.error("Root cause: " + e.getMessage(), e, e.getStackTrace());
+            LOG.error("Root cause: " + Arrays.toString(e.getStackTrace()), e);
             PlannerError error = new PlannerError();
             error.setMsg(Message.SYSTEM_ERROR);
             response.messages.add(error.message);
