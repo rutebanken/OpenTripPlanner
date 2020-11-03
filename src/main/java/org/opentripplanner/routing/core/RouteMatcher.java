@@ -109,6 +109,9 @@ public class RouteMatcher implements Cloneable, Serializable {
     }
 
     public boolean matches(Route route) {
+        if (route.getName() == null) {
+            return false;
+        }
         if (this == EMPTY_MATCHER)
             return false;
         if (agencyAndRouteIds.contains(route.getId()))
