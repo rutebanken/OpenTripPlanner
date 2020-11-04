@@ -24,7 +24,10 @@ public enum ApiRequestMode {
   FUNICULAR(AllowedTransitMode.fromMainModeEnum(TransitMainMode.FUNICULAR)),
   TRANSIT(AllowedTransitMode.getAllTransitModes()),
   AIRPLANE(AllowedTransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE)),
-  FLEXIBLE(AllowedTransitMode.fromMainModeEnum(TransitMainMode.FLEXIBLE));
+  FLEXACCESS(),
+  FLEXEGRESS(),
+  FLEXDIRECT();
+
 
   private final Collection<AllowedTransitMode> transitModes;
 
