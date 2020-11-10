@@ -26,6 +26,7 @@ import org.opentripplanner.routing.services.GraphService;
 import org.opentripplanner.visualizer.GraphVisualizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * This is the main entry point to OpenTripPlanner. It allows both building graphs and starting up an OTP server
@@ -38,6 +39,13 @@ import org.slf4j.LoggerFactory;
 public class OTPMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(OTPMain.class);
+
+    static {
+        // Remove existing handlers attached to the j.u.l root logger
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        // Bridge j.u.l (used by Jersey) to the SLF4J root logger, so all logging goes through the same API
+        SLF4JBridgeHandler.install();
+    }
 
     private final CommandLineParameters params;
     public OTPServer otpServer = null;
