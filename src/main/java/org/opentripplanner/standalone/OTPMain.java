@@ -41,7 +41,10 @@ public class OTPMain {
     private static final Logger LOG = LoggerFactory.getLogger(OTPMain.class);
 
     static {
-        // Remove existing handlers attached to the java.util.logging (j.u.l) root logger
+        // Disable HSQLDB reconfiguration of Java Unified Logging (j.u.l)
+        System.setProperty("hsqldb.reconfig_logging", "false");
+
+        // Remove existing handlers attached to the j.u.l root logger
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         // Bridge j.u.l (used by Jersey) to the SLF4J root logger, so all logging goes through the same API
         SLF4JBridgeHandler.install();
