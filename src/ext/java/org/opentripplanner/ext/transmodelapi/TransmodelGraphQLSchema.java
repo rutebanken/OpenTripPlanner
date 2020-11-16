@@ -510,8 +510,8 @@ public class TransmodelGraphQLSchema {
             .build())
         .argument(GraphQLArgument.newArgument()
             .name("modes")
-            .description("The set of access/egress/direct/transit modes to be used for "
-                + "this search.")
+            .description("The set of access/egress/direct/transit modes to be used for this search."
+                + " Defaults to access/egress/direct mode foot and all transportModes.")
             .type(modesInputType)
             .build())
         //                .argument(GraphQLArgument.newArgument()

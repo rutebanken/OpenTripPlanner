@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -234,7 +235,7 @@ public class TransmodelGraphQLPlanner {
 
             List<AllowedTransitMode> transitModes = new ArrayList<>();
             if (transportModes.get() == null) {
-                transitModes.addAll(AllowedTransitMode.getAllTransitModes());
+                transitModes.addAll(Collections.emptyList());
             }
             else {
                 for (LinkedHashMap<String, ?> modeWithSubmodes : transportModes.get()) {
