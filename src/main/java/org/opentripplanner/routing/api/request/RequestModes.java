@@ -1,7 +1,6 @@
 package org.opentripplanner.routing.api.request;
 
 import org.opentripplanner.model.modes.AllowedTransitMode;
-import org.opentripplanner.model.modes.TransitMode;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,6 +11,13 @@ public class RequestModes {
   public StreetMode egressMode;
   public StreetMode directMode;
   public Set<AllowedTransitMode> transitModes;
+
+  public static RequestModes defaultRequestModes = new RequestModes(
+      StreetMode.WALK,
+      StreetMode.WALK,
+      StreetMode.WALK,
+      new HashSet<>(AllowedTransitMode.getAllTransitModes())
+  );
 
   public RequestModes(
       StreetMode accessMode,
