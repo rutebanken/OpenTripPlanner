@@ -6,9 +6,10 @@ import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
+import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
-import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -222,18 +224,18 @@ public class SiriFuzzyTripMatcher {
                     }
 
                 if (tripPattern != null &&
-                        (tripPattern.getMode().equals(TraverseMode.RAIL) /*||
-                                                    (trip.getTransportSubmode() != null &&
-                                                            trip.getTransportSubmode().equals(TransmodelTransportSubmode.RAIL_REPLACEMENT_BUS))*/)) {
-                    // TODO - SIRI: Add support for submode
-                    if (trip.getTripShortName() != null) {
-                        String tripShortName = trip.getTripShortName();
-                        if (mappedVehicleRefCache.containsKey(tripShortName)) {
-                            mappedVehicleRefCache.get(tripShortName).add(trip);
+                        (tripPattern.getMode().getMainMode().equals(TransitMainMode.RAIL) ||
+                                                    (tripPattern.getMode().getSubMode() != null &&
+                                                        tripPattern.getMode().getSubMode().equals("railReplacementBus")))) {
+
+                    if (trip.getInternalPlanningCode() != null) {
+                        String internalPlanningCode = trip.getInternalPlanningCode();
+                        if (mappedVehicleRefCache.containsKey(internalPlanningCode)) {
+                            mappedVehicleRefCache.get(internalPlanningCode).add(trip);
                         } else {
                             Set<Trip> initialSet = new HashSet<>();
                             initialSet.add(trip);
-                            mappedVehicleRefCache.put(tripShortName, initialSet);
+                            mappedVehicleRefCache.put(internalPlanningCode, initialSet);
                         }
                     }
                 }
@@ -382,5 +384,43 @@ public class SiriFuzzyTripMatcher {
             }
         }
         return -1;
+    }
+
+    /**
+     * Returns a match of tripIds that match the provided values.
+     *
+     * @param internalPlanningCode
+     * @param serviceDate
+     * @param mode
+     * @param transportSubmode
+     * @return
+     */
+    public List<FeedScopedId> getTripIdForInternalPlanningCodeServiceDateAndMode(String internalPlanningCode, ServiceDate serviceDate, TransitMainMode mode, String transportSubmode) {
+
+        Set<Trip> cachedTripsBySiriId = getCachedTripsBySiriId(internalPlanningCode);
+
+        if (cachedTripsBySiriId.isEmpty()) {
+            cachedTripsBySiriId = getCachedTripsByVehicleRef(internalPlanningCode);
+        }
+
+        List<FeedScopedId> matches = new ArrayList<>();
+        for (Trip trip : cachedTripsBySiriId) {
+            final TripPattern tripPattern = routingService.getPatternForTrip().get(trip);
+            if (tripPattern.getMode().getMainMode().equals(mode) ||
+                (tripPattern.getMode().getSubMode() != null &&
+                    tripPattern.getMode().getSubMode().equals(transportSubmode))) {
+
+                Set<ServiceDate> serviceDates = routingService.getCalendarService().getServiceDatesForServiceId(trip.getServiceId());
+
+                if (serviceDates.contains(serviceDate) &&
+                    trip.getInternalPlanningCode() != null &&
+                    trip.getInternalPlanningCode().equals(internalPlanningCode)) {
+                    matches.add(trip.getId());
+                }
+            }
+        }
+
+
+        return matches;
     }
 }
