@@ -407,7 +407,8 @@ public class SiriFuzzyTripMatcher {
         for (Trip trip : cachedTripsBySiriId) {
             final TripPattern tripPattern = routingService.getPatternForTrip().get(trip);
             if (tripPattern.getMode().getMainMode().equals(mode) ||
-                tripPattern.getMode().getSubMode().equals(transportSubmode)) {
+                (tripPattern.getMode().getSubMode() != null &&
+                    tripPattern.getMode().getSubMode().equals(transportSubmode))) {
 
                 Set<ServiceDate> serviceDates = routingService.getCalendarService().getServiceDatesForServiceId(trip.getServiceId());
 
