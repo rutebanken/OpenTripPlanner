@@ -70,7 +70,7 @@ public class TripPatternForDates implements RaptorRoute<TripSchedule>,
 
     @Override
     public String debugInfo() {
-        return tripPattern.getTransitMode().name() + " " + tripPattern.getPattern().route.getShortName();
+        return tripPattern.getTransitMode().getMainMode().name() + " " + tripPattern.getPattern().route.getShortName();
     }
 
     // Implementing RaptorTimeTable

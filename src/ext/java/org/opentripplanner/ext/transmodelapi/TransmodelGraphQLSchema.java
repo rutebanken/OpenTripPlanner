@@ -6,6 +6,7 @@ import graphql.relay.DefaultPageInfo;
 import graphql.relay.Relay;
 import graphql.relay.SimpleListConnection;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -61,13 +62,14 @@ import org.opentripplanner.ext.transmodelapi.model.timetable.TripMetadataType;
 import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.alertpatch.TransitAlert;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.error.RoutingValidationException;
+import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graphfinder.NearbyStop;
 import org.opentripplanner.routing.graphfinder.PlaceAtDistance;
 import org.opentripplanner.routing.graphfinder.PlaceType;
@@ -91,6 +93,7 @@ import static java.util.Collections.emptyList;
 import static org.opentripplanner.ext.transmodelapi.mapping.TransitIdMapper.mapIDsToDomain;
 import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.MULTI_MODAL_MODE;
 import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.TRANSPORT_MODE;
+import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.STREET_MODE;
 import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.filterPlaceTypeEnum;
 
 /**
@@ -107,17 +110,21 @@ public class TransmodelGraphQLSchema {
 
   private final Relay relay = new Relay();
 
+  private Graph graph;
 
-  private TransmodelGraphQLSchema(RoutingRequest defaultRequest, GqlUtil gqlUtil) {
+
+  private TransmodelGraphQLSchema(RoutingRequest defaultRequest, GqlUtil gqlUtil, Graph graph) {
     this.gqlUtil = gqlUtil;
     this.routing = new DefaultRoutingRequestType(defaultRequest);
+    this.graph = graph;
   }
 
-  public static GraphQLSchema create(RoutingRequest defaultRequest, GqlUtil qglUtil) {
-    return new TransmodelGraphQLSchema(defaultRequest, qglUtil).create();
+  public static GraphQLSchema create(RoutingRequest defaultRequest, GqlUtil qglUtil, Graph graph) {
+    return new TransmodelGraphQLSchema(defaultRequest, qglUtil, graph).create();
   }
 
-    @SuppressWarnings("unchecked")
+
+  @SuppressWarnings("unchecked")
   private GraphQLSchema create() {
     /*
     multilingualStringType, validityPeriodType, infoLinkType, bookingArrangementType, systemNoticeType,
@@ -138,18 +145,20 @@ public class TransmodelGraphQLSchema {
     GraphQLOutputType authorityType = AuthorityType.create(LineType.REF, PtSituationElementType.REF);
     GraphQLOutputType operatorType = OperatorType.create(LineType.REF, ServiceJourneyType.REF);
     GraphQLOutputType noticeType = NoticeType.create();
+    GraphQLEnumType transportSubMode = EnumTypes.createTransitSubModeEnum(graph.getTransitModeService());
 
     // Stop
     GraphQLOutputType tariffZoneType = TariffZoneType.createTZ();
     GraphQLInterfaceType placeInterface = PlaceInterfaceType.create();
     GraphQLOutputType bikeRentalStationType = BikeRentalStationType.create(placeInterface);
     GraphQLOutputType bikeParkType = BikeParkType.createB(placeInterface);
-//  GraphQLOutputType carParkType = new GraphQLTypeReference("CarPark");
+    //  GraphQLOutputType carParkType = new GraphQLTypeReference("CarPark");
     GraphQLOutputType stopPlaceType = StopPlaceType.create(
         placeInterface,
         QuayType.REF,
         tariffZoneType,
         EstimatedCallType.REF,
+        transportSubMode,
         gqlUtil
     );
     GraphQLOutputType quayType = QuayType.create(
@@ -169,17 +178,18 @@ public class TransmodelGraphQLSchema {
     GraphQLObjectType presentationType = PresentationType.create();
     GraphQLOutputType destinationDisplayType = DestinationDisplayType.create();
     GraphQLOutputType lineType = LineType.create(
-          bookingArrangementType,
-          authorityType,
-          operatorType,
-          noticeType,
-          quayType,
-          presentationType,
-          JourneyPatternType.REF,
-          ServiceJourneyType.REF,
-          PtSituationElementType.REF
-      );
-      GraphQLOutputType interchangeType = InterchangeType.create(lineType, ServiceJourneyType.REF);
+        bookingArrangementType,
+        authorityType,
+        operatorType,
+        noticeType,
+        quayType,
+        presentationType,
+        JourneyPatternType.REF,
+        ServiceJourneyType.REF,
+        PtSituationElementType.REF,
+        transportSubMode
+    );
+    GraphQLOutputType interchangeType = InterchangeType.create(lineType, ServiceJourneyType.REF);
 
       // Timetable
       GraphQLNamedOutputType ptSituationElementType = PtSituationElementType.create(
@@ -192,19 +202,20 @@ public class TransmodelGraphQLSchema {
           bookingArrangementType, noticeType, quayType, destinationDisplayType, ptSituationElementType, ServiceJourneyType.REF, gqlUtil
       );
 
-      GraphQLOutputType serviceJourneyType = ServiceJourneyType.create(
-          bookingArrangementType,
-          linkGeometryType,
-          operatorType,
-          noticeType,
-          quayType,
-          lineType,
-          ptSituationElementType,
-          journeyPatternType,
-          estimatedCallType,
-          TimetabledPassingTimeType.REF,
-          gqlUtil
-      );
+    GraphQLOutputType serviceJourneyType = ServiceJourneyType.create(
+        bookingArrangementType,
+        linkGeometryType,
+        operatorType,
+        noticeType,
+        quayType,
+        lineType,
+        ptSituationElementType,
+        journeyPatternType,
+        estimatedCallType,
+        TimetabledPassingTimeType.REF,
+        gqlUtil,
+        transportSubMode
+    );
 
       GraphQLOutputType timetabledPassingTime  = TimetabledPassingTimeType.create(
           bookingArrangementType,
@@ -227,9 +238,69 @@ public class TransmodelGraphQLSchema {
             estimatedCallType,
             lineType,
             serviceJourneyType,
-            ptSituationElementType
-
+            ptSituationElementType,
+            transportSubMode
         );
+
+      GraphQLInputObjectType transportModeInputType = GraphQLInputObjectType
+          .newInputObject()
+          .name("transportModes")
+          .field(GraphQLInputObjectField
+              .newInputObjectField()
+              .name("transportMode")
+              .description("A transportMode that should be allowed for this search. You can further"
+                  + "narrow it down by specifying a list of transportSubModes")
+              .type(TRANSPORT_MODE)
+              .build())
+          .field(GraphQLInputObjectField.newInputObjectField()
+              .name("transportSubModes")
+              .description("The allowed transportSubModes for this search. If this element is not"
+                  + "present or null, it will default to all transportSubModes for the specified"
+                  + "TransportMode. Be aware that all transportSubModes have an associated "
+                  + "TransportMode, which must match what is specified in the transportMode field.")
+              .type(new GraphQLList(transportSubMode))
+              .build())
+          .build();
+
+    GraphQLInputObjectType modesInputType = GraphQLInputObjectType
+        .newInputObject()
+        .name("Modes")
+        .description("Input format for specifying which modes will be allowed for this search. "
+            + "If this element is not present, it will default to accessMode/egressMode/directMode "
+            + "of foot and all transport modes will be allowed.")
+        .field(GraphQLInputObjectField
+            .newInputObjectField()
+            .name("accessMode")
+            .description("The mode used to get from the origin to the access stops in the transit "
+                + "network the transit network (first-mile). If the element is not present or null,"
+                + "only transit that can be immediately boarded from the origin will be used.")
+            .type(STREET_MODE)
+            .build())
+        .field(GraphQLInputObjectField
+            .newInputObjectField()
+            .name("egressMode")
+            .description("The mode used to get from the egress stops in the transit network to"
+                + "the destination (last-mile). If the element is not present or null,"
+                + "only transit that can immediately arrive at the origin will be used.")
+            .type(STREET_MODE)
+            .build())
+        .field(GraphQLInputObjectField
+            .newInputObjectField()
+            .name("directMode")
+            .description("The mode used to get from the origin to the destination directly, "
+                + "without using the transit network. If the element is not present or null,"
+                + "direct travel without using transit will be disallowed.")
+            .type(STREET_MODE)
+            .build())
+        .field(GraphQLInputObjectField
+            .newInputObjectField()
+            .name("transportModes")
+            .description("The allowed modes for the transit part of the trip. Use an empty list to "
+                + "disallow transit for this search. If the element is not present or null, it will "
+                + "default to all transport modes.")
+            .type(new GraphQLList(transportModeInputType))
+            .build())
+        .build();
 
         GraphQLFieldDefinition tripQuery = TripQuery.create(routing, tripType, gqlUtil);
 
@@ -1118,7 +1189,8 @@ public class TransmodelGraphQLSchema {
         GraphQLOutputType estimatedCallType,
         GraphQLOutputType lineType,
         GraphQLOutputType serviceJourneyType,
-        GraphQLOutputType ptSituationElementType
+        GraphQLOutputType ptSituationElementType,
+        GraphQLEnumType transportSubMode
     ) {
       GraphQLObjectType tripMetadataType = TripMetadataType.create(gqlUtil);
       GraphQLObjectType placeType = PlanPlaceType.create(bikeRentalStationType, quayType);
@@ -1136,6 +1208,7 @@ public class TransmodelGraphQLSchema {
           ptSituationElementType,
           placeType,
           pathGuidanceType,
+          transportSubMode,
           gqlUtil
       );
       GraphQLObjectType tripPatternType = TripPatternType.create(

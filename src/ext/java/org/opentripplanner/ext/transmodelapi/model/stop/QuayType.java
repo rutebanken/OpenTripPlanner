@@ -2,6 +2,7 @@ package org.opentripplanner.ext.transmodelapi.model.stop;
 
 import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
@@ -14,8 +15,8 @@ import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
 import org.opentripplanner.ext.transmodelapi.model.plan.JourneyWhiteListed;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.TripTimeShort;
+import org.opentripplanner.model.modes.TransitMode;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

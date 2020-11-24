@@ -15,6 +15,8 @@ import org.opentripplanner.model.TransitEntity;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeService;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.index.api.NetexEntityIndexReadOnlyView;
 import org.opentripplanner.netex.mapping.calendar.CalendarServiceBuilder;
 import org.opentripplanner.netex.mapping.calendar.DatedServiceJourneyMapper;
@@ -57,6 +59,7 @@ public class NetexMapper {
     private final Multimap<String, Station> stationsByMultiModalStationRfs = ArrayListMultimap.create();
     private final CalendarServiceBuilder calendarServiceBuilder;
     private final TripCalendarBuilder tripCalendarBuilder;
+    private final TransitModeService transitModeService;
 
     /**
      * This is needed to assign a notice to a stop time. It is not part of the target OTPTransitService,
@@ -68,10 +71,12 @@ public class NetexMapper {
             OtpTransitServiceBuilder transitBuilder,
             String feedId,
             Deduplicator deduplicator,
+            TransitModeService transitModeService,
             DataImportIssueStore issueStore
     ) {
         this.transitBuilder = transitBuilder;
         this.deduplicator = deduplicator;
+        this.transitModeService = transitModeService;
         this.idFactory = new FeedScopedIdFactory(feedId);
         this.issueStore = issueStore;
         this.calendarServiceBuilder = new CalendarServiceBuilder(idFactory);
@@ -267,7 +272,8 @@ public class NetexMapper {
                 transitBuilder.getAgenciesById(),
                 transitBuilder.getOperatorsById(),
                 netexIndex,
-                netexIndex.getTimeZone()
+                netexIndex.getTimeZone(),
+                transitModeService
         );
         for (Line line : netexIndex.getLineById().localValues()) {
             Route route = routeMapper.mapRoute(line);

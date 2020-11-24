@@ -41,7 +41,6 @@ import org.opentripplanner.model.StopLocation;
 import org.opentripplanner.model.TimetableSnapshot;
 import org.opentripplanner.model.TimetableSnapshotProvider;
 import org.opentripplanner.model.TransitEntity;
-import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.WgsCoordinate;
@@ -49,6 +48,8 @@ import org.opentripplanner.model.calendar.CalendarService;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.calendar.impl.CalendarServiceImpl;
+import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
 import org.opentripplanner.routing.bike_rental.BikeRentalStationService;
@@ -261,6 +262,7 @@ public class Graph implements Serializable {
 
     private transient TransitAlertService transitAlertService;
 
+    private TransitModeService transitModeService;
 
     /**
      * Hack. I've tried three different ways of generating unique labels.
@@ -976,5 +978,18 @@ public class Graph implements Serializable {
 
     public Collection<SimpleTransfer> getTransfersByStop(StopLocation stop) {
         return transfersByStop.get(stop);
+    }
+
+    public TransitModeService getTransitModeService() {
+        return transitModeService;
+    }
+
+    public void setTransitModeConfiguration(
+        TransitModeService transitModeService
+    ) {
+        if (this.transitModeService != null) {
+            throw new IllegalStateException("TransitSubmodeConfiguration can only be set once.");
+        }
+        this.transitModeService = transitModeService;
     }
 }

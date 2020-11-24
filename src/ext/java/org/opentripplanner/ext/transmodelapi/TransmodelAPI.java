@@ -74,7 +74,7 @@ public class TransmodelAPI {
           TransitIdMapper.setupFixedFeedId(graph.getAgencies());
         }
         gqlUtil = new GqlUtil(graph.getTimeZone());
-        schema = TransmodelGraphQLSchema.create(defaultRoutingRequest, gqlUtil);
+        schema = TransmodelGraphQLSchema.create(defaultRoutingRequest, gqlUtil, graph);
     }
 
     /**

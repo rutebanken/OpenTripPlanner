@@ -1,7 +1,9 @@
 package org.opentripplanner.routing.algorithm;
 
 import org.opentripplanner.ext.flex.FlexRouter;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.AllowedTransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter;
 import org.opentripplanner.routing.algorithm.mapping.RaptorPathToItineraryMapper;
@@ -157,7 +159,9 @@ public class RoutingWorker {
 
         List<Itinerary> itineraries = new ArrayList<>();
 
-        if (OTPFeature.FlexRouting.isOn() && request.modes.transitModes.contains(TransitMode.FLEXIBLE)) {
+        if (OTPFeature.FlexRouting.isOn()
+            && request.modes.transitModes.stream()
+            .anyMatch(m -> m.allows(TransitMode.fromMainModeEnum(TransitMainMode.FLEXIBLE)))) {
             FlexRouter flexRouter = new FlexRouter(
                 request.rctx.graph,
                 request.getDateTime().toInstant(),

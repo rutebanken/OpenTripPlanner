@@ -2,9 +2,10 @@ package org.opentripplanner.model.plan;
 
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.core.TraverseMode;
 
 import java.util.ArrayList;
@@ -25,8 +26,8 @@ import static org.opentripplanner.routing.core.TraverseMode.WALK;
 public class TestItineraryBuilder {
   public static final ServiceDate SERVICE_DATE = new ServiceDate(2020, 9, 21);
   public static final String FEED = "F";
-  public static final Route BUS_ROUTE = route(TransitMode.BUS);
-  public static final Route RAIL_ROUTE = route(TransitMode.RAIL);
+  public static final Route BUS_ROUTE = route( TransitMode.fromMainModeEnum(TransitMainMode.BUS));
+  public static final Route RAIL_ROUTE = route( TransitMode.fromMainModeEnum(TransitMainMode.RAIL));
 
   public static final Place A = place("A", 5.0, 8.0 );
   public static final Place B = place("B", 6.0, 8.5);
@@ -206,9 +207,9 @@ public class TestItineraryBuilder {
 
   /** Create a dummy route */
   private  static Route route(TransitMode mode) {
-    Route route = new Route(new FeedScopedId(FEED, mode.name()));
+    Route route = new Route(new FeedScopedId(FEED, mode.getMainMode().name()));
     route.setMode(mode);
-    route.setLongName(mode.name());
+    route.setLongName(mode.getMainMode().name());
     return route;
   }
 }

@@ -4,6 +4,7 @@ import org.opentripplanner.datastore.CompositeDataSource;
 import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.datastore.FileType;
 import org.opentripplanner.datastore.file.ZipFileDataSource;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.NetexBundle;
 import org.opentripplanner.netex.loader.NetexDataSourceHierarchy;
@@ -29,7 +30,9 @@ public class NetexConfig {
 
     private final BuildConfig buildParams;
 
-    private NetexConfig(BuildConfig builderParams) {
+    private NetexConfig(
+        BuildConfig builderParams
+    ) {
         this.buildParams = builderParams;
     }
 
@@ -38,11 +41,17 @@ public class NetexConfig {
             BuildConfig buildParams,
             Iterable<DataSource> netexSources
     ) {
-        return new NetexConfig(buildParams).netexModule(netexSources);
+        return new NetexConfig(buildParams)
+            .netexModule(netexSources);
     }
 
-    public static NetexBundle netexBundleForTest(BuildConfig builderParams, File netexZipFile) {
-        return new NetexConfig(builderParams).netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
+    public static NetexBundle netexBundleForTest(
+        BuildConfig builderParams,
+        TransitModeService transitModeService,
+        File netexZipFile
+    ) {
+        return new NetexConfig(builderParams)
+            .netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
     }
 
     private NetexModule netexModule(Iterable<DataSource> netexSources) {
@@ -64,7 +73,11 @@ public class NetexConfig {
 
     /** public to enable testing */
     private NetexBundle netexBundle(CompositeDataSource source) {
-        return new NetexBundle(buildParams.netex.netexFeedId, source, hierarchy(source));
+        return new NetexBundle(
+            buildParams.netex.netexFeedId,
+            source,
+            hierarchy(source)
+        );
     }
 
     private NetexDataSourceHierarchy hierarchy(CompositeDataSource source){
