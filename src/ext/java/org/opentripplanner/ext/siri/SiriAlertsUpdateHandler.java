@@ -3,6 +3,7 @@ package org.opentripplanner.ext.siri;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.routing.alertpatch.AlertUrl;
 import org.opentripplanner.routing.alertpatch.EntitySelector;
 import org.opentripplanner.routing.alertpatch.StopCondition;
@@ -330,19 +331,12 @@ public class SiriAlertsUpdateHandler {
 
                             } else {
 
-//                                Commented out for now
-//
-//                                // TODO - SIRI: Support submode when fuzzy-searching for trips
-//                                tripIds = siriFuzzyTripMatcher.getTripIdForTripShortNameServiceDateAndMode(vehicleJourneyRef.getValue(),
-//                                        serviceDate, TraverseMode.RAIL/*, TransmodelTransportSubmode.RAIL_REPLACEMENT_BUS*/);
-//
-//                                // ServiceJourneyId does NOT match - calculate validity based on originAimedDepartureTime
-//                                effectiveStartDate = serviceDate.getAsDate();
-//                                effectiveEndDate = serviceDate.next().getAsDate();
+                                tripIds = siriFuzzyTripMatcher.getTripIdForInternalPlanningCodeServiceDateAndMode(vehicleJourneyRef.getValue(),
+                                        serviceDate, TransitMainMode.RAIL, "railReplacementBus");
 
-                                effectiveStartDate = null;
-                                effectiveEndDate = null;
-
+                                // ServiceJourneyId does NOT match - calculate validity based on originAimedDepartureTime
+                                effectiveStartDate = serviceDate.getAsDate();
+                                effectiveEndDate = serviceDate.next().getAsDate();
 
                             }
                             for (FeedScopedId tripId : tripIds) {
