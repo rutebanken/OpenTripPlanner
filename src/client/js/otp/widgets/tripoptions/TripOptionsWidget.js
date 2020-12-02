@@ -493,6 +493,47 @@ otp.widgets.tripoptions.DebugItineraryFiltersSelector = otp.Class(
     }
 );
 
+//** Flexible only selector **//
+otp.widgets.tripoptions.FlexibleOnlySelector =
+    otp.Class(otp.widgets.tripoptions.TripOptionsWidgetControl, {
+
+    id           :  null,
+    //TRANSLATORS: label for checkbox
+    label        : _tr("Flexible trips only:"),
+
+    initialize : function(tripWidget) {
+
+        otp.widgets.tripoptions.TripOptionsWidgetControl.prototype.initialize.apply(this, arguments);
+
+        this.id = tripWidget.id;
+
+
+        ich['otp-tripOptions-flexibleOnly']({
+            widgetId : this.id,
+            label : this.label,
+        }).appendTo(this.$());
+
+    },
+
+    doAfterLayout : function() {
+        var this_ = this;
+
+        $("#"+this.id+"-flexibleOnly-input").change(function() {
+            this_.tripWidget.module.flexibleOnly = this.checked;
+        });
+    },
+
+    restorePlan : function(data) {
+        if(data.queryParams.flexibleOnly) {
+            $("#"+this.id+"-flexibleOnly-input").prop("checked", data.queryParams.flexibleOnly);
+        }
+    },
+
+    isApplicableForMode : function(mode) {
+        return true;
+    }
+});
+
 
 //** ModeSelector **//
 

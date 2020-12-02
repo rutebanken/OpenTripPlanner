@@ -1,12 +1,14 @@
 package org.opentripplanner.netex.mapping;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.netex.index.api.ReadOnlyHierarchicalMap;
 import org.opentripplanner.netex.mapping.support.FeedScopedIdFactory;
 import org.rutebanken.netex.model.JourneyPattern;
 import org.rutebanken.netex.model.LineRefStructure;
+import org.rutebanken.netex.model.OperatorRefStructure;
 import org.rutebanken.netex.model.Route;
 import org.rutebanken.netex.model.ServiceJourney;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ class TripMapper {
     private final ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternsById;
     private final Map<String, FeedScopedId> serviceIds;
     private final Set<FeedScopedId> shapePointIds;
+    private final EntityById<Operator> operatorsById;
 
     TripMapper(
             FeedScopedIdFactory idFactory,
@@ -38,7 +41,8 @@ class TripMapper {
             ReadOnlyHierarchicalMap<String, Route> routeById,
             ReadOnlyHierarchicalMap<String, JourneyPattern> journeyPatternsById,
             Map<String, FeedScopedId> serviceIds,
-            Set<FeedScopedId> shapePointIds
+            Set<FeedScopedId> shapePointIds,
+            EntityById<Operator> operatorsById
     ) {
         this.idFactory = idFactory;
         this.otpRouteById = otpRouteById;
@@ -46,6 +50,7 @@ class TripMapper {
         this.journeyPatternsById = journeyPatternsById;
         this.serviceIds = serviceIds;
         this.shapePointIds = shapePointIds;
+        this.operatorsById = operatorsById;
     }
 
     /**
@@ -80,6 +85,7 @@ class TripMapper {
         }
 
         trip.setTripShortName(serviceJourney.getPublicCode());
+        trip.setTripOperator(findOperator(serviceJourney));
 
         return trip;
     }
@@ -122,5 +128,14 @@ class TripMapper {
             );
         }
         return route;
+    }
+
+    private Operator findOperator(ServiceJourney serviceJourney) {
+        OperatorRefStructure opeRef = serviceJourney.getOperatorRef();
+
+        if(opeRef == null) {
+          return null;
+        }
+        return operatorsById.get(idFactory.createId(opeRef.getRef()));
     }
 }

@@ -12,13 +12,16 @@ import org.opentripplanner.ext.transmodelapi.support.DataFetcherDecorator;
 import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.AllowedTransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.api.request.BannedStopSet;
+import org.opentripplanner.routing.api.response.RoutingError;
+import org.opentripplanner.routing.api.response.RoutingResponse;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.request.StreetMode;
-import org.opentripplanner.routing.api.response.RoutingError;
-import org.opentripplanner.routing.api.response.RoutingResponse;
+
 import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.standalone.server.Router;
 import org.slf4j.Logger;
@@ -28,9 +31,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,7 +70,7 @@ public class TransmodelGraphQLPlanner {
         }
         catch (Exception e) {
             LOG.warn("System error");
-            LOG.error("Root cause: " + e.getMessage(), e);
+            LOG.error("Root cause: " + Arrays.toString(e.getStackTrace()), e);
             PlannerError error = new PlannerError();
             error.setMsg(Message.SYSTEM_ERROR);
             response.messages.add(error.message);
@@ -184,41 +188,10 @@ public class TransmodelGraphQLPlanner {
             request.optimize = optimize;
         }
 
-        if (GqlUtil.hasArgument(environment, "modes")) {
-            ElementWrapper<StreetMode> accessMode = new ElementWrapper<>();
-            ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
-            ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
-            ElementWrapper<ArrayList<TransitMode>> transitModes = new ElementWrapper<>();
-            callWith.argument("modes.accessMode", accessMode::set);
-            callWith.argument("modes.egressMode", egressMode::set);
-            callWith.argument("modes.directMode", directMode::set);
-            callWith.argument("modes.transportMode", transitModes::set);
-
-            if (transitModes.get() == null) {
-                // Default to all transport modes if transport modes not specified
-                transitModes.set(new ArrayList<>(Arrays.asList(TransitMode.values())));
-            }
-
-            request.modes = new RequestModes(
-                accessMode.get(),
-                egressMode.get(),
-                directMode.get(),
-                new HashSet<>(transitModes.get())
-            );
+        RequestModes modes = getModes(environment, callWith);
+        if (modes != null) {
+            request.modes = modes;
         }
-
-        /*
-        List<Map<String, ?>> transportSubmodeFilters = environment.getArgument("transportSubmodes");
-        if (transportSubmodeFilters != null) {
-            request.transportSubmodes = new HashMap<>();
-            for (Map<String, ?> transportSubmodeFilter : transportSubmodeFilters) {
-                TraverseMode transportMode = (TraverseMode) transportSubmodeFilter.get("transportMode");
-                List<TransmodelTransportSubmode> transportSubmodes = (List<TransmodelTransportSubmode>) transportSubmodeFilter.get("transportSubmodes");
-                if (!CollectionUtils.isEmpty(transportSubmodes)) {
-                    request.transportSubmodes.put(transportMode, new HashSet<>(transportSubmodes));
-                }
-            }
-        }*/
 
         if (request.bikeRental && !GqlUtil.hasArgument(environment, "bikeSpeed")) {
             //slower bike speed for bike sharing, based on empirical evidence from DC.
@@ -232,6 +205,7 @@ public class TransmodelGraphQLPlanner {
         callWith.argument("alightSlackDefault", (Integer v) -> request.alightSlack = v);
         callWith.argument("alightSlackList", (Object v) -> request.alightSlackForMode = TransportModeSlack.mapToDomain(v));
         callWith.argument("maximumTransfers", (Integer v) -> request.maxTransfers = v);
+        callWith.argument("flexibleOnly", (Boolean v) -> request.flexibleOnly = v);
 
         final long NOW_THRESHOLD_MILLIS = 15 * 60 * 60 * 1000;
         boolean tripPlannedForNow = Math.abs(request.getDateTime().getTime() - new Date().getTime()) < NOW_THRESHOLD_MILLIS;
@@ -242,23 +216,62 @@ public class TransmodelGraphQLPlanner {
         //callWith.argument("includePlannedCancellations", (Boolean v) -> request.includePlannedCancellations = v);
         //callWith.argument("ignoreInterchanges", (Boolean v) -> request.ignoreInterchanges = v);
 
-        /*
-        if (!request.modes.isTransit() && request.modes.getCar()) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
-        } else if (request.kissAndRide) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-        } else if (request.rideAndKiss) {
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
-        } else if (request.parkAndRide) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-        } else if (request.useFlexService) {
-            request.from.vertexId = getLocationOfFirstQuay(request.from.vertexId, ((Router)environment.getContext()).graph.index);
-            request.to.vertexId = getLocationOfFirstQuay(request.to.vertexId, ((Router)environment.getContext()).graph.index);
-        }
-         */
-
         return request;
+    }
+
+    @SuppressWarnings("unchecked")
+    private RequestModes getModes(
+        DataFetchingEnvironment environment, DataFetcherDecorator callWith
+    ) {
+        if (GqlUtil.hasArgument(environment, "modes")) {
+            ElementWrapper<StreetMode> accessMode = new ElementWrapper<>();
+            ElementWrapper<StreetMode> egressMode = new ElementWrapper<>();
+            ElementWrapper<StreetMode> directMode = new ElementWrapper<>();
+            ElementWrapper<List<LinkedHashMap<String, ?>>> transportModes = new ElementWrapper<>();
+            callWith.argument("modes.accessMode", accessMode::set);
+            callWith.argument("modes.egressMode", egressMode::set);
+            callWith.argument("modes.directMode", directMode::set);
+            callWith.argument("modes.transportModes", transportModes::set);
+
+            List<AllowedTransitMode> transitModes = new ArrayList<>();
+            if (transportModes.get() == null) {
+                transitModes.addAll(Collections.emptyList());
+            }
+            else {
+                for (LinkedHashMap<String, ?> modeWithSubmodes : transportModes.get()) {
+                    if (modeWithSubmodes.containsKey("transportMode")) {
+                        if (modeWithSubmodes.containsKey("transportSubModes")) {
+                            TransitMainMode mainMode = (TransitMainMode) modeWithSubmodes.get(
+                                "transportMode");
+                            for (TransitMode transitMode : (List<TransitMode>) modeWithSubmodes.get(
+                                "transportSubModes")) {
+                                if (transitMode.getMainMode().equals(mainMode)) {
+                                    transitModes.add(new AllowedTransitMode(
+                                        transitMode.getMainMode(),
+                                        transitMode.getSubMode()
+                                    ));
+                                }
+                                else {
+                                    LOG.info("TransportSubMode does not match TransportMode");
+                                }
+                            }
+                        }
+                        else {
+                            transitModes.add(AllowedTransitMode.fromMainModeEnum((TransitMainMode) modeWithSubmodes
+                                .get("transportMode")));
+                        }
+                    }
+                }
+            }
+
+            return new RequestModes(
+                accessMode.get(),
+                egressMode.get(),
+                directMode.get(),
+                transitModes
+            );
+        }
+        return null;
     }
 
     private HashMap<FeedScopedId, BannedStopSet> toBannedTrips(Collection<String> serviceJourneyIds) {
@@ -268,22 +281,6 @@ public class TransmodelGraphQLPlanner {
             .collect(Collectors.toMap(Function.identity(), id -> BannedStopSet.ALL));
         return new HashMap<>(bannedTrips);
     }
-
-    /*
-    private String getLocationOfFirstQuay(String vertexId, GraphIndex graphIndex) {
-        // TODO THIS DOES NOT WORK !!
-        Vertex vertex = graphIndex.stopVertexForStop.get(vertexId);
-        if (vertex instanceof TransitStopVertex) {
-            TransitStopVertex stopVertex = (TransitStopVertex) vertex;
-
-            FeedScopedId stopId = stopVertex.getStop().getId();
-
-            return stopId.getFeedId().concat(":").concat(stopId.getId());
-        } else {
-            return vertexId;
-        }
-    }
-    */
 
     /**
      * Simple wrapper in order to pass a consumer into the CallerWithEnvironment.argument method.

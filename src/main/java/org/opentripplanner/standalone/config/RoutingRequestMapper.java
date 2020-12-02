@@ -1,14 +1,13 @@
 package org.opentripplanner.standalone.config;
 
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.RoutingRequest;
-import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.api.request.StreetMode;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.HashSet;
 
 public class RoutingRequestMapper {
@@ -51,6 +50,7 @@ public class RoutingRequestMapper {
         request.carDropoffTime = c.asInt("carDropoffTime", dft.carDropoffTime);
         request.carSpeed = c.asDouble("carSpeed", dft.carSpeed);
         request.debugItineraryFilter = c.asBoolean("debugItineraryFilter", dft.debugItineraryFilter);
+        request.flexibleOnly = c.asBoolean("flexibleOnly", dft.flexibleOnly);
         request.groupBySimilarityKeepOne = c.asDouble("groupBySimilarityKeepOne", dft.groupBySimilarityKeepOne);
         request.groupBySimilarityKeepNumOfItineraries = c.asDouble("groupBySimilarityKeepNumOfItineraries", dft.groupBySimilarityKeepNumOfItineraries);
         request.disableAlertFiltering = c.asBoolean("disableAlertFiltering", dft.disableAlertFiltering);
@@ -72,7 +72,8 @@ public class RoutingRequestMapper {
         request.maxWeight = c.asDouble("maxWeight", dft.maxWeight);
         request.maxWheelchairSlope = c.asDouble("maxWheelchairSlope", dft.maxWheelchairSlope); // ADA max wheelchair ramp slope is a good default.
         request.modes = new RequestModes(StreetMode.WALK, StreetMode.WALK, StreetMode.WALK, new HashSet<>(
-            Arrays.asList(TransitMode.values()))); // TODO Map default modes from config
+            AllowedTransitMode.getAllTransitModes())); // TODO Map default modes from config
+        request.modes = RequestModes.defaultRequestModes; // TODO Map default modes from config
         request.nonpreferredTransferCost = c.asInt("nonpreferredTransferPenalty", dft.nonpreferredTransferCost);
         request.numItineraries = c.asInt("numItineraries", dft.numItineraries);
         request.onlyTransitTrips = c.asBoolean("onlyTransitTrips", dft.onlyTransitTrips);

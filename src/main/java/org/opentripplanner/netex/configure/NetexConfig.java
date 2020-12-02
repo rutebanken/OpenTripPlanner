@@ -4,8 +4,8 @@ import org.opentripplanner.datastore.CompositeDataSource;
 import org.opentripplanner.datastore.DataSource;
 import org.opentripplanner.datastore.FileType;
 import org.opentripplanner.datastore.file.ZipFileDataSource;
-import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.NetexBundle;
+import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.loader.NetexDataSourceHierarchy;
 import org.opentripplanner.standalone.config.BuildConfig;
 
@@ -42,7 +42,8 @@ public class NetexConfig {
     }
 
     public static NetexBundle netexBundleForTest(BuildConfig builderParams, File netexZipFile) {
-        return new NetexConfig(builderParams).netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
+        return new NetexConfig(builderParams)
+            .netexBundle(new ZipFileDataSource(netexZipFile, FileType.NETEX));
     }
 
     private NetexModule netexModule(Iterable<DataSource> netexSources) {
@@ -64,7 +65,11 @@ public class NetexConfig {
 
     /** public to enable testing */
     private NetexBundle netexBundle(CompositeDataSource source) {
-        return new NetexBundle(buildParams.netex.netexFeedId, source, hierarchy(source));
+        return new NetexBundle(
+            buildParams.netex.netexFeedId,
+            source,
+            hierarchy(source)
+        );
     }
 
     private NetexDataSourceHierarchy hierarchy(CompositeDataSource source){

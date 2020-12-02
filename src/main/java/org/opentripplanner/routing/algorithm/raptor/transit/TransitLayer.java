@@ -33,6 +33,8 @@ public class TransitLayer {
 
   private final ZoneId transitDataZoneId;
 
+  private final int numberOfDaysOfLongestTrip;
+
   /**
    * Makes a shallow copy of the TransitLayer, except for the tripPatternsForDate, where a shallow
    * copy of the HashMap is made. This is sufficient, as the TransitLayerUpdater will replace
@@ -43,7 +45,8 @@ public class TransitLayer {
         transitLayer.tripPatternsRunningOnDate,
         transitLayer.transferByStopIndex,
         transitLayer.stopIndex,
-        transitLayer.transitDataZoneId
+        transitLayer.transitDataZoneId,
+        transitLayer.numberOfDaysOfLongestTrip
     );
   }
 
@@ -51,12 +54,14 @@ public class TransitLayer {
       Map<LocalDate, List<TripPatternForDate>> tripPatternsRunningOnDate,
       List<List<Transfer>> transferByStopIndex,
       StopIndexForRaptor stopIndex,
-      ZoneId transitDataZoneId
+      ZoneId transitDataZoneId,
+      int numberOfDaysOfLongestTrip
   ) {
     this.tripPatternsRunningOnDate = new HashMap<>(tripPatternsRunningOnDate);
     this.transferByStopIndex = transferByStopIndex;
     this.stopIndex = stopIndex;
     this.transitDataZoneId = transitDataZoneId;
+    this.numberOfDaysOfLongestTrip = numberOfDaysOfLongestTrip;
   }
 
   public int getIndexByStop(Stop stop) {
@@ -117,5 +122,9 @@ public class TransitLayer {
       List<TripPatternForDate> tripPatternForDates
   ) {
     this.tripPatternsRunningOnDate.replace(date, tripPatternForDates);
+  }
+
+  public int getNumberOfDaysOfLongestTrip() {
+    return numberOfDaysOfLongestTrip;
   }
 }
