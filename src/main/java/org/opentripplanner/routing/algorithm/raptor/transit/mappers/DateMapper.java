@@ -43,4 +43,8 @@ public class DateMapper {
         ZonedDateTime startOfService = asStartOfService(departureDate.toLocalDate(), zoneId);
         return (int) Duration.between(startOfService, dateTime).toSeconds();
     }
+
+    private static ZonedDateTime asStartOfService(ZonedDateTime dateTime, ZoneId zoneId) {
+        return asStartOfService(dateTime.withZoneSameInstant(zoneId));
+    }
 }

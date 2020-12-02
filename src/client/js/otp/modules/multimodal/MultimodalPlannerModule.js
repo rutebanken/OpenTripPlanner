@@ -77,6 +77,7 @@ otp.modules.multimodal.MultimodalPlannerModule =
           modeSelector.addModeControl(new otp.widgets.tripoptions.WheelChairSelector(this.optionsWidget));
         }
         modeSelector.addModeControl(new otp.widgets.tripoptions.DebugItineraryFiltersSelector(this.optionsWidget));
+        modeSelector.addModeControl(new otp.widgets.tripoptions.FlexibleOnlySelector(this.optionsWidget));
         modeSelector.refreshModeControls();
 
         this.optionsWidget.addSeparator();

@@ -12,13 +12,13 @@ import org.opentripplanner.graph_builder.module.osm.OpenStreetMapModule;
 import org.opentripplanner.graph_builder.services.GraphBuilderModule;
 import org.opentripplanner.gtfs.GtfsContext;
 import org.opentripplanner.model.calendar.CalendarServiceData;
+import org.opentripplanner.netex.NetexBundle;
 import org.opentripplanner.netex.NetexModule;
 import org.opentripplanner.netex.configure.NetexConfig;
-import org.opentripplanner.netex.NetexBundle;
 import org.opentripplanner.openstreetmap.BinaryOpenStreetMapProvider;
 import org.opentripplanner.routing.graph.Graph;
-import org.opentripplanner.standalone.config.ConfigLoader;
 import org.opentripplanner.standalone.config.BuildConfig;
+import org.opentripplanner.standalone.config.ConfigLoader;
 
 import java.io.File;
 import java.io.IOException;

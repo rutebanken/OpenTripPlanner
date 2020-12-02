@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
 import org.opentripplanner.netex.index.hierarchy.HierarchicalMap;
 import org.opentripplanner.netex.index.hierarchy.HierarchicalMapById;
@@ -45,7 +46,8 @@ public class TripMapperTest {
             new HierarchicalMapById<>(),
             new HierarchicalMap<>(),
             Map.of(SERVICE_JOURNEY_ID, SERVICE_ID),
-            Collections.emptySet()
+            Collections.emptySet(),
+            new EntityById<>()
         );
 
         ServiceJourney serviceJourney = createExampleServiceJourney();
@@ -86,7 +88,8 @@ public class TripMapperTest {
                 routeById,
                 journeyPatternById,
                 Map.of(SERVICE_JOURNEY_ID, SERVICE_ID),
-                Collections.emptySet()
+                Collections.emptySet(),
+                new EntityById<>()
         );
 
         Trip trip = tripMapper.mapServiceJourney(serviceJourney);

@@ -566,6 +566,9 @@ public abstract class RoutingResource {
     @QueryParam("debugItineraryFilter")
     private Boolean debugItineraryFilter;
 
+    @QueryParam("flexibleOnly")
+    private Boolean flexibleOnly;
+
     /**
      * If true, the Graph's ellipsoidToGeoidDifference is applied to all elevations returned by this query.
      */
@@ -810,6 +813,10 @@ public abstract class RoutingResource {
 
         if(debugItineraryFilter != null ) {
             request.debugItineraryFilter = debugItineraryFilter;
+        }
+
+        if (flexibleOnly != null) {
+            request.flexibleOnly = flexibleOnly;
         }
 
         //getLocale function returns defaultLocale if locale is null

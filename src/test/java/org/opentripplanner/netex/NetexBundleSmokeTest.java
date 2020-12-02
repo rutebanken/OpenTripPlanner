@@ -19,6 +19,7 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitServiceBuilder;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.trippattern.Deduplicator;
 
 import java.io.Serializable;
@@ -58,7 +59,11 @@ public class NetexBundleSmokeTest {
 
         // When
         OtpTransitServiceBuilder transitBuilder =
-                netexBundle.loadBundle(new Deduplicator(), new DataImportIssueStore(false));
+                netexBundle.loadBundle(
+                    new Deduplicator(),
+                    TransitModeService.getDefault(),
+                    new DataImportIssueStore(false)
+                );
 
         // Then - smoke test model
         OtpTransitService otpModel = transitBuilder.build();
@@ -154,7 +159,7 @@ public class NetexBundleSmokeTest {
         assertNull(t.getTripShortName());
         assertNotNull(t.getServiceId());
         assertEquals("Ruter", t.getOperator().getName());
-        assertNull(t.getTripOperator());
+        assertEquals("Ruter", t.getTripOperator().getName());
         assertEquals(0, t.getBikesAllowed());
         assertEquals(0, t.getWheelchairAccessible());
         assertEquals(4, trips.size());
