@@ -3,6 +3,7 @@ package org.opentripplanner.ext.siri;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.routing.alertpatch.AlertUrl;
 import org.opentripplanner.routing.alertpatch.EntitySelector;
 import org.opentripplanner.routing.alertpatch.StopCondition;
@@ -45,7 +46,13 @@ import uk.org.siri.siri20.WorkflowStatusEnumeration;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This updater applies the equivalent of GTFS Alerts, but from SIRI Situation Exchange feeds.
@@ -314,7 +321,7 @@ public class SiriAlertsUpdateHandler {
                             ZonedDateTime originAimedDepartureTime = (affectedVehicleJourney.getOriginAimedDepartureTime() != null ? affectedVehicleJourney.getOriginAimedDepartureTime():ZonedDateTime.now());
                             ZonedDateTime startOfService = DateMapper.asStartOfService(originAimedDepartureTime);
 
-                            ServiceDate serviceDate = new ServiceDate(startOfService.getYear(), startOfService.getMonthValue(), startOfService.getDayOfMonth());
+                            ServiceDate serviceDate = new ServiceDate(startOfService.toLocalDate());
 
                             if (tripIdFromVehicleJourney != null) {
 
@@ -324,11 +331,12 @@ public class SiriAlertsUpdateHandler {
 
                             } else {
 
-//                                Commented out for now
-//
-//                                // TODO - SIRI: Support submode when fuzzy-searching for trips
-//                                tripIds = siriFuzzyTripMatcher.getTripIdForTripShortNameServiceDateAndMode(vehicleJourneyRef.getValue(),
-//                                        serviceDate, TraverseMode.RAIL/*, TransmodelTransportSubmode.RAIL_REPLACEMENT_BUS*/);
+                                tripIds = siriFuzzyTripMatcher.getTripIdForInternalPlanningCodeServiceDateAndMode(
+                                    vehicleJourneyRef.getValue(),
+                                    serviceDate,
+                                    TransitMainMode.RAIL,
+                                    "railReplacementBus"
+                                );
                             }
 
                             for (FeedScopedId tripId : tripIds) {
@@ -447,8 +455,11 @@ public class SiriAlertsUpdateHandler {
      * departure, and end <code>secondsToAppend</code> seconds after scheduled arrival.
      */
     private TimePeriod calculateTimePeriodForTrip(
-        TransitAlert alert, FeedScopedId tripId, ServiceDate serviceDate,
-        ZonedDateTime startOfService, int secondsToAppend
+        TransitAlert alert,
+        FeedScopedId tripId,
+        ServiceDate serviceDate,
+        ZonedDateTime startOfService,
+        int secondsToAppend
     ) {
         Long validFrom;
         Long validTo;
@@ -457,7 +468,8 @@ public class SiriAlertsUpdateHandler {
             int tripDepartureTime = siriFuzzyTripMatcher.getTripDepartureTime(tripId);
             int tripArrivalTime = siriFuzzyTripMatcher.getTripArrivalTime(tripId);
 
-            // ServiceJourneyId does NOT match - calculate validity based on serviceDate (calculated from originalAimedDepartureTime)
+            // ServiceJourneyId does NOT match - calculate validity based on serviceDate
+            // (calculated from originalAimedDepartureTime)
             validFrom = startOfService.toEpochSecond() + tripDepartureTime;
 
             // Appending 6 hours to end-validity in case of delays.
