@@ -12,8 +12,9 @@ import org.opentripplanner.common.geometry.GeometryUtils;
 import org.opentripplanner.graph_builder.module.StreetLinkerModule;
 import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Stop;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.StreetNote;
-import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.routing.algorithm.astar.AStar;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.core.State;
@@ -110,8 +111,8 @@ public class TestHalfEdges {
 
         station1 = new TransitStopVertex(graph, s1, null);
         station2 = new TransitStopVertex(graph, s2, null);
-        station1.addMode(TransitMode.RAIL);
-        station2.addMode(TransitMode.RAIL);
+        station1.addMode(TransitMode.fromMainModeEnum(TransitMainMode.RAIL));
+        station2.addMode(TransitMode.fromMainModeEnum(TransitMainMode.RAIL));
         
         //Linkers aren't run otherwise in testNetworkLinker
         graph.hasStreets = true;
