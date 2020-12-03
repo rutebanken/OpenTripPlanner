@@ -38,6 +38,7 @@ public class RouteMapperTest {
                 new EntityById<>(),
                 new EntityById<>(),
                 netexEntityIndex.readOnlyView(),
+                null,
                 TimeZone.getDefault().toString()
         );
 
@@ -71,6 +72,7 @@ public class RouteMapperTest {
                 transitBuilder.getAgenciesById(),
                 transitBuilder.getOperatorsById(),
                 netexIndex.readOnlyView(),
+                null,
                 TIME_ZONE
         );
 
@@ -95,6 +97,7 @@ public class RouteMapperTest {
                 new EntityById<>(),
                 new EntityById<>(),
                 netexEntityIndex.readOnlyView(),
+                null,
                 TimeZone.getDefault().toString()
         );
 
