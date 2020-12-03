@@ -42,7 +42,8 @@ public class TripPatternMapperTest {
                 new HierarchicalMapById<>(),
                 sample.getServiceJourneyById(),
                 Map.of(NetexTestDataSample.SERVICE_JOURNEY_ID, SERVICE_ID),
-                new Deduplicator()
+                new Deduplicator(),
+                null
         );
 
         TripPatternMapper.Result r = tripPatternMapper.mapTripPattern(sample.getJourneyPattern());

@@ -1,6 +1,8 @@
 /* This file is based on code copied from project OneBusAway, see the LICENSE file for further information. */
 package org.opentripplanner.model;
 
+import org.opentripplanner.model.modes.TransitMode;
+
 public final class Trip extends TransitEntity {
 
     private static final long serialVersionUID = 1L;
@@ -8,6 +10,8 @@ public final class Trip extends TransitEntity {
     private Route route;
 
     private Operator operator;
+
+    private TransitMode mode;
 
     private FeedScopedId serviceId;
 
@@ -46,6 +50,7 @@ public final class Trip extends TransitEntity {
         this.route = obj.route;
         this.operator = obj.operator;
         this.serviceId = obj.serviceId;
+        this.mode = obj.mode;
         this.tripShortName = obj.tripShortName;
         this.tripHeadsign = obj.tripHeadsign;
         this.routeShortName = obj.routeShortName;
@@ -92,6 +97,14 @@ public final class Trip extends TransitEntity {
 
     public void setServiceId(FeedScopedId serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public TransitMode getMode() {
+        return mode == null ? getRoute().getMode() : mode;
+    }
+
+    public void setMode(TransitMode mode) {
+        this.mode = mode.equals(getRoute().getMode()) ? null : mode;
     }
 
     /**

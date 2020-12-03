@@ -1,12 +1,12 @@
 package org.opentripplanner.routing.algorithm.raptor.transit.request;
 
 import org.opentripplanner.model.FeedScopedId;
+import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TransitLayer;
-import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
+import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
 import org.opentripplanner.transit.raptor.api.transit.RaptorTransfer;
-import org.opentripplanner.model.TransitMode;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -51,7 +51,7 @@ class RaptorRoutingRequestTransitDataCreator {
 
   List<List<TripPatternForDates>> createTripPatternsPerStop(
       int additionalFutureSearchDays,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> transitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
 
@@ -68,10 +68,11 @@ class RaptorRoutingRequestTransitDataCreator {
 
   private List<TripPatternForDate> getTripPatternsForDateRange(
       int additionalFutureSearchDays,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> transitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
     List<TripPatternForDate> tripPatternForDates = new ArrayList<>();
+
 
     // This filters trips by the search date as well as additional dates before and after
     for (int d = 0; d <= additionalFutureSearchDays; ++d) {
@@ -151,7 +152,7 @@ class RaptorRoutingRequestTransitDataCreator {
       TransitLayer transitLayer,
       LocalDate date,
       boolean firstDay,
-      Set<TransitMode> transitModes,
+      Set<AllowedTransitMode> allowedTransitModes,
       Set<FeedScopedId> bannedRoutes
   ) {
 
@@ -162,7 +163,7 @@ class RaptorRoutingRequestTransitDataCreator {
     return transitLayer
         .getTripPatternsForDate(date)
         .stream()
-        .filter(p -> transitModes.contains(p.getTripPattern().getTransitMode()))
+        .filter(p -> allowedTransitModes.stream().anyMatch(m -> m.allows(p.getTripPattern().getTransitMode())))
         .filter(p -> !bannedRoutes.contains(p.getTripPattern()
             .getPattern().route.getId()))
         .filter(p -> firstDay || p.getStartOfRunningPeriod().toLocalDate().equals(date))

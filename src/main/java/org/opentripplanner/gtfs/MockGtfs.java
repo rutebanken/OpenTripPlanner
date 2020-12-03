@@ -46,7 +46,8 @@ public class MockGtfs {
         return GTFSToOtpTransitServiceMapper.mapGtfsDaoToInternalTransitServiceBuilder(
                 gtfsDelegate.read(),
                 "a0",
-                new DataImportIssueStore(false)
+                new DataImportIssueStore(false),
+                null
         );
     }
 
@@ -54,7 +55,8 @@ public class MockGtfs {
         return GTFSToOtpTransitServiceMapper.mapGtfsDaoToInternalTransitServiceBuilder(
                 gtfsDelegate.read(reader),
                 "a0",
-                new DataImportIssueStore(false)
+                new DataImportIssueStore(false),
+                null
         );
     }
 
