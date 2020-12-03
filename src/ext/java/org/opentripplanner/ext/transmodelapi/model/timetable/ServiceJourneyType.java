@@ -13,6 +13,7 @@ import graphql.schema.GraphQLTypeReference;
 import org.locationtech.jts.geom.LineString;
 import org.opentripplanner.ext.transmodelapi.model.EnumTypes;
 import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
+import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
@@ -20,6 +21,8 @@ import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.util.PolylineEncoder;
 
 import java.util.stream.Collectors;
+
+import static org.opentripplanner.ext.transmodelapi.model.EnumTypes.TRANSPORT_MODE;
 
 public class ServiceJourneyType {
   private static final String NAME = "ServiceJourney";
@@ -67,13 +70,6 @@ public class ServiceJourneyType {
 //                        .description("Whether journey is as planned, a cancellation or an extra journey. Default is as planned")
 //                        .dataFetcher(environment -> (((Trip) trip(environment)).getServiceAlteration()))
 //                        .build())
-
-            .field(GraphQLFieldDefinition.newFieldDefinition()
-                .name("transportSubmode")
-                .type(transportSubMode)
-                .description("The transport submode of the journey.")
-                .dataFetcher(environment -> ((Trip)environment.getSource()).getRoute().getMode().getNetexOutputSubmode() != null ? ((Trip)environment.getSource()).getRoute().getMode() : null)
-                .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name("publicCode")
                     .type(Scalars.GraphQLString)
@@ -204,6 +200,19 @@ public class ServiceJourneyType {
                     .description("Booking arrangements for flexible services.")
                     .type(bookingArrangementType)
                     .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("transportMode")
+                .type(TRANSPORT_MODE)
+                .dataFetcher(environment -> ((trip(environment)).getMode().getMainMode()))
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("transportSubmode")
+                .type(transportSubMode)
+                .dataFetcher(environment ->
+                    ((trip(environment))).getMode().getNetexOutputSubmode() != null
+                        ? ((trip(environment))).getMode()
+                        : null)
+                .build())
             .build();
   }
 

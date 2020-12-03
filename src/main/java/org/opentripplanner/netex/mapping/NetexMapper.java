@@ -302,7 +302,8 @@ public class NetexMapper {
                 netexIndex.getDestinationDisplayById(),
                 netexIndex.getServiceJourneyById(),
                 serviceIds,
-                deduplicator
+                deduplicator,
+                transitModeService
         );
 
         for (JourneyPattern journeyPattern : netexIndex.getJourneyPatternsById().localValues()) {
