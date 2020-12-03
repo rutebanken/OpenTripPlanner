@@ -3,6 +3,9 @@ package org.opentripplanner.routing.algorithm.raptor.transit.request;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.opentripplanner.model.*;
+import org.opentripplanner.model.modes.AllowedTransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternForDate;
 import org.opentripplanner.routing.algorithm.raptor.transit.TripPatternWithRaptorStopIndexes;
 import org.opentripplanner.routing.trippattern.Deduplicator;
@@ -30,7 +33,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
         false,
         false,
         false,
-        Set.of(TransitMode.BUS),
+        Set.of(AllowedTransitMode.fromMainModeEnum(TransitMainMode.BUS)),
         Set.of()
     );
 
@@ -47,7 +50,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
         false,
         false,
         false,
-        Set.of(TransitMode.BUS),
+        Set.of(AllowedTransitMode.fromMainModeEnum(TransitMainMode.BUS)),
         Set.of(TEST_ROUTE_ID)
     );
 
@@ -126,7 +129,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
 
   private TripPatternForDate createTestTripPatternForDate() {
     Route route = new Route(TEST_ROUTE_ID);
-    route.setMode(TransitMode.BUS);
+    route.setMode(TransitMode.fromMainModeEnum(TransitMainMode.BUS));
 
     var stopTime = new StopTime();
     stopTime.setStop(STOP_FOR_TEST);

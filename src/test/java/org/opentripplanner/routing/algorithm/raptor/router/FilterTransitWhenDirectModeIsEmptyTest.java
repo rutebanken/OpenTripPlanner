@@ -4,13 +4,15 @@ import org.junit.Test;
 import org.opentripplanner.routing.api.request.RequestModes;
 import org.opentripplanner.routing.api.request.StreetMode;
 
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class FilterTransitWhenDirectModeIsEmptyTest {
 
   @Test
   public void directModeIsExistAndIsNotWalking() {
-    var modes = new RequestModes(null,null, StreetMode.BIKE,null);
+    var modes = new RequestModes(null,null, StreetMode.BIKE, List.of());
 
     var subject = new FilterTransitWhenDirectModeIsEmpty(modes);
 
@@ -21,7 +23,7 @@ public class FilterTransitWhenDirectModeIsEmptyTest {
 
   @Test
   public void directModeIsExistAndIsWalking() {
-    var modes = new RequestModes(null,null, StreetMode.WALK,null);
+    var modes = new RequestModes(null,null, StreetMode.WALK, List.of());
 
     var subject = new FilterTransitWhenDirectModeIsEmpty(modes);
 
@@ -32,7 +34,7 @@ public class FilterTransitWhenDirectModeIsEmptyTest {
 
   @Test
   public void directModeIsEmpty() {
-    var modes = new RequestModes(null,null, null,null);
+    var modes = new RequestModes(null,null, null, List.of());
 
     var subject = new FilterTransitWhenDirectModeIsEmpty(modes);
 

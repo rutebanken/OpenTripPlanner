@@ -14,7 +14,8 @@ import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
 import org.opentripplanner.ext.transmodelapi.model.plan.JourneyWhiteListed;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.TripTimeShort;
 
 import java.util.Collection;
@@ -171,7 +172,7 @@ public class QuayType {
                         Stop stop = environment.getSource();
 
                         JourneyWhiteListed whiteListed = new JourneyWhiteListed(environment);
-                        Collection<TransitMode> transitModes = environment.getArgument("whiteListedModes");
+                        Collection<TransitMainMode> transitModes = environment.getArgument("whiteListedModes");
 
                         Long startTimeMs = environment.getArgument("startTime") == null ? 0L : environment.getArgument("startTime");
                         Long startTimeSeconds = startTimeMs / 1000;

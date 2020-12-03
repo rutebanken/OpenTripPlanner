@@ -1,5 +1,10 @@
 package org.opentripplanner.routing.algorithm;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.opentripplanner.ext.flex.FlexAccessEgress;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter;
@@ -39,12 +44,6 @@ import org.opentripplanner.transit.raptor.rangeraptor.configure.RaptorConfig;
 import org.opentripplanner.util.OTPFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Does a complete transit search, including access and egress legs.
@@ -90,6 +89,8 @@ public class RoutingWorker {
         } catch (RoutingValidationException e) {
             routingErrors.addAll(e.getRoutingErrors());
         }
+
+        this.debugTimingAggregator.finishedDirectStreetRouter();
 
         // Direct flex routing
         if (OTPFeature.FlexRouting.isOn()) {
@@ -154,7 +155,7 @@ public class RoutingWorker {
         // Prepare access/egress lists
 
         // Special handling of flex accesses
-        if (OTPFeature.FlexRouting.isOn() && request.modes.accessMode.equals(StreetMode.FLEXIBLE)) {
+        if (OTPFeature.FlexRouting.isOn() && StreetMode.FLEXIBLE.equals(request.modes.accessMode)) {
             Collection<FlexAccessEgress> flexAccessList = FlexAccessEgressRouter.routeAccessEgress(
                 request,
                 false
@@ -173,7 +174,7 @@ public class RoutingWorker {
         }
 
         // Special handling of flex egresses
-        if (OTPFeature.FlexRouting.isOn() && request.modes.egressMode.equals(StreetMode.FLEXIBLE)) {
+        if (OTPFeature.FlexRouting.isOn() && StreetMode.FLEXIBLE.equals(request.modes.egressMode)) {
             Collection<FlexAccessEgress> flexEgressList = FlexAccessEgressRouter.routeAccessEgress(
                 request,
                 true

@@ -15,7 +15,7 @@ import org.opentripplanner.graph_builder.module.osm.WayPropertySetSource.Driving
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.AllowedTransitMode;
 import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.routing.core.IntersectionTraversalCostModel;
 import org.opentripplanner.routing.core.RouteMatcher;
@@ -40,7 +40,6 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -730,8 +729,11 @@ public class RoutingRequest implements Cloneable, Serializable {
         // http://en.wikipedia.org/wiki/Speed_limit
         carSpeed = 40; // 40 m/s, 144 km/h, above the maximum (finite) driving speed limit worldwide
         // Default to walk for access/egress/direct modes and all transit modes
-        this.modes = new RequestModes(StreetMode.WALK, StreetMode.WALK, StreetMode.WALK, new HashSet<>(
-            Arrays.asList(TransitMode.values())));
+        this.modes = new RequestModes(
+            StreetMode.WALK,
+            StreetMode.WALK,
+            StreetMode.WALK,
+            new HashSet<>(AllowedTransitMode.getAllTransitModes()));
         bikeWalkingOptions = this;
 
         // So that they are never null.

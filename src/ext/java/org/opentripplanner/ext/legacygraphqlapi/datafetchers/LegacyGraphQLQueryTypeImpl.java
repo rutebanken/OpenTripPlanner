@@ -21,11 +21,12 @@ import org.opentripplanner.model.GenericLocation;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Station;
 import org.opentripplanner.model.Stop;
-import org.opentripplanner.model.TransitMode;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
 import org.opentripplanner.model.calendar.ServiceDate;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.alertpatch.TransitAlert;
 import org.opentripplanner.routing.graphfinder.NearbyStop;
@@ -268,7 +269,7 @@ public class LegacyGraphQLQueryTypeImpl
       List<TransitMode> filterByModes = args.getLegacyGraphQLFilterByModes() != null ? StreamSupport
           .stream(args.getLegacyGraphQLFilterByModes().spliterator(), false)
           .map(mode -> mode.label)
-          .map(TransitMode::valueOf)
+          .map(l -> TransitMode.fromMainModeEnum(TransitMainMode.valueOf(l)))
           .collect(Collectors.toList()) : null;
       List<PlaceType> filterByPlaceTypes =
           args.getLegacyGraphQLFilterByPlaceTypes() != null ? StreamSupport
@@ -381,7 +382,7 @@ public class LegacyGraphQLQueryTypeImpl
       if (args.getLegacyGraphQLTransportModes() != null) {
         List<TransitMode> modes = StreamSupport
                 .stream(args.getLegacyGraphQLTransportModes().spliterator(), false)
-                .map(mode -> TransitMode.valueOf(mode.label))
+                .map(mode -> TransitMode.fromMainModeEnum(TransitMainMode.valueOf(mode.label)))
                 .collect(Collectors.toList());
         routeStream = routeStream.filter(route -> modes.contains(route.getMode()));
       }
