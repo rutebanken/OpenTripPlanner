@@ -69,7 +69,7 @@ public class StopTimesMapperTest {
     }
 
     private final StopTimeMapper subject = new StopTimeMapper(
-            new StopMapper(), new TripMapper(new RouteMapper(new AgencyMapper(FEED_ID)))
+            new StopMapper(), new TripMapper(new RouteMapper(new AgencyMapper(FEED_ID), null))
     );
 
     @Test
