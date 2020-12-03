@@ -2,7 +2,7 @@ package org.opentripplanner.routing.algorithm.raptor.transit;
 
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.TripPattern;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.transit.raptor.api.transit.RaptorTripPattern;
 
 import java.util.Objects;

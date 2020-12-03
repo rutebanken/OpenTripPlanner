@@ -1,24 +1,16 @@
 package org.opentripplanner.gtfs.mapping;
 
-import org.junit.Test;
 import org.onebusaway.gtfs.model.AgencyAndId;
 import org.onebusaway.gtfs.model.Route;
 import org.onebusaway.gtfs.model.Stop;
 import org.onebusaway.gtfs.model.Transfer;
 import org.onebusaway.gtfs.model.Trip;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 public class TransferMapperTest {
     private static final String FEED_ID = "FEED";
 
-    private static final RouteMapper ROUTE_MAPPER = new RouteMapper(new AgencyMapper(FEED_ID));
+    private static final RouteMapper ROUTE_MAPPER =
+        new RouteMapper(new AgencyMapper(FEED_ID), null);
 
     private static final TripMapper TRIP_MAPPER = new TripMapper(ROUTE_MAPPER);
 
