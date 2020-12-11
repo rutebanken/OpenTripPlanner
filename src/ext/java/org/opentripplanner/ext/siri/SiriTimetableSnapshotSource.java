@@ -15,13 +15,14 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
-import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
+import org.rutebanken.netex.model.BusSubmodeEnumeration;
+import org.rutebanken.netex.model.RailSubmodeEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.ArrivalBoardingActivityEnumeration;
@@ -47,6 +48,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.opentripplanner.ext.siri.SiriTransportModeMapper.mapTransitMainMode;
 import static org.opentripplanner.ext.siri.TimetableHelper.createModifiedStopTimes;
 import static org.opentripplanner.ext.siri.TimetableHelper.createModifiedStops;
 import static org.opentripplanner.ext.siri.TimetableHelper.createUpdatedTripTimes;
@@ -639,49 +641,31 @@ public class SiriTimetableSnapshotSource implements TimetableSnapshotProvider {
         return addTripToGraphAndBuffer(feedId, graph, trip, aimedStopTimes, addedStops, tripTimes, serviceDate);
     }
 
-    /*
-     * Resolves TransportMode from SIRI VehicleMode
+    /**
+     * Resolves TransitMode from SIRI VehicleMode
      */
     private TransitMode getTransitMode(
         List<VehicleModesEnumeration> vehicleModes, Route replacedRoute
     ) {
 
-        TransitMainMode transitMainMode = resolveTransitMainMode(vehicleModes);
+        TransitMainMode transitMainMode = mapTransitMainMode(vehicleModes);
 
         String transitSubMode = resolveTransitSubMode(transitMainMode, replacedRoute);
 
         if (transitSubMode != null) {
-            return TransitModeService.getDefault().getTransitModeByNetexSubMode(transitSubMode);
+            return routingService.getTransitModeService().getTransitModeByNetexSubMode(transitSubMode);
         } else {
             return TransitMode.fromMainModeEnum(transitMainMode);
         }
     }
 
-    private TransitMainMode resolveTransitMainMode(List<VehicleModesEnumeration> vehicleModes) {
-        if (vehicleModes != null && !vehicleModes.isEmpty()) {
-            VehicleModesEnumeration vehicleModesEnumeration = vehicleModes.get(0);
-            switch (vehicleModesEnumeration) {
-                case RAIL:
-                    return TransitMainMode.RAIL;
-                case COACH:
-                    return TransitMainMode.COACH;
-                case BUS:
-                    return TransitMainMode.BUS;
-                case METRO:
-                    return TransitMainMode.SUBWAY;
-                case TRAM:
-                    return TransitMainMode.TRAM;
-                case FERRY:
-                    return TransitMainMode.FERRY;
-                case AIR:
-                    return TransitMainMode.AIRPLANE;
-            }
-        }
-        return TransitMainMode.BUS;
-    }
-
+    /**
+     * Resolves submode based on added trips's mode and replacedRoute's mode
+     * @param transitMainMode Mode of the added trip
+     * @param replacedRoute Route that is being replaced
+     * @return String-representation of submode
+     */
     private String resolveTransitSubMode(TransitMainMode transitMainMode, Route replacedRoute) {
-        String transitSubMode = null;
         if (replacedRoute != null) {
 
             TransitMode replacedRouteMode = replacedRoute.getMode();
@@ -691,15 +675,14 @@ public class SiriTimetableSnapshotSource implements TimetableSnapshotProvider {
 
                 if (transitMainMode.equals(TransitMainMode.RAIL)) {
                     // Replacement-route is also RAIL
-                    transitSubMode = "replacementRailService";
+                    return RailSubmodeEnumeration.REPLACEMENT_RAIL_SERVICE.value();
                 } else if (transitMainMode.equals(TransitMainMode.BUS)) {
                     // Replacement-route is BUS
-                    transitSubMode = "railReplacementBus";
+                    return BusSubmodeEnumeration.RAIL_REPLACEMENT_BUS.value();
                 }
-
             }
         }
-        return transitSubMode;
+        return null;
     }
 
     private boolean handleModifiedTrip(Graph graph, String feedId, EstimatedVehicleJourney estimatedVehicleJourney) {
