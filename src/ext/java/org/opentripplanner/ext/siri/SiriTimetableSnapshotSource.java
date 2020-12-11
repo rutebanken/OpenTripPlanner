@@ -15,6 +15,7 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.DateMapper;
 import org.opentripplanner.routing.algorithm.raptor.transit.mappers.TransitLayerUpdater;
@@ -467,7 +468,7 @@ public class SiriTimetableSnapshotSource implements TimetableSnapshotProvider {
 
         if (route == null) { // Route is unknown - create new
             route = new Route(routeId);
-            route.setMode(getRouteType(estimatedVehicleJourney.getVehicleModes()));
+            route.setMode(getTransitMode(estimatedVehicleJourney.getVehicleModes(), replacedRoute));
 //            route.setOperator(operator);
 
             // TODO - SIRI: Is there a better way to find authority/Agency?
@@ -488,23 +489,6 @@ public class SiriTimetableSnapshotSource implements TimetableSnapshotProvider {
 
         Trip trip = new Trip(tripId);
         trip.setRoute(route);
-
-        // TODO - SIRI: Set transport-submode based on replaced- and replacement-route
-/*        if (replacedRoute != null) {
-
-            int routeType = RouteTypeMapper.mapToApi(route.getMode());
-            int replacedRouteType = RouteTypeMapper.mapToApi(replacedRoute.getMode());
-
-            if (replacedRouteType >= 100 && replacedRouteType < 200) { // Replaced-route is RAIL
-                if (routeType == 100) {
-                    // Replacement-route is also RAIL
-//                    trip.setTransportSubmode(TransmodelTransportSubmode.REPLACEMENT_RAIL_SERVICE);
-                } else if (routeType == 700) {
-                    // Replacement-route is BUS
-//                    trip.setTransportSubmode(TransmodelTransportSubmode.RAIL_REPLACEMENT_BUS);
-//                }
-//            }
-//        }*/
 
         trip.setServiceId(serviceId);
 
@@ -658,27 +642,64 @@ public class SiriTimetableSnapshotSource implements TimetableSnapshotProvider {
     /*
      * Resolves TransportMode from SIRI VehicleMode
      */
-    private TransitMode getRouteType(List<VehicleModesEnumeration> vehicleModes) {
+    private TransitMode getTransitMode(
+        List<VehicleModesEnumeration> vehicleModes, Route replacedRoute
+    ) {
+
+        TransitMainMode transitMainMode = resolveTransitMainMode(vehicleModes);
+
+        String transitSubMode = resolveTransitSubMode(transitMainMode, replacedRoute);
+
+        if (transitSubMode != null) {
+            return TransitModeService.getDefault().getTransitModeByNetexSubMode(transitSubMode);
+        } else {
+            return TransitMode.fromMainModeEnum(transitMainMode);
+        }
+    }
+
+    private TransitMainMode resolveTransitMainMode(List<VehicleModesEnumeration> vehicleModes) {
         if (vehicleModes != null && !vehicleModes.isEmpty()) {
             VehicleModesEnumeration vehicleModesEnumeration = vehicleModes.get(0);
             switch (vehicleModesEnumeration) {
                 case RAIL:
-                    TransitMode.fromMainModeEnum(TransitMainMode.RAIL);
+                    return TransitMainMode.RAIL;
                 case COACH:
-                    TransitMode.fromMainModeEnum(TransitMainMode.COACH);
+                    return TransitMainMode.COACH;
                 case BUS:
-                    TransitMode.fromMainModeEnum(TransitMainMode.BUS);
+                    return TransitMainMode.BUS;
                 case METRO:
-                    TransitMode.fromMainModeEnum(TransitMainMode.SUBWAY);
+                    return TransitMainMode.SUBWAY;
                 case TRAM:
-                    TransitMode.fromMainModeEnum(TransitMainMode.TRAM);
+                    return TransitMainMode.TRAM;
                 case FERRY:
-                    TransitMode.fromMainModeEnum(TransitMainMode.FERRY);
+                    return TransitMainMode.FERRY;
                 case AIR:
-                    TransitMode.fromMainModeEnum(TransitMainMode.AIRPLANE);
+                    return TransitMainMode.AIRPLANE;
             }
         }
-        return TransitMode.fromMainModeEnum(TransitMainMode.BUS);
+        return TransitMainMode.BUS;
+    }
+
+    private String resolveTransitSubMode(TransitMainMode transitMainMode, Route replacedRoute) {
+        String transitSubMode = null;
+        if (replacedRoute != null) {
+
+            TransitMode replacedRouteMode = replacedRoute.getMode();
+
+            if (replacedRouteMode != null && replacedRouteMode.getMainMode() != null &&
+                replacedRouteMode.getMainMode().equals(TransitMainMode.RAIL)) { // Replaced-route is RAIL
+
+                if (transitMainMode.equals(TransitMainMode.RAIL)) {
+                    // Replacement-route is also RAIL
+                    transitSubMode = "replacementRailService";
+                } else if (transitMainMode.equals(TransitMainMode.BUS)) {
+                    // Replacement-route is BUS
+                    transitSubMode = "railReplacementBus";
+                }
+
+            }
+        }
+        return transitSubMode;
     }
 
     private boolean handleModifiedTrip(Graph graph, String feedId, EstimatedVehicleJourney estimatedVehicleJourney) {
