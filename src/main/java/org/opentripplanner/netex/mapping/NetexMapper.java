@@ -5,6 +5,8 @@ import org.opentripplanner.model.Route;
 import org.opentripplanner.model.ShapePoint;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Transfer;
+import org.opentripplanner.model.TripAlterationOnDate;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.netex.mapping.calendar.ServiceCalendarBuilder;
@@ -20,6 +22,7 @@ import org.rutebanken.netex.model.StopPlace;
 import org.rutebanken.netex.model.TariffZone;
 
 import java.util.Collection;
+import java.util.Map;
 
 public class NetexMapper {
 
@@ -156,12 +159,18 @@ public class NetexMapper {
                 transitBuilder.getParkings().add(parkingMapper.mapParking(netexDao.parkingById.lookupLastVersionById(parkingId)));
             }
         }
+
+        Map<String, Map<ServiceDate, TripAlterationOnDate>> alterationScheduleBySJId = DatedServiceJourneyMapper.map(
+            netexDao.datedServiceJourneyById,
+            netexDao.operatingDaysById
+        );
+
         // Create Trips
         for (JourneyPattern journeyPattern : netexDao.journeyPatternsById.values()) {
             tripPatternMapper.mapTripPattern(
                     journeyPattern,
                     serviceCalendarBuilder.serviceIdByServiceJourneyId(),
-                    serviceCalendarBuilder.tripServiceAlterationsBySJId(),
+                    alterationScheduleBySJId,
                     transitBuilder,
                     netexDao,
                     defaultFlexMaxTravelTime,

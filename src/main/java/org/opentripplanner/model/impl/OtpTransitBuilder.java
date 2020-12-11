@@ -271,16 +271,12 @@ public class OtpTransitBuilder {
         }
 
         // Remove quays
-        quaysNotInUse.forEach(q ->
-            stopsById.remove(q)
-        );
+        quaysNotInUse.forEach(stopsById::remove);
 
         LOG.info(quaysNotInUse.size() + " quays removed (expired and not in use)");
 
         // Remove stopPlaces
-        stopPlacesNotInUse.forEach(s ->
-            stopsById.remove(s)
-        );
+        stopPlacesNotInUse.forEach(stopsById::remove);
 
         LOG.info(stopPlacesNotInUse.size() + " stopPlaces removed (expired and not in use)");
 
@@ -327,10 +323,6 @@ public class OtpTransitBuilder {
             }
             catch (NumberFormatException ignore) { }
         }
-    }
-
-    private static boolean zeroOrNull(Integer id) {
-        return id == null || id == 0;
     }
 
     public void regenerateIndexes() {

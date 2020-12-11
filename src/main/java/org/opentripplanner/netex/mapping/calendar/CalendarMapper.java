@@ -2,7 +2,7 @@ package org.opentripplanner.netex.mapping.calendar;
 
 import org.glassfish.jersey.internal.util.Producer;
 import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.netex.loader.support.HierarchicalMapById;
 import org.opentripplanner.netex.loader.support.HierarchicalMultimap;
@@ -124,10 +124,10 @@ class CalendarMapper {
         return map;
     }
 
-    static Map<String, TripServiceAlteration> tripServiceAlterationsBySJId(
+    static Map<String, TripAlteration> tripServiceAlterationsBySJId(
         final HierarchicalMapById<DatedServiceJourney> datedServiceJourneyById
     ) {
-        Map<String, TripServiceAlteration> alternations = new HashMap<>();
+        Map<String, TripAlteration> alternations = new HashMap<>();
 
         for (DatedServiceJourney dsj : datedServiceJourneyById.values()) {
             var sjId = dsj.getJourneyRef().get(0).getValue().getRef();
@@ -142,7 +142,7 @@ class CalendarMapper {
                 }
             }
             else {
-                alternations.put(sjId, alt == null ? TripServiceAlteration.planned : alt);
+                alternations.put(sjId, alt == null ? TripAlteration.planned : alt);
             }
         }
         return alternations;
@@ -156,9 +156,9 @@ class CalendarMapper {
         return ref != null && operatingPeriodById.containsKey(ref.getRef());
     }
 
-    private static TripServiceAlteration mapAlterationWithDefaultPlanned(ServiceAlterationEnumeration netexValue) {
+    private static TripAlteration mapAlterationWithDefaultPlanned(ServiceAlterationEnumeration netexValue) {
         if (netexValue == null) {
-            return TripServiceAlteration.planned;
+            return TripAlteration.planned;
         }
         return TripServiceAlterationMapper.mapAlteration(netexValue);
     }

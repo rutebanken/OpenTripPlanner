@@ -15,8 +15,13 @@
  */
 package org.opentripplanner.model;
 
+import org.opentripplanner.model.calendar.ServiceDate;
+
+import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class Trip extends IdentityBean<AgencyAndId> {
 
@@ -48,8 +53,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
 
     private int wheelchairAccessible = 0;
 
-    @NotNull
-    private TripServiceAlteration serviceAlteration = TripServiceAlteration.planned;
+    private Map<ServiceDate, TripAlterationOnDate> alterations = Map.of();
 
     private List<KeyValue> keyValues;
 
@@ -85,14 +89,14 @@ public final class Trip extends IdentityBean<AgencyAndId> {
 
     private transient String replacementForTripId; //Transient to be backwards graph-compatible. Will only be used for realtime-data anyway.
 
-    public Trip() {
-    }
+    public Trip() { }
 
     public Trip(Trip obj) {
         this.id = obj.id;
         this.route = obj.route;
         this.operator = obj.operator;
         this.serviceId = obj.serviceId;
+        this.alterations = obj.alterations;
         this.tripShortName = obj.tripShortName;
         this.tripPrivateCode = obj.tripPrivateCode;
         this.tripHeadsign = obj.tripHeadsign;
@@ -104,7 +108,6 @@ public final class Trip extends IdentityBean<AgencyAndId> {
         this.tripBikesAllowed = obj.tripBikesAllowed;
         this.bikesAllowed = obj.bikesAllowed;
         this.fareId = obj.fareId;
-        this.serviceAlteration = obj.serviceAlteration;
         this.keyValues = obj.keyValues;
         this.transportSubmode = obj.transportSubmode;
         this.drtMaxTravelTime = obj.drtMaxTravelTime;
@@ -157,7 +160,7 @@ public final class Trip extends IdentityBean<AgencyAndId> {
     }
 
     public String getTripShortName() {
-        return tripPrivateCode != null && !tripPrivateCode.equals("") ? tripPrivateCode : tripPublicCode;
+        return tripPrivateCode != null && !tripPrivateCode.isEmpty() ? tripPrivateCode : tripPublicCode;
     }
 
     public void setTripShortName(String tripShortName) {
@@ -320,12 +323,34 @@ public final class Trip extends IdentityBean<AgencyAndId> {
         this.continuousDropOffMessage = continuousDropOffMessage;
     }
 
-    public TripServiceAlteration getServiceAlteration() {
-        return serviceAlteration;
+    /** @deprecated If a trip have different alterations for different service days
+     * this method returns {@code null} - there is no safe way to handle this after the
+     * introduction of dated-service-journeys. */
+    @Deprecated
+    @Nullable
+    public TripAlteration getAlteration() {
+         var list = alterations.values()
+             .stream()
+             .map(TripAlterationOnDate::getAlteration)
+             .distinct()
+             .collect(Collectors.toList());
+
+        if(list.isEmpty()) { return TripAlteration.planned; }
+        if(list.size() == 1) { return list.get(0); }
+        return null;
     }
 
-    public void setServiceAlteration(TripServiceAlteration serviceAlteration) {
-        this.serviceAlteration = serviceAlteration == null ? TripServiceAlteration.planned : serviceAlteration;
+    public TripAlteration getAlteration(ServiceDate date) {
+        TripAlterationOnDate onDate = getTripAlterationOnDate(date);
+        return onDate == null ? TripAlteration.planned : onDate.getAlteration();
+    }
+
+    public TripAlterationOnDate getTripAlterationOnDate(ServiceDate date) {
+        return alterations.get(date);
+    }
+
+    public void setAlterations(@NotNull Map<ServiceDate, TripAlterationOnDate> alterations) {
+        this.alterations = alterations;
     }
 
     public List<KeyValue> getKeyValues() {

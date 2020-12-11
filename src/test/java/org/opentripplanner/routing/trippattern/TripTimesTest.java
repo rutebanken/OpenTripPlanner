@@ -13,27 +13,28 @@
 
 package org.opentripplanner.routing.trippattern;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.Test;
+import org.opentripplanner.gtfs.BikeAccess;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.gtfs.BikeAccess;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.SimpleConcreteVertex;
 import org.opentripplanner.routing.graph.Vertex;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TripTimesTest {
     private static final AgencyAndId tripId = new AgencyAndId("agency", "testtrip");
@@ -86,14 +87,15 @@ public class TripTimesTest {
         Vertex v = new SimpleConcreteVertex(graph, "", 0.0, 0.0);
         request.setRoutingContext(graph, v, v);
         State s0 = new State(request);
+        ServiceDate anyServiceDay = new ServiceDate(1970,1,1);
 
-        assertFalse(s.tripAcceptable(s0, 0));
+        assertFalse(s.tripAcceptable(s0, 0, anyServiceDay));
 
         BikeAccess.setForTrip(trip, BikeAccess.ALLOWED);
-        assertTrue(s.tripAcceptable(s0, 0));
+        assertTrue(s.tripAcceptable(s0, 0, anyServiceDay));
 
         BikeAccess.setForTrip(trip, BikeAccess.NOT_ALLOWED);
-        assertFalse(s.tripAcceptable(s0, 0));
+        assertFalse(s.tripAcceptable(s0, 0, anyServiceDay));
     }
 
     @Test

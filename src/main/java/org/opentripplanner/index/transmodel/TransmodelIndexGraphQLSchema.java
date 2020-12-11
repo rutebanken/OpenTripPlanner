@@ -58,7 +58,7 @@ import org.opentripplanner.model.TariffZone;
 import org.opentripplanner.model.Transfer;
 import org.opentripplanner.model.TransmodelTransportSubmode;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
@@ -198,10 +198,10 @@ public class TransmodelIndexGraphQLSchema {
 
     private static GraphQLEnumType serviceAlterationEnum = GraphQLEnumType.newEnum()
             .name("ServiceAlteration")
-            .value("planned", TripServiceAlteration.planned)
-            .value("cancellation", TripServiceAlteration.cancellation)
-            .value("extraJourney", TripServiceAlteration.extraJourney)
-            .value("replaced", TripServiceAlteration.replaced)
+            .value("planned", TripAlteration.planned)
+            .value("cancellation", TripAlteration.cancellation)
+            .value("extraJourney", TripAlteration.extraJourney)
+            .value("replaced", TripAlteration.replaced)
             .build();
 
     private static GraphQLEnumType modeEnum = GraphQLEnumType.newEnum()
@@ -2168,17 +2168,28 @@ public class TransmodelIndexGraphQLSchema {
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("activeDates")
+                        .description(
+                            "Return a list of operating/service days a ServiceJourney run "
+                            + "on. Cancellation/replaced alterations is not included."
+                        )
                         .type(new GraphQLNonNull(new GraphQLList(dateScalar)))
-                        .dataFetcher(environment -> index.graph.getCalendarService()
-                                .getServiceDatesForServiceId((((Trip) environment.getSource()).getServiceId()))
-                                .stream().map(serviceDate -> mappingUtil.serviceDateToSecondsSinceEpoch(serviceDate)).sorted().collect(Collectors.toList())
+                        .dataFetcher(environment -> index.getActiveDays(environment.getSource())
+                            .stream()
+                            .map(serviceDate -> mappingUtil.serviceDateToSecondsSinceEpoch(serviceDate))
+                            .sorted()
+                            .collect(Collectors.toList())
                         )
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("serviceAlteration")
                         .type(serviceAlterationEnum)
-                        .description("Whether journey is as planned, a cancellation or an extra journey. Default is as planned")
-                        .dataFetcher(environment -> (((Trip) environment.getSource()).getServiceAlteration()))
+                        .description("Whether journey is as planned, a cancellation, an extra journey or replaced.")
+                        .deprecate(
+                            "The service-alteration might be diffrent for each service day, so "
+                    + "this method is not always giving the correct result. This method "
+                            + "will return 'null' if there is a mix of different alterations."
+                    )
+                        .dataFetcher(environment -> ((Trip) environment.getSource()).getAlteration())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("transportSubmode")

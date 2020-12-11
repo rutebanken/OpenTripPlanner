@@ -726,7 +726,16 @@ public class GraphIndex {
      * @param includePlannedCancellations If true, planned cancelled trips will also be included (serviceAlteration=cancelled)
      * @return a sorted set of trip times, sorted on depature time.
      */
-    public Set<TripTimeShort> stopTimesForPattern(final Stop stop, final TripPattern pattern, long startTime, final int timeRange, int numberOfDepartures, boolean omitNonPickups, boolean includeRealtimeCancellations, boolean includePlannedCancellations) {
+    public Set<TripTimeShort> stopTimesForPattern(
+        final Stop stop,
+        final TripPattern pattern,
+        long startTime,
+        final int timeRange,
+        int numberOfDepartures,
+        boolean omitNonPickups,
+        boolean includeRealtimeCancellations,
+        boolean includePlannedCancellations
+    ) {
         if (pattern == null) {
             return Collections.emptySet();
         }
@@ -804,9 +813,10 @@ public class GraphIndex {
 
                         if (!includePlannedCancellations) {
                             // Check if trip has been cancelled via planned data
-                            if (omitNonPickups && triptimes.trip.getServiceAlteration().isCanceledOrReplaced()) {
-                                continue;
-                            }
+                            boolean allCanceledOrReplaced = Arrays.stream(serviceDates).allMatch(d ->
+                                triptimes.trip.getAlteration(d).isCanceledOrReplaced()
+                            );
+                            if(allCanceledOrReplaced) { continue; }
                         }
 
 
@@ -907,6 +917,11 @@ public class GraphIndex {
             ret.add(stopTimes);
         }
         return ret;
+    }
+
+    public List<ServiceDate> getActiveDays(Trip trip) {
+        Collection<ServiceDate> dates = graph.getCalendarService().getServiceDatesForServiceId(trip.getServiceId());
+        return dates.stream().filter(d -> !trip.getAlteration(d).isCanceledOrReplaced()).collect(toList());
     }
 
     /**

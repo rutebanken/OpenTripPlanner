@@ -12,7 +12,8 @@ import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlterationOnDate;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.routing.edgetype.TripPattern;
@@ -67,7 +68,7 @@ public class TripPatternMapper {
     public void mapTripPattern(
             JourneyPattern journeyPattern,
             Map<String, AgencyAndId> serviceIdsByServiceJourney,
-            Map<String, TripServiceAlteration> alternations,
+            Map<String, Map<ServiceDate, TripAlterationOnDate>> alterationScheduleBySJId,
             OtpTransitBuilder transitBuilder,
             NetexDao netexDao,
             String defaultFlexMaxTravelTime,
@@ -101,7 +102,6 @@ public class TripPatternMapper {
             }
 
             AgencyAndId serviceId = serviceIdsByServiceJourney.get(serviceJourney.getId());
-            TripServiceAlteration alternation = alternations.get(serviceJourney.getId());
 
             if(serviceId == null) {
                 throw new IllegalStateException("No service id found for SJ: " + serviceJourney.getId());
@@ -110,7 +110,7 @@ public class TripPatternMapper {
             Trip trip = tripMapper.mapServiceJourney(
                     serviceJourney,
                     serviceId,
-                    alternation,
+                    alterationScheduleBySJId.get(serviceJourney.getId()),
                     transitBuilder,
                     netexDao,
                     defaultFlexMaxTravelTime
@@ -177,14 +177,7 @@ public class TripPatternMapper {
             if (transitBuilder.getStopTimesSortedByTrip().get(trip).size() == 0) {
                 LOG.warn("Trip" + trip.getId() + " does not contain any trip times.");
             } else {
-                TripTimes tripTimes = new TripTimes(trip,
-                        transitBuilder.getStopTimesSortedByTrip().get(trip), deduplicator);
-
-                // Trip is cancelled in plan data
-                if (trip.getServiceAlteration().isCanceledOrReplaced()) {
-                    tripTimes.cancelAllStops();
-                }
-
+                TripTimes tripTimes = new TripTimes(trip, transitBuilder.getStopTimesSortedByTrip().get(trip), deduplicator);
                 tripPattern.add(tripTimes);
                 transitBuilder.getTrips().add(trip);
             }
