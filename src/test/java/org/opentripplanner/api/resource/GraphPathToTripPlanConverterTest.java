@@ -1046,7 +1046,7 @@ public class GraphPathToTripPlanConverterTest {
         assertEquals("A", legs[1].tripShortName);
         assertEquals("Alock", legs[1].tripBlockId);
         assertEquals("Street Fighting Man", legs[1].headsign);
-        assertEquals("19700101", legs[1].serviceDate);
+        assertEquals("1970-01-01", legs[1].serviceDate.asIsoString());
         assertFalse(legs[1].rentedBike);
         assertTrue(legs[1].isTransitLeg());
         assertFalse(legs[1].interlineWithPreviousLeg);
@@ -1093,7 +1093,7 @@ public class GraphPathToTripPlanConverterTest {
         assertEquals("B", legs[2].tripShortName);
         assertEquals("Block", legs[2].tripBlockId);
         assertEquals("No Expectations", legs[2].headsign);
-        assertEquals("19700101", legs[2].serviceDate);
+        assertEquals("1970-01-01", legs[2].serviceDate.asIsoString());
         assertFalse(legs[2].rentedBike);
         assertTrue(legs[2].isTransitLeg());
         assertTrue(legs[2].interlineWithPreviousLeg);
@@ -1167,7 +1167,7 @@ public class GraphPathToTripPlanConverterTest {
         assertEquals("C", legs[4].tripShortName);
         assertEquals("Clock", legs[4].tripBlockId);
         assertEquals("Handsome Molly", legs[4].headsign);
-        assertEquals("19700101", legs[4].serviceDate);
+        assertEquals("1970-01-01", legs[4].serviceDate.asIsoString());
         assertFalse(legs[4].rentedBike);
         assertTrue(legs[4].isTransitLeg());
         assertFalse(legs[4].interlineWithPreviousLeg);

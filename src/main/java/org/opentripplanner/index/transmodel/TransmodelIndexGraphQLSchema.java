@@ -49,6 +49,7 @@ import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.BookingArrangement;
 import org.opentripplanner.model.Branding;
+import org.opentripplanner.model.DatedServiceJourney;
 import org.opentripplanner.model.KeyValue;
 import org.opentripplanner.model.Notice;
 import org.opentripplanner.model.Operator;
@@ -385,6 +386,8 @@ public class TransmodelIndexGraphQLSchema {
     private GraphQLOutputType quayType = new GraphQLTypeReference("Quay");
 
     private GraphQLOutputType serviceJourneyType = new GraphQLTypeReference("ServiceJourney");
+
+    private GraphQLOutputType datedServiceJourneyType = new GraphQLTypeReference("DatedServiceJourney");
 
     private GraphQLOutputType quayAtDistance = new GraphQLTypeReference("QuayAtDistance");
 
@@ -2185,10 +2188,14 @@ public class TransmodelIndexGraphQLSchema {
                         .type(serviceAlterationEnum)
                         .description("Whether journey is as planned, a cancellation, an extra journey or replaced.")
                         .deprecate(
-                            "The service-alteration might be diffrent for each service day, so "
-                    + "this method is not always giving the correct result. This method "
+                            "The service-alteration might be different for each service day, so "
+                            + "this method is not always giving the correct result. This method "
                             + "will return 'null' if there is a mix of different alterations."
-                    )
+                        )
+                    .deprecate("After the introduction of DatedServiceJourney the 'serviceAlteration' is only"
+                        + "returned if it is the same for ALL pnanned operating dates. If the service-alteration"
+                        + " is mixed, then 'null' is returned. If a dated-service-journey exist, then use that "
+                        + "insetead.")
                         .dataFetcher(environment -> ((Trip) environment.getSource()).getAlteration())
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
@@ -2330,6 +2337,43 @@ public class TransmodelIndexGraphQLSchema {
                         .dataFetcher(environment -> (((Trip) environment.getSource()).getReplacementForTripId()))
                         .build())
                 .build();
+
+        datedServiceJourneyType = GraphQLObjectType.newObject()
+            .name("DatedServiceJourney")
+            .description("A planned vehicle journey with passengers on a given date.")
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("id")
+                .type(new GraphQLNonNull(Scalars.GraphQLID))
+                .dataFetcher(environment ->
+                    mappingUtil.toIdString(((DatedServiceJourney) environment.getSource()).getId()))
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("operatingDay")
+                .description("Return the operating/service day the ServiceJourney run on.")
+                .type(new GraphQLNonNull(dateScalar))
+                .dataFetcher(environment -> ((DatedServiceJourney) environment.getSource()).getDate())
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("serviceAlteration")
+                .type(serviceAlterationEnum)
+                .description("Whether journey is as planned, a cancellation, an extra journey or replaced.")
+                .dataFetcher(environment -> ((DatedServiceJourney) environment.getSource()).getAlteration())
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("serviceJourney")
+                .type(new GraphQLNonNull(serviceJourneyType))
+                .dataFetcher(environment -> (((DatedServiceJourney) environment.getSource()).getTrip()))
+                .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
+                .name("replacementFor")
+                .type(datedServiceJourneyType)
+                .description("The DatedServiceJourney replaced by this DSJ. This is based on planed alterations, not real-time cancelations.")
+                .dataFetcher(environment -> {
+                    var id = ((DatedServiceJourney) environment.getSource()).getReplacesId();
+                    return id == null? null : index.datedServiceJourneyForId.get(id);
+                })
+                .build())
+            .build();
 
         journeyPatternType = GraphQLObjectType.newObject()
                 .name("JourneyPattern")
@@ -3452,6 +3496,17 @@ public class TransmodelIndexGraphQLSchema {
                         })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("datedServiceJourney")
+                        .description("Get a single dated service journey based on its id")
+                        .type(datedServiceJourneyType)
+                        .argument(GraphQLArgument.newArgument()
+                            .name("id")
+                            .type(new GraphQLNonNull(Scalars.GraphQLString))
+                            .build())
+                        .dataFetcher(environment -> index.datedServiceJourneyForId
+                            .get(mappingUtil.fromIdString(environment.getArgument("id"))))
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
                                .name("bikeRentalStations")
                                .description("Get all bike rental stations")
                                .argument(GraphQLArgument.newArgument()
@@ -4091,6 +4146,18 @@ public class TransmodelIndexGraphQLSchema {
                         .description("For ride legs, the line. For non-ride legs, null.")
                         .type(lineType)
                         .dataFetcher(environment -> index.routeForId.get(((Leg) environment.getSource()).routeId))
+                        .build())
+                .field(GraphQLFieldDefinition.newFieldDefinition()
+                        .name("datedServiceJourney")
+                        .description("For ride legs, the dated service journey if it exist in planned data. If not, null.")
+                        .type(datedServiceJourneyType)
+                        .dataFetcher(environment -> {
+                            Leg leg = environment.getSource();
+                            var trip = index.tripForId.get(leg.tripId);
+                            if(trip == null) { return null; }
+                            var alt = trip.getTripAlterationOnDate(leg.serviceDate);
+                            return alt == null ? null : new DatedServiceJourney(trip, alt);
+                        })
                         .build())
                 .field(GraphQLFieldDefinition.newFieldDefinition()
                         .name("serviceJourney")

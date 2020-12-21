@@ -19,6 +19,8 @@ import org.opentripplanner.model.calendar.ServiceDate;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -349,8 +351,19 @@ public final class Trip extends IdentityBean<AgencyAndId> {
         return alterations.get(date);
     }
 
+    public Collection<TripAlterationOnDate> getTripAlterations() {
+        return alterations.values();
+    }
+
     public void setAlterations(@NotNull Map<ServiceDate, TripAlterationOnDate> alterations) {
-        this.alterations = alterations;
+        // TODO: We should use Map.of() instead of new HashMap(...),
+        //  but that fails with Kryo
+        if(alterations != null) {
+            this.alterations = new HashMap<>(alterations);
+        }
+        else if(!this.alterations.isEmpty())  {
+            this.alterations = new HashMap<>();
+        }
     }
 
     public List<KeyValue> getKeyValues() {

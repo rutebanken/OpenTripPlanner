@@ -1500,7 +1500,7 @@ public class IndexGraphQLSchema {
                 .name("activeDates")
                 .type(new GraphQLList(Scalars.GraphQLString))
                 .dataFetcher(environment -> index.getActiveDays(environment.getSource())
-                    .stream().map(ServiceDate::getAsString).collect(Collectors.toList())
+                    .stream().map(ServiceDate::toYyyyMmDd).collect(Collectors.toList())
                 )
                 .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()

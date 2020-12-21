@@ -117,7 +117,8 @@ class CalendarMapper {
 
         for (DatedServiceJourney dsj : datedServiceJourneyById.values()) {
             var sjId = dsj.getJourneyRef().get(0).getValue().getRef();
-            var date = operatingDaysById.lookup(dsj.getOperatingDayRef().getRef()).getCalendarDate();
+            var operatingDay = operatingDaysById.lookup(dsj.getOperatingDayRef().getRef());
+            var date = operatingDay.getCalendarDate();
             var serviceDate = new ServiceDate(date.toLocalDate());
             map.computeIfAbsent(sjId, k -> new HashSet<>()).add(serviceDate);
         }

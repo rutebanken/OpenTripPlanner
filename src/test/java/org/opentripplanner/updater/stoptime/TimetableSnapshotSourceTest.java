@@ -13,31 +13,22 @@
 
 package org.opentripplanner.updater.stoptime;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
-import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
-
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
+import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opentripplanner.ConstantsForTests;
+import org.opentripplanner.gtfs.GtfsContext;
+import org.opentripplanner.gtfs.GtfsContextBuilder;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.Trip;
 import org.opentripplanner.model.calendar.CalendarServiceData;
 import org.opentripplanner.model.calendar.ServiceDate;
-import org.opentripplanner.ConstantsForTests;
-import org.opentripplanner.gtfs.GtfsContext;
-import org.opentripplanner.gtfs.GtfsContextBuilder;
 import org.opentripplanner.routing.edgetype.Timetable;
 import org.opentripplanner.routing.edgetype.TimetableSnapshot;
 import org.opentripplanner.routing.edgetype.TransitBoardAlight;
@@ -50,11 +41,19 @@ import org.opentripplanner.routing.trippattern.RealTimeState;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.routing.vertextype.TransitStopDepart;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.transit.realtime.GtfsRealtime.TripDescriptor;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeEvent;
-import com.google.transit.realtime.GtfsRealtime.TripUpdate.StopTimeUpdate;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.opentripplanner.calendar.impl.CalendarServiceDataFactoryImpl.createCalendarServiceData;
+import static org.opentripplanner.gtfs.GtfsContextBuilder.contextBuilder;
 
 public class TimetableSnapshotSourceTest {
 
@@ -215,7 +214,7 @@ public class TimetableSnapshotSourceTest {
 
             tripDescriptorBuilder.setTripId(addedTripId);
             tripDescriptorBuilder.setScheduleRelationship(TripDescriptor.ScheduleRelationship.ADDED);
-            tripDescriptorBuilder.setStartDate(serviceDate.getAsString());
+            tripDescriptorBuilder.setStartDate(serviceDate.toYyyyMmDd());
 
             final Calendar calendar = serviceDate.getAsCalendar(graph.getTimeZone());
             final long midnightSecondsSinceEpoch = calendar.getTimeInMillis() / 1000;
@@ -323,7 +322,7 @@ public class TimetableSnapshotSourceTest {
 
             tripDescriptorBuilder.setTripId(modifiedTripId);
             tripDescriptorBuilder.setScheduleRelationship(TripDescriptor.ScheduleRelationship.MODIFIED);
-            tripDescriptorBuilder.setStartDate(serviceDate.getAsString());
+            tripDescriptorBuilder.setStartDate(serviceDate.toYyyyMmDd());
 
             final Calendar calendar = serviceDate.getAsCalendar(graph.getTimeZone());
             final long midnightSecondsSinceEpoch = calendar.getTimeInMillis() / 1000;
@@ -478,7 +477,7 @@ public class TimetableSnapshotSourceTest {
 
         tripDescriptorBuilder.setTripId("1.1");
         tripDescriptorBuilder.setScheduleRelationship(TripDescriptor.ScheduleRelationship.CANCELED);
-        tripDescriptorBuilder.setStartDate(previously.getAsString());
+        tripDescriptorBuilder.setStartDate(previously.toYyyyMmDd());
 
         final TripUpdate.Builder tripUpdateBuilder = TripUpdate.newBuilder();
 
