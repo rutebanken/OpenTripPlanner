@@ -38,6 +38,7 @@ public class MavenVersion implements Serializable {
     public final String describe;
     public final String commit_time;
     public final String build_time;
+    public final boolean dirty;
     
     private static MavenVersion fromProperties() {
         final String FILE = "maven-version.properties";
@@ -45,11 +46,14 @@ public class MavenVersion implements Serializable {
             Properties props = new java.util.Properties();
             InputStream in = MavenVersion.class.getClassLoader().getResourceAsStream(FILE);
             props.load(in);
-            MavenVersion version = new MavenVersion(props.getProperty("project.version"), 
-                                                    props.getProperty("git.commit.id"),
-                                                    props.getProperty("git.commit.id.describe"),
-                                                    props.getProperty("git.commit.time"),
-                                                    props.getProperty("git.build.time"));
+            MavenVersion version = new MavenVersion(
+                props.getProperty("project.version"),
+                props.getProperty("git.commit.id"),
+                props.getProperty("git.commit.id.describe"),
+                props.getProperty("git.commit.time"),
+                props.getProperty("git.build.time"),
+                props.getProperty("git.dirty")
+            );
             LOG.debug("Parsed Maven artifact version: {}", version.toStringVerbose());
             return version;
         } catch (Exception e) {
@@ -69,10 +73,10 @@ public class MavenVersion implements Serializable {
         // situation, so I am providing a 0-arg constructor with a totally different role: 
         // generating a default version when OTP encounters a problem parsing the
         // maven-version.properties file.
-        this("0.0.0-ParseFailure", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN");
+        this("0.0.0-ParseFailure", "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", "true");
     }
     
-    public MavenVersion (String version, String commit, String describe, String commit_time, String build_time) {
+    public MavenVersion (String version, String commit, String describe, String commit_time, String build_time, String dirty) {
         this.version = version;
         String [] fields = version.split("\\-");
         if (fields.length > 1)
@@ -96,10 +100,11 @@ public class MavenVersion implements Serializable {
         this.describe = describe;
         this.commit_time = commit_time;
         this.build_time = build_time;
+        this.dirty = dirty == null || Boolean.parseBoolean(dirty);
     }
     
     public long getUID() {
-        return (long) hashCode();
+        return hashCode();
     }
 
     public String toString() {
@@ -116,8 +121,12 @@ public class MavenVersion implements Serializable {
     }
 
     public String getLongVersionString() {
-        String format = "version: %s\nmajor: %s\nminor: %s\npatch: %s\nqualifier: %s\ncommit: %s\n";
-        return String.format(format, version, major, minor, incremental, qualifier, commit);
+        String format = "version: %s\nmajor: %s\nminor: %s\npatch: %s\nqualifier: %s\ncommit: %s\ndirty: %s\n";
+        return String.format(format, version, major, minor, incremental, qualifier, commit, dirty);
+    }
+
+    public String getVersionString() {
+        return String.format("%s, %s%s", version, commit, (dirty ? ", dirty" : ""));
     }
 
     public int hashCode () {

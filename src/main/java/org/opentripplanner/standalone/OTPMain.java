@@ -83,6 +83,7 @@ public class OTPMain {
             System.exit(-1);
         }
 
+        logOTPStartupAndShutdown();
         OTPMain main = new OTPMain(params);
         main.run();
         OtpStatusFile.exitStatusOk();
@@ -177,5 +178,14 @@ public class OTPMain {
      */
     public void makeGraphService () {
         graphService = new GraphService();
+    }
+
+    public static void logOTPStartupAndShutdown() {
+        // This is good when aggregating logs across multiple load balanced instances of OTP
+        // Hint: a reg-exp filter like "^OTP (START|SHUTTING)" will list nodes going up/down
+        LOG.info("OTP STARTING UP (" + MavenVersion.VERSION.getVersionString() + ")");
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->
+            LOG.info("OTP SHUTTING DOWN (" + MavenVersion.VERSION.getVersionString() + ")"))
+        );
     }
 }
