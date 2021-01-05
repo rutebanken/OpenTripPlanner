@@ -23,6 +23,7 @@ import org.opentripplanner.index.model.TripTimeShort;
 import org.opentripplanner.model.Agency;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.CalendarService;
+import org.opentripplanner.model.DatedServiceJourney;
 import org.opentripplanner.model.FeedInfo;
 import org.opentripplanner.model.IdentityBean;
 import org.opentripplanner.model.Notice;
@@ -31,6 +32,7 @@ import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.TripAlterationOnDate;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.algorithm.AStar;
@@ -112,6 +114,13 @@ public class GraphIndex {
     public final Map<AgencyAndId, Stop> stopForId = Maps.newHashMap();
     public final Map<AgencyAndId, Stop> stationForId = Maps.newHashMap();
     public final Map<AgencyAndId, Trip> tripForId = Maps.newHashMap();
+
+    /**
+     * This is a NeTEx concept. This is subject to be refactored in OTP2, but is kept
+     * as close to the NeTEx model here.
+     */
+    public final Map<AgencyAndId, DatedServiceJourney> datedServiceJourneyForId = Maps.newHashMap();
+
     public final Map<AgencyAndId, Route> routeForId = Maps.newHashMap();
     public final Map<AgencyAndId, String> serviceForId = Maps.newHashMap();
     public final Map<String, TripPattern> patternForId = Maps.newHashMap();
@@ -221,6 +230,12 @@ public class GraphIndex {
         }
         for (Route route : patternsForRoute.asMap().keySet()) {
             routeForId.put(route.getId(), route);
+        }
+
+        for (Trip trip : tripForId.values()) {
+            for (TripAlterationOnDate it : trip.getTripAlterations()) {
+                datedServiceJourneyForId.put(it.getId(), new DatedServiceJourney(trip, it));
+            }
         }
 
         noticeMap = graph.getNoticeMap();
@@ -726,7 +741,16 @@ public class GraphIndex {
      * @param includePlannedCancellations If true, planned cancelled trips will also be included (serviceAlteration=cancelled)
      * @return a sorted set of trip times, sorted on depature time.
      */
-    public Set<TripTimeShort> stopTimesForPattern(final Stop stop, final TripPattern pattern, long startTime, final int timeRange, int numberOfDepartures, boolean omitNonPickups, boolean includeRealtimeCancellations, boolean includePlannedCancellations) {
+    public Set<TripTimeShort> stopTimesForPattern(
+        final Stop stop,
+        final TripPattern pattern,
+        long startTime,
+        final int timeRange,
+        int numberOfDepartures,
+        boolean omitNonPickups,
+        boolean includeRealtimeCancellations,
+        boolean includePlannedCancellations
+    ) {
         if (pattern == null) {
             return Collections.emptySet();
         }
@@ -804,9 +828,10 @@ public class GraphIndex {
 
                         if (!includePlannedCancellations) {
                             // Check if trip has been cancelled via planned data
-                            if (omitNonPickups && triptimes.trip.getServiceAlteration().isCanceledOrReplaced()) {
-                                continue;
-                            }
+                            boolean allCanceledOrReplaced = Arrays.stream(serviceDates).allMatch(d ->
+                                triptimes.trip.getAlteration(d).isCanceledOrReplaced()
+                            );
+                            if(allCanceledOrReplaced) { continue; }
                         }
 
 
@@ -907,6 +932,11 @@ public class GraphIndex {
             ret.add(stopTimes);
         }
         return ret;
+    }
+
+    public List<ServiceDate> getActiveDays(Trip trip) {
+        Collection<ServiceDate> dates = graph.getCalendarService().getServiceDatesForServiceId(trip.getServiceId());
+        return dates.stream().filter(d -> !trip.getAlteration(d).isCanceledOrReplaced()).collect(toList());
     }
 
     /**

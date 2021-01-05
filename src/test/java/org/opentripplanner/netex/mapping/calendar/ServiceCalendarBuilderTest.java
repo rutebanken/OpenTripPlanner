@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.ServiceCalendarDate;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.netex.mapping.AgencyAndIdFactory;
 import org.rutebanken.netex.model.DayTypeRefStructure;
@@ -82,7 +82,7 @@ public class ServiceCalendarBuilderTest {
 
     builder.pushCache();
     builder.buildCalendar(netexDaoLvl2A);
-    assertEquals(TripServiceAlteration.planned , builder.tripServiceAlterationsBySJId().get(SJ_2));
+    assertEquals(TripAlteration.planned , builder.tripServiceAlterationsBySJId().get(SJ_2));
     builder.popCache();
     builder.pushCache();
     builder.buildCalendar(netexDaoLvl2B);

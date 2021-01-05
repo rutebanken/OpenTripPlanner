@@ -21,6 +21,7 @@ import org.opentripplanner.gtfs.BikeAccess;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.core.RoutingRequest;
 import org.opentripplanner.routing.core.ServiceDay;
 import org.opentripplanner.routing.core.State;
@@ -641,7 +642,9 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
      * trip fits other restrictive search criteria such as bicycle and wheelchair accessibility
      * and transfers with minimum time or forbidden transfers.
      */
-    public boolean tripAcceptable(final State state0, final int stopIndex) {
+    public boolean tripAcceptable(
+        final State state0, final int stopIndex, final ServiceDate serviceDate
+    ) {
         final RoutingRequest options = state0.getOptions();
         final BannedStopSet banned = options.bannedTrips.get(trip.getId());
         if (banned != null && banned.contains(stopIndex)) {
@@ -656,7 +659,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
             return false;
         }
 
-        if (!options.includePlannedCancellations && trip.getServiceAlteration().isCanceledOrReplaced()) {
+        if (!options.includePlannedCancellations && trip.getAlteration(serviceDate).isCanceledOrReplaced()) {
             return false;
         }
 

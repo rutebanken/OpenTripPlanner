@@ -198,7 +198,7 @@ public class Timetable implements Serializable {
             if (tt.isCanceled()) continue;
             if ((tt.getNumStops() <= stopIndex)) continue;
             if (!serviceDay.serviceRunning(tt.serviceCode)) continue; // TODO merge into call on next line
-            if (!tt.tripAcceptable(s0, stopIndex)) continue;
+            if (!tt.tripAcceptable(s0, stopIndex, serviceDay.getServiceDate())) continue;
             if (s0.getOptions().tripIsBanned(tt.trip)) continue;
             int adjustedTime = adjustTimeForTransfer(s0, currentStop, tt.trip, boarding, serviceDay, time);
             if (adjustedTime == -1) continue;
@@ -238,7 +238,7 @@ public class Timetable implements Serializable {
             TripTimes tt = freq.tripTimes;
             if (tt.isCanceled()) continue;
             if (!serviceDay.serviceRunning(tt.serviceCode)) continue; // TODO merge into call on next line
-            if (!tt.tripAcceptable(s0, stopIndex)) continue;
+            if (!tt.tripAcceptable(s0, stopIndex, serviceDay.getServiceDate())) continue;
             int adjustedTime = adjustTimeForTransfer(s0, currentStop, tt.trip, boarding, serviceDay, time);
             if (adjustedTime == -1) continue;
             LOG.debug("  running freq {}", freq);
@@ -289,7 +289,7 @@ public class Timetable implements Serializable {
         for (TripTimes tt : tripTimes) {
             if (tt.isCanceled()) continue;
             if ( ! serviceDay.serviceRunning(tt.serviceCode)) continue; // TODO merge into call on next line
-            if ( ! tt.tripAcceptable(s0, stopIndex)) continue;
+            if ( ! tt.tripAcceptable(s0, stopIndex, serviceDay.getServiceDate())) continue;
             int adjustedTime = adjustTimeForTransfer(s0, currentStop, tt.trip, boarding, serviceDay, time);
             if (adjustedTime == -1) continue;
             if (boarding) {

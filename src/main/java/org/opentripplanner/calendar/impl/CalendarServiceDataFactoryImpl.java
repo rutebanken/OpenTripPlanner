@@ -116,8 +116,10 @@ public class CalendarServiceDataFactoryImpl {
                 serviceIdTimeZone = TimeZone.getDefault();
             }
 
-            Set<ServiceDate> activeDates = getServiceDatesForServiceId(serviceId,
-                    serviceIdTimeZone);
+            Set<ServiceDate> activeDates = getServiceDatesForServiceId(
+                serviceId,
+                serviceIdTimeZone
+            );
 
             List<ServiceDate> serviceDates = new ArrayList<>(activeDates);
             Collections.sort(serviceDates);

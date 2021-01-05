@@ -86,8 +86,8 @@ public class ServiceCalendarBuilderTest {
         assertEquals(FRIDAY, result.getFriday());
         assertEquals(SATURDAY, result.getSaturday());
         assertEquals(SUNDAY, result.getSunday());
-        assertEquals(START_DATE.getAsString(), result.getStartDate().getAsString());
-        assertEquals(END_DATE.getAsString(), result.getEndDate().getAsString());
+        assertEquals(START_DATE.getAsString(), result.getStartDate().toYyyyMmDd());
+        assertEquals(END_DATE.getAsString(), result.getEndDate().toYyyyMmDd());
     }
 
     @Test

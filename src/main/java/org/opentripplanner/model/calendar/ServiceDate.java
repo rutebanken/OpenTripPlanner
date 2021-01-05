@@ -160,11 +160,16 @@ public class ServiceDate implements Serializable, Comparable<ServiceDate> {
     /**
      * @return a string in "YYYYMMDD" format
      */
-    public String getAsString() {
+    public String toYyyyMmDd() {
         String year = YEAR_FORMAT.format(this.year);
         String month = MONTH_AND_DAY_FORMAT.format(this.month);
         String day = MONTH_AND_DAY_FORMAT.format(this.day);
         return year + month + day;
+    }
+
+    /** @return a string in "YYYY-MM-DD" ISO 8601 format. */
+    public String asIsoString() {
+        return String.format("%04d-%02d-%02d", year, month, day);
     }
 
     /**

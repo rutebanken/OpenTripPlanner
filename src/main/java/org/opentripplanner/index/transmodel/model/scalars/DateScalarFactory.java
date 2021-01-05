@@ -4,6 +4,7 @@ import graphql.language.StringValue;
 import graphql.schema.Coercing;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.GraphQLScalarType;
+import org.opentripplanner.model.calendar.ServiceDate;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,7 +22,7 @@ public class DateScalarFactory {
 
     public static final String DATE_SCALAR_DESCRIPTION = "Date  using the format: " + DATE_PATTERN + ". Example: " + EXAMPLE_DATE;
 
-    private static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN);
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN);
 
     private DateScalarFactory() {
     }
@@ -37,6 +38,10 @@ public class DateScalarFactory {
                     // the original service date.
                     return ((Instant.ofEpochSecond((Long) input))).atZone(timeZone.toZoneId()).toLocalDateTime().plusHours(1).toLocalDate().format(FORMATTER);
                 }
+                else if (input instanceof ServiceDate) {
+                    return ((ServiceDate) input).toYyyyMmDd();
+                }
+
                 return null;
             }
 

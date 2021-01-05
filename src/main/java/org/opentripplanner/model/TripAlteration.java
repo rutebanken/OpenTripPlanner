@@ -1,6 +1,6 @@
 package org.opentripplanner.model;
 
-public enum TripServiceAlteration {
+public enum TripAlteration {
     cancellation,
     planned,
     extraJourney,

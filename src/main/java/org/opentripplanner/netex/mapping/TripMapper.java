@@ -4,7 +4,9 @@ import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.BookingArrangement;
 import org.opentripplanner.model.Operator;
 import org.opentripplanner.model.Trip;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
+import org.opentripplanner.model.TripAlterationOnDate;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.rutebanken.netex.model.FlexibleLine;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
+import java.util.Map;
 
 /**
  * Agency id must be added when the stop is related to a line
@@ -34,7 +37,7 @@ public class TripMapper {
     public Trip mapServiceJourney(
             ServiceJourney serviceJourney,
             AgencyAndId serviceId,
-            TripServiceAlteration alternation,
+            Map<ServiceDate, TripAlterationOnDate> alterations,
             OtpTransitBuilder transitBuilder,
             NetexDao netexDao,
             String defaultFlexMaxTravelTime
@@ -52,6 +55,7 @@ public class TripMapper {
         }
 
         trip.setServiceId(serviceId);
+        trip.setAlterations(alterations);
 
         if (serviceJourney.getPrivateCode() != null) {
             trip.setTripPrivateCode(serviceJourney.getPrivateCode().getValue());
@@ -77,11 +81,6 @@ public class TripMapper {
         }
         trip.setKeyValues(keyValueMapper.mapKeyValues(serviceJourney.getKeyList()));
         trip.setWheelchairAccessible(0); // noInformation
-
-        // The provided alternation comes from DatedServiceJourney, if it is {@code null} the service journey
-        // should also have a alternation attribute which can then be used. If both are set, they should have the
-        // same value.
-        trip.setServiceAlteration(resolveTripServiceAlteration(serviceJourney, alternation));
 
         trip.setTransportSubmode(transportModeMapper.getTransportSubmode(serviceJourney.getTransportSubmode()));
         if (trip.getTransportSubmode()==null) {
@@ -162,14 +161,14 @@ public class TripMapper {
         trip.setDrtAdvanceBookMin(defaultMinimumFlexPaddingTime);
     }
 
-    private static TripServiceAlteration resolveTripServiceAlteration(
+    private static TripAlteration resolveTripServiceAlteration(
             ServiceJourney sj,
-            TripServiceAlteration alternation
+            TripAlteration alternation
     ) {
-        TripServiceAlteration sjAlt = TripServiceAlterationMapper.mapAlteration(sj.getServiceAlteration());
+        TripAlteration sjAlt = TripServiceAlterationMapper.mapAlteration(sj.getServiceAlteration());
 
         if(alternation == null) {
-            return sjAlt == null ? TripServiceAlteration.planned : sjAlt;
+            return sjAlt == null ? TripAlteration.planned : sjAlt;
         }
         else if(sjAlt == null || sjAlt == alternation) {
             return alternation;

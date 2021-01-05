@@ -14,7 +14,6 @@ import org.opentripplanner.routing.graph.GraphIndex;
 import org.opentripplanner.routing.trippattern.TripTimes;
 import org.opentripplanner.updater.stoptime.TimetableSnapshotSource;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -66,7 +65,7 @@ public class TripTimeShortHelper {
         if (trip == null) {
             return null;
         }
-        ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
+        ServiceDate serviceDate = leg.serviceDate;
 
         List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
 
@@ -90,7 +89,7 @@ public class TripTimeShortHelper {
         if (trip == null) {
             return null;
         }
-        ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
+        ServiceDate serviceDate = leg.serviceDate;
 
         List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
 
@@ -115,8 +114,7 @@ public class TripTimeShortHelper {
             return new ArrayList<>();
         }
         Trip trip = index.tripForId.get(leg.tripId);
-        ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
-        return getTripTimesShort(trip, serviceDate);
+        return getTripTimesShort(trip, leg.serviceDate);
     }
 
     /**
@@ -128,7 +126,7 @@ public class TripTimeShortHelper {
         if (trip == null) {
             return new ArrayList<>();
         }
-        ServiceDate serviceDate = parseServiceDate(leg.serviceDate);
+        ServiceDate serviceDate = leg.serviceDate;
 
         List<TripTimeShort> tripTimes = getTripTimesShort(trip, serviceDate);
         List<TripTimeShort> filteredTripTimes = new ArrayList<>();
@@ -154,17 +152,6 @@ public class TripTimeShortHelper {
         }
 
         return filteredTripTimes;
-    }
-
-
-    private ServiceDate parseServiceDate(String serviceDateString) {
-        ServiceDate serviceDate;
-        try {
-            serviceDate = ServiceDate.parseString(serviceDateString);
-        } catch (ParseException pe) {
-            throw new RuntimeException("Unparsable service date: " + serviceDateString, pe);
-        }
-        return serviceDate;
     }
 
     private boolean matchesQuayOrSiblingQuay(AgencyAndId quayId, AgencyAndId candidate) {

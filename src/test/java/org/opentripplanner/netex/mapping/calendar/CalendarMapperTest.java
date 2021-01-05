@@ -3,7 +3,7 @@ package org.opentripplanner.netex.mapping.calendar;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opentripplanner.model.AgencyAndId;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.netex.loader.support.HierarchicalMapById;
 import org.opentripplanner.netex.loader.support.HierarchicalMultimap;
@@ -205,12 +205,12 @@ public class CalendarMapperTest {
 
     result = CalendarMapper.tripServiceAlterationsBySJId(dsjById);
 
-    assertEquals(TripServiceAlteration.planned, result.get(SJ_1));
-    assertEquals(TripServiceAlteration.planned, result.get(SJ_2));
-    assertEquals(TripServiceAlteration.replaced, result.get(SJ_3));
-    assertEquals(TripServiceAlteration.cancellation, result.get(SJ_4));
-    assertEquals(TripServiceAlteration.extraJourney, result.get(SJ_5));
-    assertEquals(TripServiceAlteration.planned, result.get(SJ_6));
+    assertEquals(TripAlteration.planned, result.get(SJ_1));
+    assertEquals(TripAlteration.planned, result.get(SJ_2));
+    assertEquals(TripAlteration.replaced, result.get(SJ_3));
+    assertEquals(TripAlteration.cancellation, result.get(SJ_4));
+    assertEquals(TripAlteration.extraJourney, result.get(SJ_5));
+    assertEquals(TripAlteration.planned, result.get(SJ_6));
   }
 
   @Test(expected = IllegalStateException.class)

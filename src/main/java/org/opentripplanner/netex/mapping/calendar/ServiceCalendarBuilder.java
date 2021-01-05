@@ -2,7 +2,7 @@ package org.opentripplanner.netex.mapping.calendar;
 
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.ServiceCalendarDate;
-import org.opentripplanner.model.TripServiceAlteration;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.netex.loader.NetexDao;
 import org.opentripplanner.netex.loader.support.HierarchicalMap;
@@ -64,7 +64,7 @@ public class ServiceCalendarBuilder {
         return calendarIdBySJId;
     }
 
-    public Map<String, TripServiceAlteration> tripServiceAlterationsBySJId() {
+    public Map<String, TripAlteration> tripServiceAlterationsBySJId() {
         return CalendarMapper.tripServiceAlterationsBySJId(netexDao.datedServiceJourneyById);
     }
 

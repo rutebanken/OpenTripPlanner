@@ -160,7 +160,9 @@ public class PatternInterlineDwell extends Edge implements OnboardEdge {
         }
 
         int boardStopIndex = options.arriveBy ? newPattern.stopPattern.size - 1 : 0;
-        if (!newTripTimes.tripAcceptable(state0, boardStopIndex)) return null;
+        if (!newTripTimes.tripAcceptable(state0, boardStopIndex, state0.getServiceDay().getServiceDate())) {
+            return null;
+        }
 
         int dwellTime = departureTime - arrivalTime;
         if (dwellTime < 0) return null;

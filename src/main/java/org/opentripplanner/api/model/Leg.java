@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.opentripplanner.api.model.alertpatch.LocalizedAlert;
 import org.opentripplanner.model.AgencyAndId;
 import org.opentripplanner.model.BookingArrangement;
+import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.Alert;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
 import org.opentripplanner.routing.core.TraverseMode;
@@ -197,7 +198,7 @@ public class Leg {
      */
     @XmlAttribute
     @JsonSerialize
-    public String serviceDate = null;
+    public ServiceDate serviceDate = null;
 
      /**
       * For transfer legs, provide additional info about the transfer

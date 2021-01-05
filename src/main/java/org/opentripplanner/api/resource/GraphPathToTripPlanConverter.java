@@ -957,7 +957,7 @@ public abstract class GraphPathToTripPlanConverter {
             leg.continuousDropOffMessage = trip.getContinuousDropOffMessage();
 
             if (serviceDay != null) {
-                leg.serviceDate = serviceDay.getServiceDate().getAsString();
+                leg.serviceDate = serviceDay.getServiceDate();
             }
 
             if (leg.headsign == null) {
