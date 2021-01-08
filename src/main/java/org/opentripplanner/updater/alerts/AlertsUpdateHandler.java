@@ -122,10 +122,19 @@ public class AlertsUpdateHandler {
                 Set<AlertPatch> alertPatches = new HashSet<>();
 
                 for (PtSituationElement sxElement : situations.getPtSituationElements()) {
-                    Pair<Set<String>, Set<AlertPatch>> alertPatchChangePair = handleAlert(sxElement);
-                    if (alertPatchChangePair != null) {
-                        idsToExpire.addAll(alertPatchChangePair.getLeft());
-                        alertPatches.addAll(alertPatchChangePair.getRight());
+                    try {
+                        Pair<Set<String>, Set<AlertPatch>> alertPatchChangePair = handleAlert(
+                            sxElement);
+
+                        if (alertPatchChangePair != null) {
+                            idsToExpire.addAll(alertPatchChangePair.getLeft());
+                            alertPatches.addAll(alertPatchChangePair.getRight());
+                        }
+                    } catch (Throwable t) {
+                        // If handleAlert fails for a single situation because of content, the
+                        // rest of the situations should still be handled
+                        String situationNumber = sxElement.getSituationNumber() != null ? sxElement.getSituationNumber().getValue():null;
+                        log.warn("Handling alert with situationNumber [{}] failed.", situationNumber, t);
                     }
                 }
 
