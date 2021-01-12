@@ -6,6 +6,7 @@ import org.opentripplanner.model.impl.EntityById;
 import org.opentripplanner.netex.index.api.NetexEntityIndexReadOnlyView;
 import org.opentripplanner.netex.mapping.support.FeedScopedIdFactory;
 import org.opentripplanner.model.modes.TransitModeService;
+import org.rutebanken.netex.model.FlexibleLine_VersionStructure;
 import org.rutebanken.netex.model.Line_VersionStructure;
 import org.rutebanken.netex.model.Network;
 import org.rutebanken.netex.model.OperatorRefStructure;
@@ -62,6 +63,11 @@ class RouteMapper {
                 line.getTransportSubmode()
             )
         );
+        if (line instanceof FlexibleLine_VersionStructure) {
+            otpRoute.setFlexibleLineType(((FlexibleLine_VersionStructure) line)
+                .getFlexibleLineType().value());
+        }
+
         if (line.getPresentation() != null) {
             PresentationStructure presentation = line.getPresentation();
             if (presentation.getColour() != null) {
