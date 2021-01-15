@@ -209,7 +209,7 @@ public class SerializedGraphObject implements Serializable {
             Graph graph = serObj.graph;
             LOG.debug("Graph read.");
             if (graph.graphVersionMismatch()) {
-                throw new RuntimeException("Graph version mismatch detected.");
+                //0throw new RuntimeException("Graph version mismatch detected.");
             }
             serObj.reconstructEdgeLists();
             LOG.info("Graph read. |V|={} |E|={}", graph.countVertices(), graph.countEdges());
