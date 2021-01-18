@@ -89,9 +89,9 @@ public class LegType {
             .description("The transport sub mode (e.g., localBus or expressBus) used when traversing this leg. Null if leg is not a ride")
             .type(transportSubMode)
             .dataFetcher(environment ->
-                ((Leg) environment.getSource()).getRoute() != null &&
-                    ((Leg) environment.getSource()).getRoute().getMode().getNetexOutputSubmode() != null
-                    ? ((Leg) environment.getSource()).getRoute().getMode()
+                ((Leg) environment.getSource()).getTrip() != null &&
+                    ((Leg) environment.getSource()).getTrip().getMode().getNetexOutputSubmode() != null
+                    ? ((Leg) environment.getSource()).getTrip().getMode()
                     : null
             )
             .build())
