@@ -63,15 +63,10 @@ class ModeInputType {
   private static GraphQLInputObjectType createTransportModeInputType(GraphQLEnumType transportSubMode) {
     return GraphQLInputObjectType
       .newInputObject()
-      .name("transportModes")
+      .name("TransportModes")
       .field(GraphQLInputObjectField
           .newInputObjectField()
           .name("transportMode")
-          .defaultValue(List.of())
-          .description("The allowed modes for the transit part of the trip. Use an empty list "
-              + "to disallow transit for this search. If the element is not present or null, "
-              + "it will default to an empty list.")
-          .type(new GraphQLList(TRANSPORT_MODE))
           .description("A transportMode that should be allowed for this search. You can further"
               + "narrow it down by specifying a list of transportSubModes")
           .type(TRANSPORT_MODE)
