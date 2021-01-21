@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.algorithm;
 
 import org.opentripplanner.ext.flex.FlexAccessEgress;
+import org.opentripplanner.ext.flex.FlexRouter;
 import org.opentripplanner.model.plan.Itinerary;
 import org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter;
 import org.opentripplanner.routing.algorithm.mapping.RaptorPathToItineraryMapper;
@@ -82,6 +83,8 @@ public class RoutingWorker {
             routingErrors.addAll(e.getRoutingErrors());
         }
 
+        this.debugAggregator.finishedDirectStreetRouter();
+
         // Direct flex routing
         if (OTPFeature.FlexRouting.isOn()) {
             try {
@@ -91,8 +94,6 @@ public class RoutingWorker {
                 routingErrors.addAll(e.getRoutingErrors());
             }
         }
-
-        this.debugAggregator.finishedDirectStreetRouter();
 
         // Transit routing
         try {
@@ -150,7 +151,7 @@ public class RoutingWorker {
         // Prepare access/egress lists
 
         // Special handling of flex accesses
-        if (OTPFeature.FlexRouting.isOn() && request.modes.accessMode.equals(StreetMode.FLEXIBLE)) {
+        if (OTPFeature.FlexRouting.isOn() && StreetMode.FLEXIBLE.equals(request.modes.accessMode)) {
             Collection<FlexAccessEgress> flexAccessList = FlexAccessEgressRouter.routeAccessEgress(
                 request,
                 false
@@ -169,7 +170,7 @@ public class RoutingWorker {
         }
 
         // Special handling of flex egresses
-        if (OTPFeature.FlexRouting.isOn() && request.modes.egressMode.equals(StreetMode.FLEXIBLE)) {
+        if (OTPFeature.FlexRouting.isOn() && StreetMode.FLEXIBLE.equals(request.modes.egressMode)) {
             Collection<FlexAccessEgress> flexEgressList = FlexAccessEgressRouter.routeAccessEgress(
                 request,
                 true
