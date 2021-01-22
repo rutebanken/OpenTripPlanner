@@ -3,6 +3,8 @@ package org.opentripplanner.model;
 
 import org.opentripplanner.model.calendar.ServiceDate;
 
+import javax.annotation.Nullable;
+
 /**
  * A Netex DatedServiceJourney(DSJ) plays not role in the internal OTP model, but is used by the
  * TransModel API. This class is a composition of {@link Trip} and {@link TripAlterationOnDate},
@@ -36,7 +38,8 @@ public class DatedServiceJourney {
     return alteration.getDate();
   }
 
+  @Nullable
   public AgencyAndId getReplacesId() {
-    return alteration.getReplaces().getId();
+    return alteration.getReplaces() == null ? null : alteration.getReplaces().getId();
   }
 }

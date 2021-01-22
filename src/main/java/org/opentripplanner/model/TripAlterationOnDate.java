@@ -2,6 +2,7 @@ package org.opentripplanner.model;
 
 import org.opentripplanner.model.calendar.ServiceDate;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 
 
@@ -50,6 +51,7 @@ public class TripAlterationOnDate extends IdentityBean<AgencyAndId> {
     return date;
   }
 
+  @Nullable
   public TripAlterationOnDate getReplaces() {
     return replaces;
   }
