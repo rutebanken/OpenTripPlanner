@@ -111,6 +111,18 @@ public final class Trip extends TransitEntity {
     }
 
     /**
+     * Return human friendly short info to identify the trip when mode, from/to stop and
+     * times are known. This method is meant for logging, and should not be exposed in any API.
+     */
+    public String logInfo() {
+        if(hasValue(tripShortName)) { return tripShortName; }
+        if(hasValue(routeShortName)) { return routeShortName; }
+        if(route != null && hasValue(route.getName())) { return route.getName(); }
+        if(hasValue(tripHeadsign)) { return tripHeadsign; }
+        return getId().getId();
+    }
+
+    /**
      * Internal code (non-public identifier) for the journey (e.g. train- or trip number from
      * the planners' tool). This is kept to ensure compatibility with legacy planning systems.
      * In NeTEx this maps to privateCode, there is no GTFS equivalent.
@@ -215,5 +227,9 @@ public final class Trip extends TransitEntity {
 
     public void setMode(TransitMode mode) {
         this.mode = mode.equals(getRoute().getMode()) ? null : mode;
+    }
+
+    private boolean hasValue(String text) {
+        return text != null && !text.isBlank();
     }
 }
