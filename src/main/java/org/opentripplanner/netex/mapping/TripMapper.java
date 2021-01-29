@@ -55,7 +55,10 @@ public class TripMapper {
         }
 
         trip.setServiceId(serviceId);
-        trip.setAlterations(alterations);
+        trip.setAlterations(
+            TripServiceAlterationMapper.mapAlteration(serviceJourney.getServiceAlteration()),
+            alterations
+        );
 
         if (serviceJourney.getPrivateCode() != null) {
             trip.setTripPrivateCode(serviceJourney.getPrivateCode().getValue());

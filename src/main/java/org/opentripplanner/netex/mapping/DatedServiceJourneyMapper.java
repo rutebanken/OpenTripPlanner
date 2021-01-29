@@ -9,7 +9,6 @@ import org.rutebanken.netex.model.DatedServiceJourneyRefStructure;
 import org.rutebanken.netex.model.EntityStructure;
 import org.rutebanken.netex.model.JourneyRefStructure;
 import org.rutebanken.netex.model.OperatingDay;
-import org.rutebanken.netex.model.ServiceAlterationEnumeration;
 import org.rutebanken.netex.model.ServiceJourneyRefStructure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.rutebanken.netex.model.ServiceAlterationEnumeration.PLANNED;
 
 public class DatedServiceJourneyMapper {
 
@@ -106,11 +103,6 @@ public class DatedServiceJourneyMapper {
           replaces
         )
     );
-  }
-
-  @NotNull
-  private static ServiceAlterationEnumeration alteration(@Nullable ServiceAlterationEnumeration alt) {
-    return alt == null ? PLANNED : alt;
   }
 
   private static class SjAlt {

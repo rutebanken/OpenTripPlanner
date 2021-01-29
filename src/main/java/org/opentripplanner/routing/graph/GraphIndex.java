@@ -32,6 +32,7 @@ import org.opentripplanner.model.Route;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.Trip;
+import org.opentripplanner.model.TripAlteration;
 import org.opentripplanner.model.TripAlterationOnDate;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.alertpatch.AlertPatch;
@@ -828,8 +829,11 @@ public class GraphIndex {
 
                         if (!includePlannedCancellations) {
                             // Check if trip has been cancelled via planned data
-                            boolean allCanceledOrReplaced = Arrays.stream(serviceDates).allMatch(d ->
-                                triptimes.trip.getAlteration(d).isCanceledOrReplaced()
+                            boolean allCanceledOrReplaced = Arrays.stream(serviceDates)
+                                .allMatch(d -> {
+                                    TripAlteration alteration = triptimes.trip.getAlteration(d);
+                                    return alteration == null || alteration.isCanceledOrReplaced();
+                                }
                             );
                             if(allCanceledOrReplaced) { continue; }
                         }
@@ -936,7 +940,7 @@ public class GraphIndex {
 
     public List<ServiceDate> getActiveDays(Trip trip) {
         Collection<ServiceDate> dates = graph.getCalendarService().getServiceDatesForServiceId(trip.getServiceId());
-        return dates.stream().filter(d -> !trip.getAlteration(d).isCanceledOrReplaced()).collect(toList());
+        return dates.stream().filter(trip::isRunningOnDate).collect(toList());
     }
 
     /**
