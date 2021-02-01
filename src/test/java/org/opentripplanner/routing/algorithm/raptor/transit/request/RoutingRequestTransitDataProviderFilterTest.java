@@ -29,6 +29,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     var filter = new RoutingRequestTransitDataProviderFilter(
         false,
         false,
+        false,
         Set.of(TransitMode.BUS),
         Collections.emptySet()
     );
@@ -63,6 +64,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     var filter = new RoutingRequestTransitDataProviderFilter(
         false,
         false,
+        false,
         Set.of(TransitMode.BUS),
         Set.of(TEST_ROUTE_ID)
     );
@@ -79,6 +81,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     var filter = new RoutingRequestTransitDataProviderFilter(
         false,
         false,
+        false,
         Collections.emptySet(),
         Collections.emptySet()
     );
@@ -93,6 +96,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     TripTimes tripTimes = createTestTripTimes();
 
     var filter = new RoutingRequestTransitDataProviderFilter(
+        false,
         false,
         false,
         Collections.emptySet(),
@@ -124,6 +128,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     var filter = new RoutingRequestTransitDataProviderFilter(
         true,
         false,
+        false,
         Collections.emptySet(),
         Collections.emptySet()
     );
@@ -140,6 +145,7 @@ public class RoutingRequestTransitDataProviderFilterTest {
     var filter = new RoutingRequestTransitDataProviderFilter(
         false,
         true,
+        false,
         Collections.emptySet(),
         Collections.emptySet()
     );
@@ -149,4 +155,40 @@ public class RoutingRequestTransitDataProviderFilterTest {
     assertFalse(valid);
   }
 
+  @Test
+  public void includePlannedCancellationsTest() {
+    TripTimes tripTimes1 = createTestTripTimes();
+    TripTimes tripTimes2 = createTestTripTimes();
+    tripTimes1.trip.setAlteration(TripAlteration.cancellation);
+    tripTimes2.trip.setAlteration(TripAlteration.replaced);
+
+    var filter1 = new RoutingRequestTransitDataProviderFilter(
+        false,
+        false,
+        true,
+        Collections.emptySet(),
+        Collections.emptySet()
+    );
+
+    boolean valid1 = filter1.tripTimesPredicate(tripTimes1);
+    boolean valid2 = filter1.tripTimesPredicate(tripTimes2);
+
+    assertTrue(valid1);
+    assertTrue(valid2);
+
+
+    var filter2 = new RoutingRequestTransitDataProviderFilter(
+        false,
+        false,
+        false,
+        Collections.emptySet(),
+        Collections.emptySet()
+    );
+
+    boolean valid3 = filter2.tripTimesPredicate(tripTimes1);
+    boolean valid4 = filter2.tripTimesPredicate(tripTimes2);
+
+    assertFalse(valid3);
+    assertFalse(valid4);
+  }
 }

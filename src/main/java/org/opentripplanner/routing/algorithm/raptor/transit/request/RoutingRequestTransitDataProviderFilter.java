@@ -16,6 +16,7 @@ public class RoutingRequestTransitDataProviderFilter implements TransitDataProvi
 
   private final boolean requireBikesAllowed;
   private final boolean requireWheelchairAccessible;
+  private final boolean includePlannedCancellations;
   private final Set<TransitMode> transitModes;
   private final Set<FeedScopedId> bannedRoutes;
 
@@ -23,6 +24,7 @@ public class RoutingRequestTransitDataProviderFilter implements TransitDataProvi
     this(
         request.modes.directMode == StreetMode.BIKE,
         request.wheelchairAccessible,
+        request.includePlannedCancellations,
         request.modes.transitModes,
         request.rctx.bannedRoutes
     );
@@ -41,6 +43,10 @@ public class RoutingRequestTransitDataProviderFilter implements TransitDataProvi
 
     if (requireWheelchairAccessible) {
       return tripTimes.trip.getWheelchairAccessible() == 1;
+    }
+
+    if (!includePlannedCancellations) {
+      return !tripTimes.trip.getTripAlteration().isCanceledOrReplaced();
     }
 
     return true;

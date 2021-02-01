@@ -111,10 +111,17 @@ public class TripPatternForDate {
     }
 
     public TripPatternForDate newWithFilteredTripTimes(Predicate<TripTimes> filter) {
+        // TODO It should be possible to do some form of precalculation here so that we do not
+        //      have to loop through all TripTimes every time. This adds response time to routing
+        //      requests.
         List<TripTimes> filteredTripTimes = Arrays.stream(tripTimes).filter(filter).collect(Collectors.toList());
 
         if (tripTimes.length == filteredTripTimes.size()) {
             return this;
+        }
+
+        if (filteredTripTimes.isEmpty()) {
+            return null;
         }
 
         TripTimes[] filteredTripTimesArray = new TripTimes[filteredTripTimes.size()];
