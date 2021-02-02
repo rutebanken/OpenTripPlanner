@@ -9,6 +9,7 @@ import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.api.request.StreetMode;
 import org.opentripplanner.routing.trippattern.TripTimes;
 
+import java.util.Objects;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -54,5 +55,26 @@ public class RoutingRequestTransitDataProviderFilter implements TransitDataProvi
   private <T extends TripPatternForDate> boolean transitModeIsAllowed(T tripPatternForDate) {
     TransitMode transitMode = tripPatternForDate.getTripPattern().getTransitMode();
     return transitModes.contains(transitMode);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    RoutingRequestTransitDataProviderFilter that = (RoutingRequestTransitDataProviderFilter) o;
+    return requireBikesAllowed == that.requireBikesAllowed &&
+        requireWheelchairAccessible == that.requireWheelchairAccessible &&
+        Objects.equals(transitModes, that.transitModes) &&
+        Objects.equals(bannedRoutes, that.bannedRoutes);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        requireBikesAllowed,
+        requireWheelchairAccessible,
+        transitModes,
+        bannedRoutes
+    );
   }
 }

@@ -12,7 +12,9 @@ import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -21,6 +23,10 @@ import java.util.Set;
  * based on walk speed.
  */
 public class RaptorRoutingRequestTransitData implements RaptorTransitDataProvider<TripSchedule> {
+
+
+  private static Map<TransitDataProviderFilter, List<List<TripPatternForDates>>> cache = new ConcurrentHashMap<>();
+
 
   private final TransitLayer transitLayer;
 
@@ -54,10 +60,11 @@ public class RaptorRoutingRequestTransitData implements RaptorTransitDataProvide
 
     this.transitLayer = transitLayer;
     this.startOfTime = creator.getSearchStartTime();
-    this.activeTripPatternsPerStop = creator.createTripPatternsPerStop(
-        additionalFutureSearchDays,
-        filter
-    );
+    this.activeTripPatternsPerStop =
+        cache.computeIfAbsent(
+            filter,
+            (f) -> creator.createTripPatternsPerStop(additionalFutureSearchDays, filter)
+        );
     this.transfers = creator.calculateTransferDuration(walkSpeed);
   }
 

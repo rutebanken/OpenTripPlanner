@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Does a complete transit search, including access and egress legs.
@@ -244,7 +245,8 @@ public class RoutingWorker {
     }
 
     private RaptorRoutingRequestTransitData createRequestTransitDataProvider(
-            TransitLayer transitLayer) {
+            TransitLayer transitLayer
+    ) {
         return new RaptorRoutingRequestTransitData(
                 transitLayer,
                 request.getDateTime().toInstant(),
