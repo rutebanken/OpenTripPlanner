@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+
+OTP_DEPLOYMENT_CONFIG=target/otp-deployment-config
+DOCKER_FILE=Dockerfile
+
+VERSION=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+
+echo "Checkout otp-deplyment-config in ${OTP_DEPLOYMENT_CONFIG}"
+git clone -n https://github.com/entur/otp-deployment-config.git --depth 1 ${OTP_DEPLOYMENT_CONFIG}
+
+pushd ${OTP_DEPLOYMENT_CONFIG}
+
+echo "Checkout latest version of master Dockerfile"
+git checkout master ${DOCKER_FILE}
+
+echo "Replace OTP version umber in Dockerfile"
+sed -E -i "" "s/OTP_VERSION=[\.0-9]+-entur-[0-9]+/OTP_VERSION=${VERSION}/" ${DOCKER_FILE}
+
+echo "Add and commit Dockerfile"
+git commit -m "New OTP2 Version ${VERSION}" ${DOCKER_FILE}
+
+echo "Push otp-deployment-config to GitHub"
+git push
+
+popd

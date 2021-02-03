@@ -11,23 +11,22 @@ executors:
       MAVEN_OPTS: -Xmx3G
 aliases:
   - &post_build
-    name: Trigger downstream builds
+    name: Update deployment with OTP version
     command: |
-      echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
-      echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
-      /tools/trigger_build_v2.sh "entur/otp-deployment-config.git" "master" "$(git log -1 --pretty=%B)"
+      chmod u+x update_deployment_config
+      .circleci/update_deployment_config
 jobs:
   build:
     executor: cci-toolbox-java11
     steps:
       - checkout
       - restore_cache:
-          key: dep-cache-{{ checksum "pom.xml" }}
+          key: dep-cache-otp2
       - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
       - save_cache:
           paths:
             - ~/.m2
-          key: dep-cache-{{ checksum "pom.xml" }}
+          key: dep-cache-otp2
       - run: mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy  -s /tools/m2/settings.xml -DskipTests -Dgpg.skip -DaltDeploymentRepository=snapshots::default::https://entur2.jfrog.io/entur2/libs-release-local
       - run: *post_build
 workflows:
