@@ -13,7 +13,8 @@ aliases:
   - &post_build
     name: Update deployment with OTP version
     command: |
-      chmod u+x update_deployment_config
+
+      chmod u+x .circleci/update_deployment_config
       .circleci/update_deployment_config
 jobs:
   build:
