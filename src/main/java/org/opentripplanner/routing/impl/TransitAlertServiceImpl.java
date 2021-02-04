@@ -96,8 +96,23 @@ public class TransitAlertServiceImpl implements TransitAlertService {
     }
 
     @Override
+    public Collection<TransitAlert> getStopAndDatedServiceJourneyAlerts(
+        FeedScopedId stop,
+        FeedScopedId datedServiceJourneyId
+    ) {
+        return alerts.get(new EntitySelector.StopAndDatedServiceJourney(stop, datedServiceJourneyId));
+    }
+
+    @Override
     public Collection<TransitAlert> getTripPatternAlerts(FeedScopedId pattern) {
         return alerts.get(new EntitySelector.TripPattern(pattern));
+    }
+
+    @Override
+    public Collection<TransitAlert> getDatedServiceJourneyAlerts(
+        FeedScopedId datedServiceJourneyId
+    ) {
+        return alerts.get(new EntitySelector.DatedServiceJourney(datedServiceJourneyId));
     }
 
     @Override

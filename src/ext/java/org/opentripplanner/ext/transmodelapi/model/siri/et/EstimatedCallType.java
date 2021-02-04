@@ -240,6 +240,9 @@ public class EstimatedCallType {
 
     FeedScopedId stopId = tripTimeShort.stopId;
 
+    //TODO: Dummy value - find correct DatedServiceJourney
+    FeedScopedId datedServiceJourneyId = new FeedScopedId("","");
+
     Stop stop = routingService.getStopForId(stopId);
     FeedScopedId parentStopId = stop.getParentStation().getId();
 
@@ -251,10 +254,12 @@ public class EstimatedCallType {
     allAlerts.addAll(alertPatchService.getStopAlerts(stopId));
     allAlerts.addAll(alertPatchService.getStopAndTripAlerts(stopId, tripId));
     allAlerts.addAll(alertPatchService.getStopAndRouteAlerts(stopId, routeId));
+    allAlerts.addAll(alertPatchService.getStopAndDatedServiceJourneyAlerts(stopId, datedServiceJourneyId));
     // StopPlace
     allAlerts.addAll(alertPatchService.getStopAlerts(parentStopId));
     allAlerts.addAll(alertPatchService.getStopAndTripAlerts(parentStopId, tripId));
     allAlerts.addAll(alertPatchService.getStopAndRouteAlerts(parentStopId, routeId));
+    allAlerts.addAll(alertPatchService.getStopAndDatedServiceJourneyAlerts(parentStopId, datedServiceJourneyId));
     // Trip
     allAlerts.addAll(alertPatchService.getTripAlerts(tripId));
     // Route
@@ -264,6 +269,9 @@ public class EstimatedCallType {
     allAlerts.addAll(alertPatchService.getAgencyAlerts(trip.getRoute().getAgency().getId()));
     // TripPattern
     allAlerts.addAll(alertPatchService.getTripPatternAlerts(routingService.getPatternForTrip().get(trip).getId()));
+    // DatedServiceJourney
+    allAlerts.addAll(alertPatchService.getDatedServiceJourneyAlerts(datedServiceJourneyId));
+
 
     long serviceDayMillis = 1000 * tripTimeShort.serviceDay;
     long arrivalMillis = 1000 * tripTimeShort.realtimeArrival;

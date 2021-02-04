@@ -79,6 +79,25 @@ public interface EntitySelector {
     }
   }
 
+  class DatedServiceJourney implements EntitySelector {
+    public final FeedScopedId datedServiceJourneyId;
+
+    public DatedServiceJourney(FeedScopedId datedServiceJourneyId) {this.datedServiceJourneyId = datedServiceJourneyId;}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      DatedServiceJourney trip = (DatedServiceJourney) o;
+      return datedServiceJourneyId.equals(trip.datedServiceJourneyId);
+    }
+
+    @Override
+    public int hashCode() {
+      return datedServiceJourneyId.hashCode();
+    }
+  }
+
   class TripPattern implements EntitySelector {
     public final FeedScopedId tripPatternId;
 
@@ -137,6 +156,27 @@ public interface EntitySelector {
     @Override
     public int hashCode() {
       return stopAndTrip.hashCode();
+    }
+  }
+
+  class StopAndDatedServiceJourney implements EntitySelector {
+    public final StopAndRouteOrTripKey stopAndDatedServiceJourney;
+
+    public StopAndDatedServiceJourney(FeedScopedId stopId, FeedScopedId datedServiceJourneyId) {
+      this.stopAndDatedServiceJourney = new StopAndRouteOrTripKey(stopId, datedServiceJourneyId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      StopAndDatedServiceJourney that = (StopAndDatedServiceJourney) o;
+      return stopAndDatedServiceJourney.equals(that.stopAndDatedServiceJourney);
+    }
+
+    @Override
+    public int hashCode() {
+      return stopAndDatedServiceJourney.hashCode();
     }
   }
 

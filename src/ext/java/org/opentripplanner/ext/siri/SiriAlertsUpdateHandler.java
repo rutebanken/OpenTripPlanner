@@ -25,6 +25,7 @@ import uk.org.siri.siri20.AffectedStopPointStructure;
 import uk.org.siri.siri20.AffectedVehicleJourneyStructure;
 import uk.org.siri.siri20.AffectsScopeStructure;
 import uk.org.siri.siri20.DataFrameRefStructure;
+import uk.org.siri.siri20.DatedVehicleJourneyRef;
 import uk.org.siri.siri20.DefaultedTextStructure;
 import uk.org.siri.siri20.FramedVehicleJourneyRefStructure;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
@@ -416,6 +417,39 @@ public class SiriAlertsUpdateHandler {
                             }
                             else {
                                 alert.addEntity(new EntitySelector.Trip(tripId));
+                            }
+                        }
+                    }
+
+                    final List<DatedVehicleJourneyRef> datedVehicleJourneyReves = affectedVehicleJourney.getDatedVehicleJourneyReves();
+                    if (isNotEmpty(datedVehicleJourneyReves)) {
+
+                        for (DatedVehicleJourneyRef datedVehicleJourneyRef : datedVehicleJourneyReves) {
+                            final String dsjId = datedVehicleJourneyRef.getValue();
+
+                            //TODO: Find correct DatedServiceJourney
+                            FeedScopedId datedServiceJourneyId = null;//siriFuzzyTripMatcher.getDatedServiceJourneyId(dsjId);
+
+                            if (datedServiceJourneyId != null) {
+
+                                if (!affectedStops.isEmpty()) {
+                                    for (AffectedStopPointStructure affectedStop : affectedStops) {
+                                        FeedScopedId stop = siriFuzzyTripMatcher.getStop(
+                                            affectedStop.getStopPointRef().getValue());
+                                        if (stop == null) {
+                                            stop = new FeedScopedId(feedId,
+                                                affectedStop.getStopPointRef().getValue()
+                                            );
+                                        }
+
+                                        updateStopConditions(alert, affectedStop.getStopConditions());
+
+                                        alert.addEntity(new EntitySelector.StopAndDatedServiceJourney(stop, datedServiceJourneyId));
+                                    }
+                                }
+                                else {
+                                    alert.addEntity(new EntitySelector.DatedServiceJourney(datedServiceJourneyId));
+                                }
                             }
                         }
                     }

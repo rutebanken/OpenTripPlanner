@@ -21,9 +21,15 @@ public interface TransitAlertService {
 
     Collection<TransitAlert> getAgencyAlerts(FeedScopedId agency);
 
+    Collection<TransitAlert> getDatedServiceJourneyAlerts(FeedScopedId datedServiceJourneyId);
+
     Collection<TransitAlert> getStopAndRouteAlerts(FeedScopedId stop, FeedScopedId route);
 
     Collection<TransitAlert> getStopAndTripAlerts(FeedScopedId stop, FeedScopedId trip);
+
+    Collection<TransitAlert> getStopAndDatedServiceJourneyAlerts(
+        FeedScopedId stop, FeedScopedId datedServiceJourneyId
+    );
 
     Collection<TransitAlert> getTripPatternAlerts(FeedScopedId tripPattern);
 }

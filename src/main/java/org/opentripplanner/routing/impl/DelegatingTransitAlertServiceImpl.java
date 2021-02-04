@@ -84,6 +84,17 @@ public class DelegatingTransitAlertServiceImpl implements TransitAlertService {
   }
 
   @Override
+  public Collection<TransitAlert> getDatedServiceJourneyAlerts(
+      FeedScopedId datedServiceJourneyId
+  ) {
+    return transitAlertServices
+        .stream()
+        .map(transitAlertService -> transitAlertService.getDatedServiceJourneyAlerts(datedServiceJourneyId))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public Collection<TransitAlert> getAgencyAlerts(FeedScopedId agency) {
     return transitAlertServices
         .stream()
@@ -112,6 +123,18 @@ public class DelegatingTransitAlertServiceImpl implements TransitAlertService {
         .map(transitAlertService -> transitAlertService.getStopAndTripAlerts(stop, trip))
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public Collection<TransitAlert> getStopAndDatedServiceJourneyAlerts(
+      FeedScopedId stop, FeedScopedId datedServiceJourneyId
+  ) {
+
+      return transitAlertServices
+          .stream()
+          .map(transitAlertService -> transitAlertService.getStopAndDatedServiceJourneyAlerts(stop, datedServiceJourneyId))
+          .flatMap(Collection::stream)
+          .collect(Collectors.toList());
   }
 
   @Override

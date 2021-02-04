@@ -88,6 +88,22 @@ public class PtSituationElementType {
                     })
                     .build())
             .field(GraphQLFieldDefinition.newFieldDefinition()
+                    .name("datedServiceJourneys")
+                    .type(new GraphQLNonNull(new GraphQLList(Scalars.GraphQLString)))
+                    .deprecate("Not yet supported.")
+                    .dataFetcher(environment -> {
+                      RoutingService routingService = GqlUtil.getRoutingService(environment);
+                      // TODO: Lookup DatedServiceJourney
+                      return ((TransitAlert) environment.getSource()).getEntities()
+                          .stream()
+                          .filter(EntitySelector.DatedServiceJourney.class::isInstance)
+                          .map(EntitySelector.DatedServiceJourney.class::cast)
+                          .map(entitySelector -> entitySelector.datedServiceJourneyId)
+//                          .map(datedServiceJourneyId -> routingService.getTripForId().get(datedServiceJourneyId))
+                          .collect(Collectors.toList());
+                    })
+                    .build())
+            .field(GraphQLFieldDefinition.newFieldDefinition()
                     .name("quays")
                     .type(new GraphQLNonNull(new GraphQLList(quayType)))
                     .dataFetcher(environment -> {

@@ -29,6 +29,9 @@ public class AlertToLegMapper {
         FeedScopedId fromStopId = leg.from==null ? null : leg.from.stopId;
         FeedScopedId toStopId = leg.to==null ? null : leg.to.stopId;
 
+        //TODO: Find correct DatedServiceJourney
+        FeedScopedId datedServiceJourneyId = null;
+
         if (leg.isTransitLeg()) {
             FeedScopedId routeId = leg.getRoute().getId();
             if (fromStopId != null) {
@@ -44,10 +47,28 @@ public class AlertToLegMapper {
             if (fromStopId != null) {
                 Collection<TransitAlert> alerts = getAlertsForStopAndTrip(graph, fromStopId, tripId);
                 addAlertPatchesToLeg(leg, departingStopConditions, alerts, requestedLocale, legStartTime, legEndTime);
+
+                if (datedServiceJourneyId != null) {
+                    alerts = getAlertsForStopAndDatedServiceJourney(
+                        graph,
+                        fromStopId,
+                        datedServiceJourneyId
+                    );
+                    addAlertPatchesToLeg(leg, departingStopConditions, alerts, requestedLocale, legStartTime, legEndTime);
+                }
             }
             if (toStopId != null) {
                 Collection<TransitAlert> alerts = getAlertsForStopAndTrip(graph, toStopId, tripId);
                 addAlertPatchesToLeg(leg, StopCondition.ARRIVING, alerts, requestedLocale, legStartTime, legEndTime);
+
+                if (datedServiceJourneyId != null) {
+                    alerts = getAlertsForStopAndDatedServiceJourney(
+                        graph,
+                        toStopId,
+                        datedServiceJourneyId
+                    );
+                    addAlertPatchesToLeg(leg, departingStopConditions, alerts, requestedLocale, legStartTime, legEndTime);
+                }
             }
             if (leg.intermediateStops != null) {
                 for (StopArrival visit : leg.intermediateStops) {
@@ -89,6 +110,10 @@ public class AlertToLegMapper {
 
             // trips
             patches = alertPatchService(graph).getTripAlerts(leg.getTrip().getId());
+            addAlertPatchesToLeg(leg, patches, requestedLocale, legStartTime, legEndTime);
+
+            // datedServiceJourneys
+            patches = alertPatchService(graph).getDatedServiceJourneyAlerts(datedServiceJourneyId);
             addAlertPatchesToLeg(leg, patches, requestedLocale, legStartTime, legEndTime);
 
             // route
@@ -154,6 +179,61 @@ public class AlertToLegMapper {
             //            }
         }
         return alertsForStopAndRoute;
+    }
+
+    private static Collection<TransitAlert> getAlertsForStopAndDatedServiceJourney(
+        Graph graph,
+        FeedScopedId stopId,
+        FeedScopedId datedServiceJourneyId
+    ) {
+        return getAlertsForStopAndDatedServiceJourney(graph, stopId, datedServiceJourneyId, true);
+    }
+    private static Collection<TransitAlert> getAlertsForStopAndDatedServiceJourney(
+        Graph graph,
+        FeedScopedId stopId,
+        FeedScopedId datedServiceJourneyId,
+        boolean checkParentStop
+    ) {
+
+        Stop stop = graph.index.getStopForId(stopId);
+        if (stop == null) {
+            return new ArrayList<>();
+        }
+
+        Collection<TransitAlert> alertsForStopAndDatedServiceJourney = graph.getTransitAlertService().getStopAndDatedServiceJourneyAlerts(stopId, datedServiceJourneyId);
+        if (checkParentStop) {
+            if (alertsForStopAndDatedServiceJourney == null) {
+                alertsForStopAndDatedServiceJourney = new HashSet<>();
+            }
+            if  (stop.isPartOfStation()) {
+                // Also check parent
+                Collection<TransitAlert> alerts = graph.getTransitAlertService().getStopAndDatedServiceJourneyAlerts(stop.getParentStation().getId(), datedServiceJourneyId);
+                if (alerts != null) {
+                    alertsForStopAndDatedServiceJourney.addAll(alerts);
+                }
+
+                // ...and siblings - platform may have been changed
+                for (Stop siblingStop : stop.getParentStation().getChildStops()) {
+                    if (!stop.getId().equals(siblingStop.getId())) {
+                        Collection<TransitAlert> siblingAlerts = graph.getTransitAlertService().getStopAndTripAlerts(stop.getParentStation().getId(), datedServiceJourneyId);
+                        if (siblingAlerts != null) {
+                            alertsForStopAndDatedServiceJourney.addAll(siblingAlerts);
+                        }
+                    }
+                }
+
+            }
+            // TODO SIRI: Add support for fetching alerts attached to MultiModal-stops
+            //            if (stop.getMultiModalStation() != null) {
+            //                //Also check multimodal parent
+            //                FeedScopedId multimodalStopId = new FeedScopedId(stopId.getAgencyId(), stop.getMultiModalStation());
+            //                Collection<AlertPatch> multimodalStopAlerts = graph.index.getAlertsForStopAndTrip(multimodalStopId, tripId);
+            //                if (multimodalStopAlerts != null) {
+            //                    alertsForStopAndTrip.addAll(multimodalStopAlerts);
+            //                }
+            //            }
+        }
+        return alertsForStopAndDatedServiceJourney;
     }
 
     private static Collection<TransitAlert> getAlertsForStopAndTrip(Graph graph, FeedScopedId stopId, FeedScopedId tripId) {
