@@ -428,7 +428,7 @@ public class SiriAlertsUpdateHandler {
                             final String dsjId = datedVehicleJourneyRef.getValue();
 
                             //TODO: Find correct DatedServiceJourney
-                            FeedScopedId datedServiceJourneyId = null;//siriFuzzyTripMatcher.getDatedServiceJourneyId(dsjId);
+                            FeedScopedId datedServiceJourneyId = new FeedScopedId("DUMMY", dsjId);//siriFuzzyTripMatcher.getDatedServiceJourneyId(dsjId);
 
                             if (datedServiceJourneyId != null) {
 

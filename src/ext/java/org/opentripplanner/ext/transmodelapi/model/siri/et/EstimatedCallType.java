@@ -240,8 +240,8 @@ public class EstimatedCallType {
 
     FeedScopedId stopId = tripTimeShort.stopId;
 
-    //TODO: Dummy value - find correct DatedServiceJourney
-    FeedScopedId datedServiceJourneyId = new FeedScopedId("","");
+    //TODO: Dummy values - find correct DatedServiceJourney
+    FeedScopedId datedServiceJourneyId = new FeedScopedId("DUMMY","DUMMY");
 
     Stop stop = routingService.getStopForId(stopId);
     FeedScopedId parentStopId = stop.getParentStation().getId();
