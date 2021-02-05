@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -108,11 +110,39 @@ public class TripPatternForDate {
         return tripPattern.equals(that.tripPattern) && localDate.equals(that.localDate);
     }
 
+    public TripPatternForDate newWithFilteredTripTimes(Predicate<TripTimes> filter) {
+        // TODO It should be possible to do some form of precalculation here so that we do not
+        //      have to loop through all TripTimes every time. This adds response time to routing
+        //      requests.
+        List<TripTimes> filteredTripTimes = Arrays.stream(tripTimes).filter(filter).collect(Collectors.toList());
+
+        if (tripTimes.length == filteredTripTimes.size()) {
+            return this;
+        }
+
+        if (filteredTripTimes.isEmpty()) {
+            return null;
+        }
+
+        TripTimes[] filteredTripTimesArray = new TripTimes[filteredTripTimes.size()];
+        return new FilteredTripPatternForDate(
+                tripPattern,
+                filteredTripTimes.toArray(filteredTripTimesArray),
+                localDate);
+    }
+
     @Override
     public String toString() {
         return "TripPatternForDate{" +
                 "tripPattern=" + tripPattern +
                 ", localDate=" + localDate +
                 '}';
+    }
+
+    private static class FilteredTripPatternForDate extends TripPatternForDate {
+
+        public FilteredTripPatternForDate(TripPatternWithRaptorStopIndexes tripPattern, TripTimes[] tripTimes, LocalDate localDate) {
+            super(tripPattern, tripTimes, localDate);
+        }
     }
 }

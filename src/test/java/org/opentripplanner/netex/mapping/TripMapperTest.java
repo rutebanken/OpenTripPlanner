@@ -123,14 +123,14 @@ public class TripMapperTest {
         serviceJourney1.setLineRef(LINE_REF);
 
         // Should NOT be mapped
-        assertNull(tripMapper.mapServiceJourney(serviceJourney1));
+        assertNotNull(tripMapper.mapServiceJourney(serviceJourney1));
 
         ServiceJourney serviceJourney2 = createExampleServiceJourney();
         serviceJourney2.setServiceAlteration(ServiceAlterationEnumeration.REPLACED);
         serviceJourney2.setLineRef(LINE_REF);
 
         // Should NOT be mapped
-        assertNull(tripMapper.mapServiceJourney(serviceJourney2));
+        assertNotNull(tripMapper.mapServiceJourney(serviceJourney2));
 
         ServiceJourney serviceJourney3 = createExampleServiceJourney();
         serviceJourney3.setServiceAlteration(ServiceAlterationEnumeration.PLANNED);

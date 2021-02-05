@@ -80,13 +80,6 @@ class TripMapper {
             return null;
         }
 
-        // TODO This currently skips mapping of any trips containing ServiceAlteration CANCELLATION
-        //      or REPLACED. In the future we will want to import these and allow them to be routed
-        //      on if a parameter is set. Also done in DateServiceJourneyMapper.
-        if (!isRunning(serviceJourney.getServiceAlteration())) {
-            return null;
-        }
-
         Trip trip = new Trip(idFactory.createId(serviceJourney.getId()));
 
         trip.setRoute(route);
@@ -99,6 +92,9 @@ class TripMapper {
 
         trip.setTripShortName(serviceJourney.getPublicCode());
         trip.setTripOperator(findOperator(serviceJourney));
+
+        trip.setAlteration(
+            TripServiceAlterationMapper.mapAlteration(serviceJourney.getServiceAlteration()));
 
         if (serviceJourney.getTransportMode() != null) {
             trip.setMode(transportModeMapper.map(
