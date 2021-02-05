@@ -104,6 +104,8 @@ function rebaseAndMergeExtBranch() {
     echo "Rebase '${EXT_BRANCH}' onto '${ENTUR_DEVELOP}'"
     git rebase --onto ${ENTUR_DEVELOP} HEAD~1
 
+    mvn clean test
+    echo ""
     echo ""
     echo "Push '${EXT_BRANCH}'"
     git push -f
