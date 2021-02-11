@@ -3,18 +3,19 @@ package org.opentripplanner.ext.transmodelapi.model;
 import graphql.schema.GraphQLEnumType;
 import org.opentripplanner.model.Direction;
 import org.opentripplanner.model.BookingMethod;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMainMode;
+import org.opentripplanner.model.modes.TransitMode;
+import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.plan.AbsoluteDirection;
 import org.opentripplanner.model.plan.RelativeDirection;
 import org.opentripplanner.model.plan.VertexType;
-import org.opentripplanner.routing.core.BicycleOptimizeType;
 import org.opentripplanner.routing.alertpatch.StopCondition;
-import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.api.request.StreetMode;
+import org.opentripplanner.routing.core.BicycleOptimizeType;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.trippattern.RealTimeState;
 
-import java.util.Arrays;
-import java.util.function.Function;
+import java.util.Comparator;
 
 public class EnumTypes {
     public static GraphQLEnumType WHEELCHAIR_BOARDING = GraphQLEnumType.newEnum()
@@ -139,16 +140,16 @@ public class EnumTypes {
 
     public static GraphQLEnumType TRANSPORT_MODE = GraphQLEnumType.newEnum()
             .name("TransportMode")
-            .value("air", TransitMode.AIRPLANE)
-            .value("bus", TransitMode.BUS)
-            .value("cableway", TransitMode.CABLE_CAR)
-            .value("water", TransitMode.FERRY)
-            .value("funicular", TransitMode.FUNICULAR)
-            .value("lift", TransitMode.GONDOLA)
-            .value("rail", TransitMode.RAIL)
-            .value("metro", TransitMode.SUBWAY)
-            .value("tram", TransitMode.TRAM)
-            .value("coach", TransitMode.BUS).description("NOT IMPLEMENTED")
+            .value("air", TransitMainMode.AIRPLANE)
+            .value("bus", TransitMainMode.BUS)
+            .value("cableway", TransitMainMode.CABLE_CAR)
+            .value("water", TransitMainMode.FERRY)
+            .value("funicular", TransitMainMode.FUNICULAR)
+            .value("lift", TransitMainMode.GONDOLA)
+            .value("rail", TransitMainMode.RAIL)
+            .value("metro", TransitMainMode.SUBWAY)
+            .value("tram", TransitMainMode.TRAM)
+            .value("coach", TransitMainMode.COACH)
             .value("unknown", "unknown")
             .build();
 
@@ -202,7 +203,6 @@ public class EnumTypes {
             .build();
 
 */
-    public static GraphQLEnumType TRANSPORT_SUBMODE = createEnum("TransportSubmode", TransmodelTransportSubmode.values(), (t -> t.getValue()));
     /*
 
     public static GraphQLEnumType flexibleLineTypeEnum = TransmodelIndexGraphQLSchema.createEnum("FlexibleLineType", Route.FlexibleRouteTypeEnum.values(), (t -> t.name()));
@@ -260,11 +260,15 @@ public class EnumTypes {
         return type.getCoercing().serialize(value);
     }
 
+    public static GraphQLEnumType createTransitSubModeEnum(TransitModeService transitModeService) {
 
+        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name("transportSubmode");
 
-    private static <T extends Enum> GraphQLEnumType createEnum(String name, T[] values, Function<T, String> mapping) {
-        GraphQLEnumType.Builder enumBuilder = GraphQLEnumType.newEnum().name(name);
-        Arrays.stream(values).forEach(type -> enumBuilder.value(mapping.apply(type), type));
+        transitModeService.getAllTransitModes().stream()
+            .filter(m -> m.getNetexOutputSubmode() != null)
+            .sorted(Comparator.comparing(TransitMode::getNetexOutputSubmode))
+            .forEachOrdered(m -> enumBuilder.value(m.getNetexOutputSubmode(), m, m.getDescription() + " (TransportMode: " + m.getMainMode().name() + ")"));
+
         return enumBuilder.build();
     }
 }

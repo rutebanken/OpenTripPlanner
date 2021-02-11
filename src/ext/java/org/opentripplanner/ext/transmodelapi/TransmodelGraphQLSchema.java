@@ -6,6 +6,7 @@ import graphql.relay.DefaultPageInfo;
 import graphql.relay.Relay;
 import graphql.relay.SimpleListConnection;
 import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
@@ -60,13 +61,14 @@ import org.opentripplanner.ext.transmodelapi.model.timetable.TripMetadataType;
 import org.opentripplanner.ext.transmodelapi.support.GqlUtil;
 import org.opentripplanner.model.FeedScopedId;
 import org.opentripplanner.model.Route;
-import org.opentripplanner.model.TransitMode;
+import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.routing.RoutingService;
 import org.opentripplanner.routing.alertpatch.TransitAlert;
 import org.opentripplanner.routing.api.request.RoutingRequest;
 import org.opentripplanner.routing.bike_rental.BikeRentalStation;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.error.RoutingValidationException;
+import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graphfinder.NearbyStop;
 import org.opentripplanner.routing.graphfinder.PlaceAtDistance;
 import org.opentripplanner.routing.graphfinder.PlaceType;
@@ -107,17 +109,20 @@ public class TransmodelGraphQLSchema {
 
   private final Relay relay = new Relay();
 
+  private Graph graph;
 
-  private TransmodelGraphQLSchema(RoutingRequest defaultRequest, GqlUtil gqlUtil) {
+
+  private TransmodelGraphQLSchema(RoutingRequest defaultRequest, GqlUtil gqlUtil, Graph graph) {
     this.gqlUtil = gqlUtil;
     this.routing = new DefaultRoutingRequestType(defaultRequest);
+    this.graph = graph;
   }
 
-  public static GraphQLSchema create(RoutingRequest defaultRequest, GqlUtil qglUtil) {
-    return new TransmodelGraphQLSchema(defaultRequest, qglUtil).create();
+  public static GraphQLSchema create(RoutingRequest defaultRequest, GqlUtil qglUtil, Graph graph) {
+    return new TransmodelGraphQLSchema(defaultRequest, qglUtil, graph).create();
   }
 
-    @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked")
   private GraphQLSchema create() {
     /*
     multilingualStringType, validityPeriodType, infoLinkType, bookingArrangementType, systemNoticeType,
@@ -138,6 +143,9 @@ public class TransmodelGraphQLSchema {
     GraphQLOutputType authorityType = AuthorityType.create(LineType.REF, PtSituationElementType.REF);
     GraphQLOutputType operatorType = OperatorType.create(LineType.REF, ServiceJourneyType.REF);
     GraphQLOutputType noticeType = NoticeType.create();
+    GraphQLEnumType transportSubMode = EnumTypes.createTransitSubModeEnum(
+        graph.getTransitModeService()
+     );
 
     // Stop
     GraphQLOutputType tariffZoneType = TariffZoneType.createTZ();
@@ -150,6 +158,7 @@ public class TransmodelGraphQLSchema {
         QuayType.REF,
         tariffZoneType,
         EstimatedCallType.REF,
+        transportSubMode,
         gqlUtil
     );
     GraphQLOutputType quayType = QuayType.create(
@@ -177,7 +186,8 @@ public class TransmodelGraphQLSchema {
           presentationType,
           JourneyPatternType.REF,
           ServiceJourneyType.REF,
-          PtSituationElementType.REF
+          PtSituationElementType.REF,
+          transportSubMode
       );
       GraphQLOutputType interchangeType = InterchangeType.create(lineType, ServiceJourneyType.REF);
 
@@ -203,6 +213,7 @@ public class TransmodelGraphQLSchema {
           journeyPatternType,
           estimatedCallType,
           TimetabledPassingTimeType.REF,
+          transportSubMode,
           gqlUtil
       );
 
@@ -227,12 +238,16 @@ public class TransmodelGraphQLSchema {
             estimatedCallType,
             lineType,
             serviceJourneyType,
-            ptSituationElementType
-
+            ptSituationElementType,
+            transportSubMode
         );
 
-        GraphQLFieldDefinition tripQuery = TripQuery.create(routing, tripType, gqlUtil);
-
+        GraphQLFieldDefinition tripQuery = TripQuery.create(
+            routing,
+            tripType,
+            transportSubMode,
+            gqlUtil
+        );
 
         GraphQLInputObjectType inputPlaceIds = GraphQLInputObjectType.newInputObject()
                 .name("InputPlaceIds")
@@ -1118,7 +1133,8 @@ public class TransmodelGraphQLSchema {
         GraphQLOutputType estimatedCallType,
         GraphQLOutputType lineType,
         GraphQLOutputType serviceJourneyType,
-        GraphQLOutputType ptSituationElementType
+        GraphQLOutputType ptSituationElementType,
+        GraphQLEnumType transportSubMode
     ) {
       GraphQLObjectType tripMetadataType = TripMetadataType.create(gqlUtil);
       GraphQLObjectType placeType = PlanPlaceType.create(bikeRentalStationType, quayType);
@@ -1136,6 +1152,7 @@ public class TransmodelGraphQLSchema {
           ptSituationElementType,
           placeType,
           pathGuidanceType,
+          transportSubMode,
           gqlUtil
       );
       GraphQLObjectType tripPatternType = TripPatternType.create(
