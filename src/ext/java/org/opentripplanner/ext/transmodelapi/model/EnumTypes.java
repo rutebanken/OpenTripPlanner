@@ -6,6 +6,7 @@ import org.opentripplanner.model.modes.TransitMainMode;
 import org.opentripplanner.model.modes.TransitMode;
 import org.opentripplanner.model.modes.TransitModeService;
 import org.opentripplanner.model.TripAlteration;
+import org.opentripplanner.model.BookingMethod;
 import org.opentripplanner.model.plan.AbsoluteDirection;
 import org.opentripplanner.model.plan.RelativeDirection;
 import org.opentripplanner.model.plan.VertexType;
@@ -246,6 +247,15 @@ public class EnumTypes {
             .value("clockwise", Direction.CLOCKWISE)
             .value("anticlockwise", Direction.ANTICLOCKWISE)
             .build();
+
+    public static GraphQLEnumType BOOKING_METHOD = GraphQLEnumType.newEnum()
+        .name("bookingMethodEnum")
+        .value("callDriver", BookingMethod.CALL_DRIVER)
+        .value("callOffice", BookingMethod.CALL_OFFICE)
+        .value("online", BookingMethod.ONLINE)
+        .value("phoneAtStop", BookingMethod.PHONE_AT_STOP)
+        .value("text", BookingMethod.TEXT_MESSAGE)
+        .build();
 
 
     public static GraphQLEnumType SERVICE_ALTERATION_TYPE = GraphQLEnumType.newEnum()
