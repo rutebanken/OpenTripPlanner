@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.xml.bind.JAXBElement;
+
+import org.opentripplanner.model.FlexLocationGroup;
 import org.opentripplanner.model.FlexStopLocation;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopLocation;
@@ -279,7 +281,8 @@ class StopTimesMapper {
         List<StopTime> stopTimes = result.stopTimes;
         if (stopTimes.size() == 2 && stopTimes
             .stream()
-            .allMatch(s -> s.getStop() instanceof FlexStopLocation)) {
+            .allMatch(s -> s.getStop() instanceof FlexStopLocation
+                || s.getStop() instanceof FlexLocationGroup)) {
 
             int departureTime = stopTimes.get(0).getDepartureTime();
             int arrivalTime = stopTimes.get(1).getArrivalTime();
