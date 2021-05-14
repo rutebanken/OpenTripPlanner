@@ -1426,6 +1426,15 @@ public class Timetable implements Serializable {
     // TODO maybe put this is a more appropriate place
     public void setServiceCodes(Map<AgencyAndId, Integer> serviceCodes) {
         for (TripTimes tt : this.tripTimes) {
+            if (!serviceCodes.containsKey(tt.trip.getServiceId())) {
+                LOG.warn(
+                    "Did not find service code for trip {} and route {}",
+                    tt.trip.getId(),
+                    pattern.route.getId()
+                );
+            }
+
+
             tt.serviceCode = serviceCodes.get(tt.trip.getServiceId());
         }
         // Repeated code... bad sign...
