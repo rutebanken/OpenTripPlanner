@@ -174,7 +174,8 @@ public class NetexMapper {
                     transitBuilder,
                     netexDao,
                     defaultFlexMaxTravelTime,
-                    defaultMinimumFlexPaddingTime
+                    defaultMinimumFlexPaddingTime,
+                    transitBuilder.findAllServiceIds()
             );
         }
 

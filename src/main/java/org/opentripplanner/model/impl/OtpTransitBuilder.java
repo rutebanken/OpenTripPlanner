@@ -196,7 +196,7 @@ public class OtpTransitBuilder {
     /**
      * Find all serviceIds in both CalendarServices and CalendarServiceDates.
      */
-    Set<AgencyAndId> findAllServiceIds() {
+    public Set<AgencyAndId> findAllServiceIds() {
         Set<AgencyAndId> serviceIds = new HashSet<>();
         for (ServiceCalendar calendar : getCalendars()) {
             serviceIds.add(calendar.getServiceId());

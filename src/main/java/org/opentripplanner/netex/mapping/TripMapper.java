@@ -9,6 +9,7 @@ import org.opentripplanner.model.TripAlterationOnDate;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.model.impl.OtpTransitBuilder;
 import org.opentripplanner.netex.loader.NetexDao;
+import org.opentripplanner.routing.edgetype.Timetable;
 import org.rutebanken.netex.model.FlexibleLine;
 import org.rutebanken.netex.model.FlexibleServiceProperties;
 import org.rutebanken.netex.model.JourneyPattern;
@@ -16,15 +17,21 @@ import org.rutebanken.netex.model.LineRefStructure;
 import org.rutebanken.netex.model.Line_VersionStructure;
 import org.rutebanken.netex.model.Route;
 import org.rutebanken.netex.model.ServiceJourney;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBElement;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Agency id must be added when the stop is related to a line
  */
 
 public class TripMapper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TripMapper.class);
+
     private final KeyValueMapper keyValueMapper = new KeyValueMapper();
     private final TransportModeMapper transportModeMapper = new TransportModeMapper();
     private final BookingArrangementMapper bookingArrangementMapper = new BookingArrangementMapper();
@@ -36,7 +43,8 @@ public class TripMapper {
             Map<ServiceDate, TripAlterationOnDate> alterations,
             OtpTransitBuilder transitBuilder,
             NetexDao netexDao,
-            String defaultFlexMaxTravelTime
+            String defaultFlexMaxTravelTime,
+            Set<AgencyAndId> serviceIds
     ){
 
         Line_VersionStructure line = lineFromServiceJourney(serviceJourney, netexDao);
@@ -48,6 +56,16 @@ public class TripMapper {
         if (serviceJourney.getOperatorRef() != null) {
             Operator operator = transitBuilder.getOperatorsById().get(AgencyAndIdFactory.createAgencyAndId(serviceJourney.getOperatorRef().getRef()));
             trip.setTripOperator(operator);
+        }
+
+        // This can happen if no valid days are specified
+        if (!serviceIds.contains(serviceId)) {
+            LOG.warn(
+                "Did not find service code for ServiceJourney {}. This can happen if no valid days "
+                    + "are specified.",
+                serviceJourney.getId()
+            );
+            return null;
         }
 
         trip.setServiceId(serviceId);

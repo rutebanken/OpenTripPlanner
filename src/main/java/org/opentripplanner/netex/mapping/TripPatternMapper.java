@@ -45,6 +45,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.opentripplanner.model.StopPattern.PICKDROP_COORDINATE_WITH_DRIVER;
@@ -72,7 +73,8 @@ public class TripPatternMapper {
             OtpTransitBuilder transitBuilder,
             NetexDao netexDao,
             String defaultFlexMaxTravelTime,
-            int defaultMinimumFlexPaddingTime
+            int defaultMinimumFlexPaddingTime,
+            Set<AgencyAndId> serviceIds
     ) {
         TripMapper tripMapper = new TripMapper();
 
@@ -113,8 +115,13 @@ public class TripPatternMapper {
                     alterationScheduleBySJId.get(serviceJourney.getId()),
                     transitBuilder,
                     netexDao,
-                    defaultFlexMaxTravelTime
+                    defaultFlexMaxTravelTime,
+                    serviceIds
             );
+            if (trip == null) {
+                continue;
+            }
+
             trips.add(trip);
 
             TimetabledPassingTimes_RelStructure passingTimes = serviceJourney.getPassingTimes();
