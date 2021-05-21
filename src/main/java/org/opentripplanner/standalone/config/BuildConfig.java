@@ -202,9 +202,11 @@ public class BuildConfig {
     public final boolean banDiscouragedBiking;
 
     /**
-     * Transfers up to this length in meters will be pre-calculated and included in the Graph.
+     * Transfers up to this generalized cost value will be pre-calculated and included in the Graph.
+     *
+     * Defaults to the equivalent of 45 minutes of walking (with a walkReluctance of 2).
      */
-    public final double maxTransferDistance;
+    public final double maxTransferCost;
 
     /**
      * This will add extra edges when linking a stop to a platform, to prevent detours along the platform edge.
@@ -329,7 +331,7 @@ public class BuildConfig {
         matchBusRoutesToStreets = c.asBoolean("matchBusRoutesToStreets", false);
         maxDataImportIssuesPerFile = c.asInt("maxDataImportIssuesPerFile", 1000);
         maxInterlineDistance = c.asInt("maxInterlineDistance", 200);
-        maxTransferDistance = c.asDouble("maxTransferDistance", 2000d);
+        maxTransferCost = c.asDouble("maxTransferCost", 3000d);
         multiThreadElevationCalculations = c.asBoolean("multiThreadElevationCalculations", false);
         osmCacheDataInMem = c.asBoolean("osmCacheDataInMem", false);
         osmWayPropertySet = WayPropertySetSource.fromConfig(c.asText("osmWayPropertySet", "default"));
