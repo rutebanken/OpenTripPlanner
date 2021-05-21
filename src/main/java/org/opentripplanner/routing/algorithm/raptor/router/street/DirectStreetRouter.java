@@ -66,7 +66,8 @@ public class DirectStreetRouter {
   }
 
   private static double calculateDistanceMaxLimit(RoutingRequest request) {
-    double limit = request.maxWalkDistance * 2;
+    // TODO Change this
+    double limit = request.maxDirectStreetCost * 2;
     boolean isCarRequest = request.modes.directMode == StreetMode.CAR ||
             request.modes.directMode == StreetMode.CAR_TO_PARK ||
             request.streetSubRequestModes.getCar();

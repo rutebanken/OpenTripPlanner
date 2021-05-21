@@ -42,11 +42,11 @@ public class DefaultRoutingRequestType {
                         .build())
                 .field(GraphQLFieldDefinition
                         .newFieldDefinition()
-                        .name("maxWalkDistance")
+                        .name("maxDirectStreetCost")
                         .description(
                                 "The maximum distance (in meters) the user is willing to walk for access/egress legs.")
                         .type(Scalars.GraphQLFloat)
-                        .dataFetcher(env -> request.maxWalkDistance)
+                        .dataFetcher(env -> request.maxDirectStreetCost)
                         .build())
                 .field(GraphQLFieldDefinition
                         .newFieldDefinition()

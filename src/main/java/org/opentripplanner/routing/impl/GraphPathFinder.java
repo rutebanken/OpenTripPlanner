@@ -88,17 +88,7 @@ public class GraphPathFinder {
             heuristic = new EuclideanRemainingWeightHeuristic();
         }
         options.rctx.remainingWeightHeuristic = heuristic;
-
-        /* maxWalk has a different meaning than it used to. It's the radius around the origin or destination within
-         * which you can walk on the streets. An unlimited value would cause the bidi heuristic to do unbounded street
-         * searches and consider the whole graph walkable.
-         *
-         * After the limited areas of the street network around the origin and destination are explored, the
-         * options.maxWalkDistance will be set to unlimited for similar reasons to maxTransfers above. That happens
-         * in method org.opentripplanner.routing.algorithm.astar.strategies.InterleavedBidirectionalHeuristic.initialize
-         */
-        if (options.maxWalkDistance == Double.MAX_VALUE) options.maxWalkDistance = DEFAULT_MAX_WALK;
-        if (options.maxWalkDistance > CLAMP_MAX_WALK) options.maxWalkDistance = CLAMP_MAX_WALK;
+        
         long searchBeginTime = System.currentTimeMillis();
         LOG.debug("BEGIN SEARCH");
 
