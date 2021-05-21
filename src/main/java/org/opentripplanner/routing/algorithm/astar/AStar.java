@@ -2,6 +2,7 @@ package org.opentripplanner.routing.algorithm.astar;
 
 import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.common.pqueue.BinHeap;
+import org.opentripplanner.routing.algorithm.astar.strategies.CostSearchTerminationStrategy;
 import org.opentripplanner.routing.algorithm.astar.strategies.RemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.astar.strategies.SearchTerminationStrategy;
 import org.opentripplanner.routing.algorithm.astar.strategies.SkipEdgeStrategy;
@@ -266,7 +267,8 @@ public class AStar {
                     runState.rctx.fromVertices, runState.rctx.toVertices, runState.u, runState.spt, runState.options)) {
                     break;
                 }
-            }  else if (runState.rctx.toVertices != null
+            }
+            if (runState.rctx.toVertices != null
                     && runState.rctx.toVertices.contains(runState.u_vertex)
                     && runState.u.isFinal()) {
                 runState.targetAcceptedStates.add(runState.u);

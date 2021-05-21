@@ -1,6 +1,7 @@
 package org.opentripplanner.routing.impl;
 
 import org.opentripplanner.routing.algorithm.astar.AStar;
+import org.opentripplanner.routing.algorithm.astar.strategies.CostSearchTerminationStrategy;
 import org.opentripplanner.routing.algorithm.astar.strategies.EuclideanRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.astar.strategies.RemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.astar.strategies.TrivialRemainingWeightHeuristic;
@@ -43,8 +44,6 @@ import java.util.stream.Collectors;
 public class GraphPathFinder {
 
     private static final Logger LOG = LoggerFactory.getLogger(GraphPathFinder.class);
-    private static final double DEFAULT_MAX_WALK = 2000;
-    private static final double CLAMP_MAX_WALK = 15000;
 
     Router router;
 
@@ -102,7 +101,8 @@ public class GraphPathFinder {
             return null;
         }
         // Don't dig through the SPT object, just ask the A star algorithm for the states that reached the target.
-        aStar.getShortestPathTree(options, timeout);
+        // Set the direct street cost as the limit here, since this class is used for point-to-point routing
+        aStar.getShortestPathTree(options, timeout, new CostSearchTerminationStrategy(options.maxDirectStreetCost));
 
         List<GraphPath> paths = aStar.getPathsToTarget().stream()
                 .filter(path -> {
