@@ -106,59 +106,48 @@ public class RoutingRequest implements AutoCloseable, Cloneable, Serializable {
     public List<GenericLocation> intermediatePlaces;
 
     /**
-     * This is the maximum generalized cost for a direct street search. A cost point is equivalent to
-     * a second of travel time before modifiers are applied. This is a performance limit and should
-     * therefore be set high. Use filters to limit what is presented to the client.
-     *
-     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
-     *
-     * Defaults to the equivalent of two hours of travel time for walking (with a walkReluctance
-     * of 2).
-     */
-    public double maxDirectStreetCost = 14_000.0;
-
-    /**
-     * This is the minimum generalized cost for access/egress street searches. A cost point is
-     * equivalent to a second of travel time before modifiers are applied. This is a performance
+     * This is the maximum duration in seconds for a direct street search. This is a performance
      * limit and should therefore be set high. Use filters to limit what is presented to the client.
      *
      * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
-     *
-     * The access/egress searches will always search in all directions until minAccessEgressCost
-     * cost has been reached. After that it will search until either maxAccessEgressCost or
-     * minAccessEgressStops has been reached.
-     *
-     * Defaults to the equivalent of half an hour of travel time for walking (with a walkReluctance
-     * of 2).
      */
-    public double minAccessEgressCost = 3_500.0;
+    public double maxDirectStreetDurationSeconds = Duration.ofHours(2).toSeconds();
 
     /**
-     * This is the maximum generalized cost for access/egress street searches. A cost point is
-     * equivalent to a second of travel time before modifiers are applied. This is a performance
-     * limit and should therefore be set high. Use filters to limit what is presented to the client.
+     * This is the minimum duration in seconds for access/egress street searches. This is a
+     * performance limit and should therefore be set high. Use filters to limit what is presented
+     * to the client.
      *
      * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
      *
-     * The access/egress searches will always search in all directions until minAccessEgressCost
-     * cost has been reached. After that it will search until either maxAccessEgressCost or
-     * minAccessEgressStops has been reached.
-     *
-     * Defaults to the equivalent of one hour of travel time for walking (with a walkReluctance of
-     * 2).
+     * The access/egress searches will always search in all directions until
+     * minAccessEgressDurationSeconds has been reached. After that it will search until either
+     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
      */
-    public double maxAccessEgressCost = 7_000.0;
+    public double minAccessEgressDurationSeconds = Duration.ofMinutes(20).toSeconds();
 
     /**
-     * This is the minimum generalized cost for access/egress street searches. A cost point is
-     * equivalent to a second of travel time before modifiers are applied. This is a performance
-     * limit and should therefore be set high. Use filters to limit what is presented to the client.
+     * This is the maximum duration in seconds for access/egress street searches. This is a
+     * performance limit and should therefore be set high. Use filters to limit what is presented
+     * to the client.
      *
      * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
      *
-     * The access/egress searches will always search in all directions until minAccessEgressCost
-     * cost has been reached. After that it will search until either maxAccessEgressCost or
-     * minAccessEgressStops has been reached.
+     * The access/egress searches will always search in all directions until
+     * minAccessEgressDurationSeconds has been reached. After that it will search until either
+     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
+     */
+    public double maxAccessEgressDurationSeconds = Duration.ofHours(1).toSeconds();
+
+    /**
+     * This is the minimum number of stops that has to be reached before the access/egress search
+     * terminates.
+     *
+     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
+     *
+     * The access/egress searches will always search in all directions until
+     * minAccessEgressDurationSeconds has been reached. After that it will search until either
+     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
      */
     public int minAccessEgressStops = 5;
 

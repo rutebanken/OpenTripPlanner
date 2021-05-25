@@ -58,30 +58,29 @@ public class DirectStreetRouter {
   }
 
   /**
-   * Calculates the maximum distance in meters based on the cost limit and fastest mode available.
-   * This assumes that it is not possible to exceed the maximum speed set in the RoutingRequest and
-   * that no cost modifiers allow more than 1 second of travel for each cost point.
+   * Calculates the maximum distance in meters based on the maxDirectStreetDurationSeconds and
+   * the fastest mode available. This assumes that it is not possible to exceed the speed defined
+   * in the RoutingRequest.
    */
   private static double calculateDistanceMaxLimit(RoutingRequest request) {
 
     double distanceLimit;
-    double costLimit = request.maxDirectStreetCost;
+    double durationLimit = request.maxDirectStreetDurationSeconds;
     StreetMode mode = request.modes.directMode;
 
     if (mode.includesDriving()) {
-      distanceLimit = costLimit * request.carSpeed  / request.walkReluctance;
+      distanceLimit = durationLimit * request.carSpeed;
     }
     else if (mode.includesBiking()) {
-      distanceLimit = costLimit * request.bikeSpeed  / request.walkReluctance;
+      distanceLimit = durationLimit * request.bikeSpeed;
     }
     else if (mode.includesWalking()) {
-      // Divide by walkReluctance here in order to convert cost to seconds
-      distanceLimit = costLimit * request.walkSpeed / request.walkReluctance;
+      distanceLimit = durationLimit * request.walkSpeed;
     }
     else {
       throw new IllegalStateException("Could not set max limit for StreetMode");
     }
 
-    return Double.MAX_VALUE;
+    return distanceLimit;
   }
 }

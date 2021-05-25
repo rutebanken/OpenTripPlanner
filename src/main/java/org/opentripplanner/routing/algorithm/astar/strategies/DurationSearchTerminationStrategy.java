@@ -7,12 +7,12 @@ import org.opentripplanner.routing.spt.ShortestPathTree;
 
 import java.util.Set;
 
-public class CostSearchTerminationStrategy implements SearchTerminationStrategy {
+public class DurationSearchTerminationStrategy implements SearchTerminationStrategy {
 
-  private final double costLimit;
+  private final double durationInSeconds;
 
-  public CostSearchTerminationStrategy(double costLimit) {
-    this.costLimit = costLimit;
+  public DurationSearchTerminationStrategy(double durationInSeconds) {
+    this.durationInSeconds = durationInSeconds;
   }
 
   @Override
@@ -23,6 +23,6 @@ public class CostSearchTerminationStrategy implements SearchTerminationStrategy 
       ShortestPathTree spt,
       RoutingRequest traverseOptions
   ) {
-    return current.getWeight() > costLimit;
+    return current.getElapsedTimeSeconds() > durationInSeconds;
   }
 }

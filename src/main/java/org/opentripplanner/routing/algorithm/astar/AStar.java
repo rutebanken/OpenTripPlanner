@@ -2,7 +2,6 @@ package org.opentripplanner.routing.algorithm.astar;
 
 import com.beust.jcommander.internal.Lists;
 import org.opentripplanner.common.pqueue.BinHeap;
-import org.opentripplanner.routing.algorithm.astar.strategies.CostSearchTerminationStrategy;
 import org.opentripplanner.routing.algorithm.astar.strategies.RemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.astar.strategies.SearchTerminationStrategy;
 import org.opentripplanner.routing.algorithm.astar.strategies.SkipEdgeStrategy;

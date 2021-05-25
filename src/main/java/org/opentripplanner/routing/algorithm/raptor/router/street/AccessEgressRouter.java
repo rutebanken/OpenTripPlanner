@@ -41,7 +41,7 @@ public class AccessEgressRouter {
         // findNearbyStopsViaStreets() will call cleanup() on the created routing request.
         RoutingRequest nearbyRequest = rr.getStreetSearchRequest(streetMode);
 
-        NearbyStopFinder nearbyStopFinder = new NearbyStopFinder(rr.rctx.graph, rr.maxAccessEgressCost, true);
+        NearbyStopFinder nearbyStopFinder = new NearbyStopFinder(rr.rctx.graph, rr.maxAccessEgressDurationSeconds, true);
         List<NearbyStop> nearbyStopList = nearbyStopFinder.findNearbyStopsViaStreets(
             vertices,
             fromTarget,

@@ -46,7 +46,7 @@ public class DefaultRoutingRequestType {
                         .description(
                                 "The maximum distance (in meters) the user is willing to walk for access/egress legs.")
                         .type(Scalars.GraphQLFloat)
-                        .dataFetcher(env -> request.maxDirectStreetCost)
+                        .dataFetcher(env -> request.maxDirectStreetDurationSeconds)
                         .build())
                 .field(GraphQLFieldDefinition
                         .newFieldDefinition()
