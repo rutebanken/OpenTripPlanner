@@ -69,10 +69,10 @@ public class DirectStreetRouter {
     StreetMode mode = request.modes.directMode;
 
     if (mode.includesDriving()) {
-      distanceLimit = costLimit * request.carSpeed;
+      distanceLimit = costLimit * request.carSpeed  / request.walkReluctance;
     }
     else if (mode.includesBiking()) {
-      distanceLimit = costLimit * request.bikeSpeed;
+      distanceLimit = costLimit * request.bikeSpeed  / request.walkReluctance;
     }
     else if (mode.includesWalking()) {
       // Divide by walkReluctance here in order to convert cost to seconds
