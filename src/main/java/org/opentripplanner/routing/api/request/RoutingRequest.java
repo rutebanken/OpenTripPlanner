@@ -376,10 +376,18 @@ public class RoutingRequest implements AutoCloseable, Cloneable, Serializable {
     /** Configure the transfer optimization */
     public final TransferOptimizationParameters transferOptimization = new TransferOptimizationRequest(this);
 
-    /** A multiplier for how bad walking is, compared to being in transit for equal lengths of time.
-     *  Defaults to 2. Empirically, values between 10 and 20 seem to correspond well to the concept
-     *  of not wanting to walk too much without asking for totally ridiculous itineraries, but this
-     *  observation should in no way be taken as scientific or definitive. Your mileage may vary.
+    /**
+     * A multiplier for how bad travelling using a non-transit mode is compared to riding transit
+     * for equal lengths of time. This includes all modes included in the {@link StreetMode}.
+     *
+     * Because of waiting time, an indirect route, and in some cases slower average speeds, transit
+     * may lose out to walking, biking, or driving. Because OTP is a transit planner, we want to
+     * favor using transit over these other modes.
+     *
+     * IMPORTANT: Adjusting this will also affect the maxDirectStreetCost, minAccessEgressCost,
+     * maxAccessEgressCost and maxTransferCost.
+     *
+     * TODO Rename this to nonTransitReluctance
      */
     public double walkReluctance = 2.0;
 
