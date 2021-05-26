@@ -114,42 +114,13 @@ public class RoutingRequest implements AutoCloseable, Cloneable, Serializable {
     public double maxDirectStreetDurationSeconds = Duration.ofHours(2).toSeconds();
 
     /**
-     * This is the minimum duration in seconds for access/egress street searches. This is a
-     * performance limit and should therefore be set high. Use filters to limit what is presented
-     * to the client.
-     *
-     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
-     *
-     * The access/egress searches will always search in all directions until
-     * minAccessEgressDurationSeconds has been reached. After that it will search until either
-     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
-     */
-    public double minAccessEgressDurationSeconds = Duration.ofMinutes(20).toSeconds();
-
-    /**
      * This is the maximum duration in seconds for access/egress street searches. This is a
      * performance limit and should therefore be set high. Use filters to limit what is presented
      * to the client.
      *
      * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
-     *
-     * The access/egress searches will always search in all directions until
-     * minAccessEgressDurationSeconds has been reached. After that it will search until either
-     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
      */
-    public double maxAccessEgressDurationSeconds = Duration.ofHours(1).toSeconds();
-
-    /**
-     * This is the minimum number of stops that has to be reached before the access/egress search
-     * terminates.
-     *
-     * @see org.opentripplanner.routing.algorithm.filterchain.ItineraryFilter
-     *
-     * The access/egress searches will always search in all directions until
-     * minAccessEgressDurationSeconds has been reached. After that it will search until either
-     * maxAccessEgressDurationSeconds or minAccessEgressStops has been reached.
-     */
-    public int minAccessEgressStops = 5;
+    public double maxAccessEgressDurationSeconds = Duration.ofMinutes(45).toSeconds();
 
     /**
      * The maximum distance (in meters) the user is willing to walk for transfer legs.
