@@ -13,6 +13,7 @@ import org.opentripplanner.routing.services.FareServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -202,11 +203,10 @@ public class BuildConfig {
     public final boolean banDiscouragedBiking;
 
     /**
-     * Transfers up to this generalized cost value will be pre-calculated and included in the Graph.
-     *
-     * Defaults to the equivalent of 45 minutes of walking (with a walkReluctance of 2).
+     * Transfers up to this duration with the default walk speed value will be pre-calculated and
+     * included in the Graph.
      */
-    public final double maxTransferCost;
+    public final double maxTransferDurationSeconds;
 
     /**
      * This will add extra edges when linking a stop to a platform, to prevent detours along the platform edge.
@@ -331,7 +331,7 @@ public class BuildConfig {
         matchBusRoutesToStreets = c.asBoolean("matchBusRoutesToStreets", false);
         maxDataImportIssuesPerFile = c.asInt("maxDataImportIssuesPerFile", 1000);
         maxInterlineDistance = c.asInt("maxInterlineDistance", 200);
-        maxTransferCost = c.asDouble("maxTransferCost", 3000d);
+        maxTransferDurationSeconds = c.asDouble("maxTransferDurationSeconds", Duration.ofMinutes(30).toSeconds());
         multiThreadElevationCalculations = c.asBoolean("multiThreadElevationCalculations", false);
         osmCacheDataInMem = c.asBoolean("osmCacheDataInMem", false);
         osmWayPropertySet = WayPropertySetSource.fromConfig(c.asText("osmWayPropertySet", "default"));
