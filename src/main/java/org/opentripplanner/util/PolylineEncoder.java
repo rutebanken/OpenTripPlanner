@@ -46,6 +46,15 @@ public class PolylineEncoder {
             .collect(Collectors.toList());
     }
 
+    public static EncodedPolylineBean concatenate(List<EncodedPolylineBean> polyLines) {
+        List<Coordinate> coordinates = polyLines
+            .stream()
+            .flatMap(p -> decode(p).stream())
+            .collect(Collectors.toList());
+
+        return createEncodings(coordinates);
+    }
+
     private static class CoordinateList extends AbstractList<Coordinate> {
 
         private final Coordinate[] coordinates;
