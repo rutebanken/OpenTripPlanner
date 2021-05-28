@@ -59,7 +59,7 @@ public class CarRoutingTest {
 
         assertThatPolylinesAreEqual(
                 polyline,
-                "ouqgH}mcu@gAE]U}BaA]Q}@]uAs@[SAm@Ee@AUEi@XEQkBQ?Bz@Dt@Dh@@TGBC@KBSHGx@"
+                "ouqgH}mcu@iAE[U}BaA]Q}@_@uAs@]QAm@Ce@AUEk@XESiBO?@x@Ft@Dj@@TG@E@IBUHEz@"
         );
     }
 
@@ -69,10 +69,10 @@ public class CarRoutingTest {
         var fritzLeharStr = new GenericLocation(48.59460, 8.88291);
 
         var polyline1 = computePolyline(herrenbergGraph, mozartStr, fritzLeharStr);
-        assertThatPolylinesAreEqual(polyline1, "_grgHkcfu@OjBC\\ARGjAKzAfBz@j@n@Rk@E}D");
+        assertThatPolylinesAreEqual(polyline1, "_grgHmcfu@OjBC^CRGjAKzAhBz@h@l@Ti@E_E");
 
         var polyline2 = computePolyline(herrenbergGraph, fritzLeharStr, mozartStr);
-        assertThatPolylinesAreEqual(polyline2, "gcrgHc}eu@D|DSj@k@o@gB{@J{AFkA@SB]NkB");
+        assertThatPolylinesAreEqual(polyline2, "gcrgHe}eu@D~DUh@i@m@iB{@J{AFkABSB_@NkB");
     }
 
     /**
@@ -87,13 +87,13 @@ public class CarRoutingTest {
         var polyline1 = computePolyline(herrenbergGraph, schiessmauer, zeppelinStr);
         assertThatPolylinesAreEqual(
                 polyline1,
-                "otrgH{cbu@v@|D?bAElBEv@Cj@APGAY?YD]Fm@X_@Pw@d@eAn@k@VM@]He@Fo@Bi@??c@?Q@gD?Q?Q@mD?S"
+                "qtrgH{cbu@x@zD?bAElBEv@El@?NI?YAYD]Fm@X]Pw@f@eAl@m@VKB_@He@Fo@Bi@?@c@?S@gD?O?S?kD?U"
         );
 
         var polyline2 = computePolyline(herrenbergGraph, zeppelinStr, schiessmauer);
         assertThatPolylinesAreEqual(
                 polyline2,
-                "ccsgH{|au@?RAlD?P?PAfD?P?b@h@?n@Cd@G\\ILAj@WdAo@v@e@^Ql@Y\\GXEX?F@@QBk@Dw@DmB?cAw@}D"
+                "ecsgH}|au@?T?jD?R?NAfD?RAb@h@?n@Cd@G^IJCl@WdAm@v@g@\\Ql@Y\\GXEX@H??ODm@Dw@DmB?cAy@{D"
         );
     }
 

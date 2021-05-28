@@ -20,7 +20,7 @@ public class EncodedPolylineJSONDeserializer extends JsonDeserializer<Geometry> 
     @Override public Geometry deserialize(JsonParser jsonParser,
             DeserializationContext deserializationContext)
             throws IOException, JsonProcessingException {
-        EncodedPolylineBean bean = new EncodedPolylineBean(jsonParser.getValueAsString(), null, 0);
+        EncodedPolylineBean bean = new EncodedPolylineBean(jsonParser.getValueAsString());
         List<Coordinate> coords = PolylineEncoder.decode(bean);
         return GeometryUtils.getGeometryFactory().createLineString(coords.toArray(new Coordinate[coords.size()]));
     }

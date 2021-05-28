@@ -595,6 +595,13 @@
             <artifactId>protobuf-java</artifactId>
         </dependency>
 
+        <!-- For encoding/decoding polyline strings -->
+        <dependency>
+            <groupId>com.google.maps</groupId>
+            <artifactId>google-maps-services</artifactId>
+            <version>0.18.1</version>
+        </dependency>
+
         <!-- Asynchronous Websocket-capable client, for message-driven incremental GTFS-RT -->
         <!-- AsyncHttpClient Websockets need a newer version of Grizzly than Jersey does. -->
         <dependency>

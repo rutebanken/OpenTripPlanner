@@ -32,10 +32,10 @@ public class BicycleRoutingTest {
         var fritzLeharStr = new GenericLocation(48.59696, 8.85806);
 
         var polyline1 = computePolyline(herrenbergGraph, mozartStr, fritzLeharStr);
-        assertThatPolylinesAreEqual(polyline1, "_srgHutau@h@B|@Jf@BdAG?\\JT@jA?DSp@_@fFsAT{@DBpC");
+        assertThatPolylinesAreEqual(polyline1, "asrgHutau@j@@|@Ld@@dAE?ZLV@hAAFSp@_@fFsARy@F@pC");
 
         var polyline2 = computePolyline(herrenbergGraph, fritzLeharStr, mozartStr);
-        assertThatPolylinesAreEqual(polyline2, "{qrgH{aau@CqCz@ErAU^gFRq@?EAkAKUeACg@A_AM_AEDQF@H?");
+        assertThatPolylinesAreEqual(polyline2, "}qrgH{aau@AqCx@GrAS^gFRq@@GAiAMWcAAi@C}@K_AGBOH?F@");
     }
 
     /**
@@ -48,10 +48,10 @@ public class BicycleRoutingTest {
         var zeppelinStr = new GenericLocation(48.59972, 8.86239);
 
         var polyline1 = computePolyline(herrenbergGraph, schiessmauer, zeppelinStr);
-        assertThatPolylinesAreEqual(polyline1, "otrgH{cbu@S_AU_AmAdAyApAGDs@h@_@\\_ClBe@^?S");
+        assertThatPolylinesAreEqual(polyline1, "qtrgH{cbu@QaAW_AmAfAwAnAGFs@h@a@Z}BlBg@`@?U");
 
         var polyline2 = computePolyline(herrenbergGraph, zeppelinStr, schiessmauer);
-        assertThatPolylinesAreEqual(polyline2, "ccsgH{|au@?Rd@_@~BmB^]r@i@FExAqAlAeAT~@R~@");
+        assertThatPolylinesAreEqual(polyline2, "ecsgH}|au@?Tf@a@|BmB`@[r@i@FGvAoAlAgAV~@P`A");
     }
 
     private static String computePolyline(Graph graph, GenericLocation from, GenericLocation to) {

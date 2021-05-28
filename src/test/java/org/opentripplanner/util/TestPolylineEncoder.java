@@ -18,8 +18,7 @@ public class TestPolylineEncoder extends TestCase {
         points.add(new Coordinate(-73.85136, 40.902261, Double.NaN));
         points.add(new Coordinate(-73.85151, 40.902066, Double.NaN));
         EncodedPolylineBean eplb = PolylineEncoder.createEncodings(points);
-        assertEquals("o{sxFl}vaMjDpCf@\\", eplb.getPoints());
+        assertEquals("q{sxFj}vaMlDrCd@\\", eplb.getPoints());
         assertEquals(3, eplb.getLength());
-        assertNull(eplb.getLevels());
     }
 }
