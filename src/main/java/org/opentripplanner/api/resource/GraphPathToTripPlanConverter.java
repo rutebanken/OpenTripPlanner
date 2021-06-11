@@ -703,6 +703,9 @@ public abstract class GraphPathToTripPlanConverter {
 
     private static void addAlertPatchesToLeg(Graph graph, Leg leg, boolean isFirstLeg, Locale requestedLocale) {
 
+        // Alerts are only relevant for transit legs
+        if (leg.tripId == null) { return; }
+
         if (graph.index != null) {
             Set<StopCondition> departingStopConditions = new HashSet<>();
             departingStopConditions.add(StopCondition.STOP);
