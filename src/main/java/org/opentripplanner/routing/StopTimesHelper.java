@@ -1,6 +1,12 @@
 package org.opentripplanner.routing;
 
 import com.google.common.collect.MinMaxPriorityQueue;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Queue;
 import org.opentripplanner.model.Stop;
 import org.opentripplanner.model.StopPattern;
 import org.opentripplanner.model.StopTimesInPattern;
@@ -10,15 +16,7 @@ import org.opentripplanner.model.TripPattern;
 import org.opentripplanner.model.TripTimeShort;
 import org.opentripplanner.model.calendar.ServiceDate;
 import org.opentripplanner.routing.core.ServiceDay;
-import org.opentripplanner.routing.trippattern.FrequencyEntry;
 import org.opentripplanner.routing.trippattern.TripTimes;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Queue;
 
 public class StopTimesHelper {
   /**
@@ -222,28 +220,6 @@ public class StopTimesHelper {
             if (t.getDepartureTime(sidx) != -1 &&
                     t.getDepartureTime(sidx) >= secondsSinceMidnight) {
               pq.add(new TripTimeShort(t, sidx, stop, sd));
-            }
-          }
-
-          // TODO: This needs to be adapted after #1647 is merged
-          for (FrequencyEntry freq : tt.frequencyEntries) {
-            if (!sd.serviceRunning(freq.tripTimes.serviceCode)) continue;
-            int departureTime = freq.nextDepartureTime(sidx, secondsSinceMidnight);
-            if (departureTime == -1) continue;
-            int lastDeparture = freq.endTime + freq.tripTimes.getArrivalTime(sidx) -
-                    freq.tripTimes.getDepartureTime(0);
-            int i = 0;
-            while (departureTime <= lastDeparture && i < numberOfDepartures) {
-              pq.add(
-                      new TripTimeShort(
-                              freq.materialize(sidx, departureTime, true),
-                              sidx,
-                              stop,
-                              sd
-                      )
-              );
-              departureTime += freq.headway;
-              i++;
             }
           }
         }

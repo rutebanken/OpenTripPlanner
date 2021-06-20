@@ -51,8 +51,8 @@ public final class Trip extends TransitEntity {
 
     public Trip(Trip obj) {
         this(obj.getId());
-        this.route = obj.route;
         this.operator = obj.operator;
+        this.route = obj.route;
         this.serviceId = obj.serviceId;
         this.tripShortName = obj.tripShortName;
         this.tripHeadsign = obj.tripHeadsign;

@@ -7,17 +7,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.LineString;
-import org.opentripplanner.common.geometry.CompactLineString;
-import org.opentripplanner.common.geometry.GeometryUtils;
-import org.opentripplanner.graph_builder.DataImportIssueStore;
-import org.opentripplanner.graph_builder.issues.NonUniqueRouteName;
-import org.opentripplanner.routing.trippattern.FrequencyEntry;
-import org.opentripplanner.routing.trippattern.TripTimes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -30,6 +19,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
+import org.opentripplanner.common.geometry.CompactLineString;
+import org.opentripplanner.common.geometry.GeometryUtils;
+import org.opentripplanner.graph_builder.DataImportIssueStore;
+import org.opentripplanner.graph_builder.issues.NonUniqueRouteName;
+import org.opentripplanner.routing.trippattern.TripTimes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a group of trips on a route, with the same direction id that all call at the same
@@ -307,20 +305,6 @@ public class TripPattern extends TransitEntity implements Cloneable, Serializabl
         // Identity equality is valid on GTFS entity objects.
         if (this.route != tt.trip.getRoute()) {
             LOG.warn("The trip {} is on route {} but its stop pattern is on route {}.", tt.trip, tt.trip.getRoute(), this.route);
-        }
-    }
-
-    /**
-     * Add the given FrequencyEntry to this pattern's scheduled timetable, recording the corresponding
-     * trip as one of the scheduled trips on this pattern.
-     * TODO possible improvements: combine freq entries and TripTimes. Do not keep trips list in TripPattern
-     * since it is redundant.
-     */
-    public void add(FrequencyEntry freq) {
-        trips.add(freq.tripTimes.trip);
-        scheduledTimetable.addFrequencyEntry(freq);
-        if (this.route != freq.tripTimes.trip.getRoute()) {
-            LOG.warn("The trip {} is on a different route than its stop pattern, which is on {}.", freq.tripTimes.trip, route);
         }
     }
 
@@ -604,24 +588,6 @@ public class TripPattern extends TransitEntity implements Cloneable, Serializabl
             sb.append(encoder.encode(tripTimes.semanticHash(murmur).asBytes()));
         }
         return sb.toString();
-    }
-
-    /** This method can be used in very specific circumstances, where each TripPattern has only one FrequencyEntry. */
-    public FrequencyEntry getSingleFrequencyEntry() {
-        Timetable table = this.scheduledTimetable;
-        List<FrequencyEntry> freqs = this.scheduledTimetable.frequencyEntries;
-        if ( ! table.tripTimes.isEmpty()) {
-            LOG.debug("Timetable has {} non-frequency entries and {} frequency entries.", table.tripTimes.size(),
-                    table.frequencyEntries.size());
-            return null;
-        }
-        if (freqs.isEmpty()) {
-            LOG.debug("Timetable has no frequency entries.");
-            return null;
-        }
-        // Many of these have multiple frequency entries. Return the first one for now.
-        // TODO return all of them and filter on time window
-        return freqs.get(0);
     }
 
     public TripPattern clone () {

@@ -80,6 +80,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -184,6 +185,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -248,6 +250,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -318,6 +321,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -470,6 +474,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -521,6 +526,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -643,6 +649,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -840,6 +847,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -891,6 +899,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -1064,6 +1073,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -1261,6 +1271,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -1312,6 +1323,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -1485,6 +1497,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "NORTH",
@@ -1631,6 +1644,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -1682,6 +1696,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -1797,6 +1812,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -1901,6 +1917,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -1965,6 +1982,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -2035,6 +2053,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -2187,6 +2206,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -2238,6 +2258,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -2353,6 +2374,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -2457,6 +2479,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -2521,6 +2544,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -2591,6 +2615,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -2743,6 +2768,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -2794,6 +2820,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.accessBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -2888,6 +2915,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -2992,6 +3020,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -3056,6 +3085,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -3119,6 +3149,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -3253,6 +3284,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -3357,6 +3389,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -3421,6 +3454,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.directBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "EAST",
@@ -3583,6 +3617,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -3746,6 +3781,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -3798,6 +3834,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "NORTH",
@@ -3885,6 +3922,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -3949,6 +3987,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "NORTH",
@@ -4011,6 +4050,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -4173,6 +4213,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -4336,6 +4377,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -4387,6 +4429,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -4560,6 +4603,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -4740,6 +4784,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -4791,6 +4836,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -4947,6 +4993,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -5110,6 +5157,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -5162,6 +5210,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "NORTH",
@@ -5249,6 +5298,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -5313,6 +5363,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "NORTH",
@@ -5375,6 +5426,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",
@@ -5537,6 +5589,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -5700,6 +5753,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -5751,6 +5805,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -5924,6 +5979,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "WEST",
@@ -6104,6 +6160,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
             },
             "wheelchairAccessible": 0
           },
+          "tripFrequencyStartTime": 0,
           "walkSteps": [ ],
           "walkingLeg": false
         },
@@ -6155,6 +6212,7 @@ org.opentripplanner.routing.algorithm.mapping.BikeRentalSnapshotTest.egressBikeR
           },
           "transitAlerts": [ ],
           "transitLeg": false,
+          "tripFrequencyStartTime": 0,
           "walkSteps": [
             {
               "absoluteDirection": "SOUTH",

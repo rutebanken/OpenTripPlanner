@@ -11,7 +11,9 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.opentripplanner.model.BookingInfo;
+import org.opentripplanner.model.Frequency;
 import org.opentripplanner.model.StopTime;
 import org.opentripplanner.model.Trip;
 import org.slf4j.Logger;
@@ -43,6 +45,14 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
 
     /** The trips whose arrivals and departures are represented by this TripTimes */
     public final Trip trip;
+
+    /**
+     * The trip frequency instance if the trip is frequency based. A trip can have more than one
+     * frequency, so knowing the trip and depature times is not enough to determine the frequency
+     * instance. For regular trips this is null.
+     */
+    @Nullable
+    public final Frequency frequency;
 
     /** The code for the service on which this trip runs. For departure search optimizations. */
     // not final because these are set later, after TripTimes construction.
@@ -172,6 +182,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
             pickupBookingInfos.add(st.getPickupBookingInfo());
             s++;
         }
+        this.frequency = null;
         this.scheduledDepartureTimes = deduplicator.deduplicateIntArray(departures);
         this.scheduledArrivalTimes = deduplicator.deduplicateIntArray(arrivals);
         this.stopSequences = deduplicator.deduplicateIntArray(sequences);
@@ -194,6 +205,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
     // However, we then lose the "final" modifiers on the fields, and the immutability.
     public TripTimes(final TripTimes object) {
         this.trip = object.trip;
+        this.frequency = object.frequency;
         this.serviceCode = object.serviceCode;
         this.timeShift = object.timeShift;
         this.headsigns = object.headsigns;
@@ -205,6 +217,22 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
         this.dropoffs = object.dropoffs;
         this.dropOffBookingInfos = object.dropOffBookingInfos;
         this.pickupBookingInfos = object.pickupBookingInfos;
+    }
+
+    public TripTimes(TripTimes base, Frequency frequency, int timeShift) {
+        this.trip = base.trip;
+        this.serviceCode = base.serviceCode;
+        this.timeShift = base.timeShift;
+        this.headsigns = base.headsigns;
+        this.scheduledDepartureTimes = base.scheduledDepartureTimes;
+        this.scheduledArrivalTimes = base.scheduledArrivalTimes;
+        this.stopSequences = base.stopSequences;
+        this.timepoints = base.timepoints;
+        this.pickups = base.pickups;
+        this.dropOffBookingInfos = base.dropOffBookingInfos;
+        this.pickupBookingInfos = base.pickupBookingInfos;
+        this.frequency = frequency;
+        this.timeShift  = timeShift;
     }
 
     /**
@@ -399,8 +427,7 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
      * @return true if this TripTimes is canceled
      */
     public boolean isCanceled() {
-        final boolean isCanceled = realTimeState == RealTimeState.CANCELED;
-        return isCanceled;
+        return realTimeState == RealTimeState.CANCELED;
     }
 
     /**
@@ -412,6 +439,11 @@ public class TripTimes implements Serializable, Comparable<TripTimes>, Cloneable
 
     public void setRealTimeState(final RealTimeState realTimeState) {
         this.realTimeState = realTimeState;
+    }
+
+    @Nullable
+    public Frequency getFrequency() {
+        return frequency;
     }
 
     /** Used in debugging / dumping times. */
